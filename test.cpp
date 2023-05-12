@@ -2,6 +2,7 @@
 #include <complex>
 #include <iostream>
 #include <random>
+#include <type_traits>
 // #include "gnuplot-iostream.h"
 // #include <cmath>
 // #include "matplotlib-cpp/matplotlibcpp.h"
@@ -132,7 +133,7 @@ int main(){
     std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
     double ddt = 0.01;
     double t_0 = 0;
-    double t = 0.1;
+    double t = 1000;
     double latter = 2;
     Eigen::VectorXcd x_0(14);
     x_0(0) = std::complex<double>(0.4350E+00 , 0.5008E+00);
@@ -171,10 +172,15 @@ int main(){
     // }
     // gp << "plot '-' with linespoints\n";
     // gp.send1d(data);
-    
 
-
-    
+    Eigen::VectorXcd state = x_0;
+    Eigen::MatrixXcd laminar = trajectory.topRows(trajectory.rows()-1);
+    double epsilon = 1e+1;
+    int row_start = 0;
+    int row_end = state.rows() - 1;
+    Eigen::VectorXd distance = (laminar.middleRows(row_start, row_end).cwiseAbs() - state.middleRows(row_start, row_end).replicate(1, laminar.cols()).cwiseAbs()).colwise().norm();
+    bool aaa = (distance.array() < epsilon).any();
+    std::cout << true << std::endl;
 
     
 }

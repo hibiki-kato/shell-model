@@ -43,9 +43,9 @@ int main(){
     double elapsed = std::chrono::duration_cast<std::chrono::seconds>(end-start).count(); //処理に要した時間をミリ秒に変換
     std::cout << elapsed << std::endl;
 
-    std::ofstream file("output.txt");
-    file << trajectory.cwiseAbs();
-    file.close();
+    // std::ofstream file("output.txt");
+    // file << trajectory.cwiseAbs();
+    // file.close();
 
 
 }

@@ -5,16 +5,15 @@
             "name": "C/C++: g++ アクティブ ファイルのビルドとデバッグ",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/cpp_codes/program",
+            "program": "${workspaceFolder}/test.cpp",
             "args": [],
             "stopAtEntry": false,
-            "cwd": "${workspaceFolder}/cpp_codes",
+            "cwd": "${workspaceFolder}",
             "environment": [],
             "externalConsole": false,
             "MIMode": "lldb",
             "miDebuggerPath": "/usr/bin/lldb",
             "preLaunchTask": "C/C++: g++ アクティブなファイルのビルド",
-            "targetArchitecture": "arm64",
         }
     ]
 }

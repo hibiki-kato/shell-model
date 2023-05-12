@@ -1,1 +1,4 @@
 /matplotlib-cpp
+/.vscode/launch.json
+*.o
+*.out
