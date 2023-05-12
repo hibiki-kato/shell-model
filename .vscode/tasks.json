@@ -1,0 +1,29 @@
+{
+    "tasks": [
+        {
+            "type": "cppbuild",
+            "label": "C/C++: g++ アクティブなファイルのビルド",
+            "command": "/opt/homebrew/bin/g++",
+            "args": [
+                "-fdiagnostics-color=always",
+                "-g",
+                "-o",
+                "${fileDirname}/${fileBasenameNoExtension}",
+                "trajectory_observation.cpp",
+                "Runge_Kutta.cpp"
+            ],
+            "options": {
+                "cwd": "${fileDirname}"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "detail": "デバッガーによって生成されたタスク。"
+        }
+    ],
+    "version": "2.0.0"
+}
