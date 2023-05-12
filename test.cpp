@@ -5,8 +5,8 @@
 #include <type_traits>
 // #include "gnuplot-iostream.h"
 // #include <cmath>
-// #include "matplotlib-cpp/matplotlibcpp.h"
-// namespace plt = matplotlibcpp;
+#include "matplotlib-cpp/matplotlibcpp.h"
+namespace plt = matplotlibcpp;
 
 class ShellModel
 {   //data members
@@ -77,7 +77,7 @@ public:
         }
         
         //solve
-        for(int i = 0; i < steps-1; i++){
+        for(int i = 0; i < steps; i++){
             trajectory.block(0, i+1, row-1, 1) = rk4_(trajectory.block(0, i, row-1, 1));
             trajectory(row-1, i+1) = time;
             time += ddt;
@@ -133,8 +133,8 @@ int main(){
     std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
     double ddt = 0.01;
     double t_0 = 0;
-    double t = 1000;
-    double latter = 2;
+    double t = 100000;
+    double latter = 1;
     Eigen::VectorXcd x_0(14);
     x_0(0) = std::complex<double>(0.4350E+00 , 0.5008E+00);
     x_0(1) = std::complex<double>(0.1259E+00 , 0.2437E+00);
@@ -155,23 +155,22 @@ int main(){
     ShellModel solver(nu, beta, f, ddt, t_0, t, latter, x_0);
 
     Eigen::MatrixXcd trajectory = solver.get_trajectory_();
+    
+    // Set the size of output image = 1200x780 pixels
+    plt::figure_size(1200, 780);
+    // Add graph title
+    plt::title("Sample figure");
+    std::vector<double> x(trajectory.cols()),y(trajectory.cols());
 
-    // // plt::plot(time, trajectory.cwiseAbs().row(0));
-    // plt::plot({1,3,2,4});
-    // plt::show();
-    // std::cout << "Time: " << time << std::endl;
+    for(int i=0;i<trajectory.cols();i++){
+        x[i]=trajectory.cwiseAbs()(14, i);
+        y[i]=trajectory.cwiseAbs()(0, i);
+    }
 
-    // Gnuplot gp;
-
-    // Eigen::VectorXd y = trajectory.col(0).cwiseAbs();
-    // Eigen::VectorXd x = trajectory.col(14).cwiseAbs();
-
-    // std::vector<std::pair<double, double>> data;
-    // for (int i = 0; i < x.size(); i++) {
-    //     data.push_back(std::make_pair(x(i), y(i)));
-    // }
-    // gp << "plot '-' with linespoints\n";
-    // gp.send1d(data);
+    plt::plot(x,y);
+    const char* filename = "test.png";
+    std::cout << "Saving result to " << filename << std::endl;
+    plt::save(filename);
 
     Eigen::VectorXcd state = x_0;
     Eigen::MatrixXcd laminar = trajectory.topRows(trajectory.rows()-1);

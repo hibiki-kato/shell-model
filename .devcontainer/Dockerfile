@@ -11,12 +11,15 @@ RUN if [ "${REINSTALL_CMAKE_VERSION_FROM_SOURCE}" != "none" ]; then \
     && apt update \
     && export DEBIAN_FRONTEND=noninteractive \
     && apt install -y \
-    libeigen3-dev
+    libeigen3-dev \
+    libpython3-all-dev \
+    python3-numpy \
+    python3-matplotlib
     # libboost-all-dev \
     # build-essential \
     # gnuplot \
-    # libpython3.10-dev \
     # libpython2.7-dev \
+
     # language-pack-ja-base \
     # language-pack-ja \
     # locales \

@@ -61,6 +61,7 @@ Eigen::MatrixXcd ShellModel::get_trajectory_(){
     }
 
     //solve
+
     for(int i = 0; i < steps; i++){
         trajectory.block(0, i+1, row-1, 1) = ShellModel::rk4_(trajectory.block(0, i, row-1, 1));
         trajectory(row-1, i+1) = time;
