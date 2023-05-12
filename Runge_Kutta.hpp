@@ -30,6 +30,9 @@ public:
     Eigen::MatrixXcd get_trajectory_();
     // Eigen::VectorXd get_timeline_();
 
+    Eigen::MatrixXcd stagger_and_step();
+    
+
     void set_nu_(double input_nu);
     void set_beta_(double input_beta);
     void set_x_0_(Eigen::VectorXcd input_x_0);
