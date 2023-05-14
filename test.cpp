@@ -128,8 +128,8 @@ private:
 };
 
 int main(){
-    double nu = 0.0001;
-    double beta = 0.5;
+    double nu = 0.;
+    double beta = 0.417;
     std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
     double ddt = 0.01;
     double t_0 = 0;
@@ -171,6 +171,7 @@ int main(){
     const char* filename = "test.png";
     std::cout << "Saving result to " << filename << std::endl;
     plt::save(filename);
+    
 
     Eigen::VectorXcd state = x_0;
     Eigen::MatrixXcd laminar = trajectory.topRows(trajectory.rows()-1);

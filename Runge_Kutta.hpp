@@ -40,5 +40,12 @@ private:
     Eigen::VectorXcd rk4_(Eigen::VectorXcd present);
     Eigen::VectorXcd goy_shell_model_(Eigen::VectorXcd state);
     Eigen::VectorXcd perturbator_(Eigen::VectorXcd state);
-    bool isLaminar_(Eigen::VectorXcd state, Eigen::MatrixXcd laminar, double epsilon);
 };
+
+class Long laminar : public ShellModel
+{
+public:
+    
+private:
+    bool isLaminar_(Eigen::VectorXcd state, Eigen::MatrixXcd laminar, double epsilon);
+}
