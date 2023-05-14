@@ -1,1 +1,0 @@
-/usr/bin/c++ -std=c++11 -O3 -mtune=native -march=native -I/usr/include/python2.7 -lpython2.7 -DWITHOUT_NUMPY CMakeFiles/RungeKutta.out.dir/Runge_Kutta.cpp.o CMakeFiles/RungeKutta.out.dir/trajectory_observation.cpp.o -o RungeKutta.out 
