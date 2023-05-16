@@ -3,17 +3,18 @@
         {
             "type": "cppbuild",
             "label": "C/C++: g++ アクティブなファイルのビルド",
-            "command": "/opt/homebrew/bin/g++",
+            "command": "/usr/bin/g++",
             "args": [
                 "-fdiagnostics-color=always",
                 "-g",
+                "${workspaceFolder}/stagger_and_step.cpp",
                 "-o",
-                "${fileDirname}/${fileBasenameNoExtension}",
-                "trajectory_observation.cpp",
-                "Runge_Kutta.cpp"
+                "${workspaceFolder}/ShellModel.cpp",
+                "${workspaceFolder}/LongLaminar.cpp",
+                "-mtune=native -march=native -std=c++20 -I/usr/include/python3.10 -L/usr/lib/python3.10 -lpython3.10"
             ],
             "options": {
-                "cwd": "${fileDirname}"
+                "cwd": "${workspaceFolder}/"
             },
             "problemMatcher": [
                 "$gcc"

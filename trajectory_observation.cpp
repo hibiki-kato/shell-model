@@ -1,17 +1,18 @@
 #include <iostream>
 #include <fstream>
+#include <sstream>
 #include <eigen3/Eigen/Dense>
 #include <complex>
 #include <cmath>
 #include "Runge_Kutta.hpp"
 #include <chrono>
 #include <random>
-//#include "matplotlib-cpp/matplotlibcpp.h"
-//namespace plt = matplotlibcpp;
+#include "matplotlibcpp.h"
+namespace plt = matplotlibcpp;
 
 int main(){
     double nu = 0.00017256;
-    double beta = 0.418;
+    double beta = 0.417;
     std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
     double ddt = 0.01;
     double t_0 = 0;
@@ -38,6 +39,23 @@ int main(){
     ShellModel solver(nu, beta, f, ddt, t_0, t, latter, x_0);
 
     Eigen::MatrixXcd trajectory = solver.get_trajectory_();
+    // Set the size of output image = 1200x780 pixels
+    plt::figure_size(1200, 780);
+    // Add graph title
+    plt::title("Sample figure");
+    std::vector<double> x(trajectory.cols()),y(trajectory.cols());
+
+    for(int i=0;i<trajectory.cols();i++){
+        x[i]=trajectory.cwiseAbs()(14, i);
+        y[i]=trajectory.cwiseAbs()(0, i);
+    }
+
+    plt::plot(x,y);
+    std::ostringstream oss;
+    oss << "../beta_" << beta << "nu_" << nu <<"_"<< t-t_0 << "period.png";  // 文字列を結合する
+    std::string filename = oss.str(); // 文字列を取得する
+    std::cout << "Saving result to " << filename << std::endl;
+    plt::save(filename);
 
     end = std::chrono::system_clock::now();  // 計測終了時間
     double elapsed = std::chrono::duration_cast<std::chrono::seconds>(end-start).count(); //処理に要した時間をミリ秒に変換

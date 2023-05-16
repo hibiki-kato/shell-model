@@ -54,16 +54,16 @@ RM = /opt/cmake/bin/cmake -E rm -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /workspaces/kato_cpp
+CMAKE_SOURCE_DIR = /workspaces/cpp_codes
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /workspaces/kato_cpp/build
+CMAKE_BINARY_DIR = /workspaces/cpp_codes/build
 
 #=============================================================================
 # Directory level rules for the build root directory
 
 # The main recursive "all" target.
-all: CMakeFiles/energy.dir/all
+all: CMakeFiles/laminar.dir/all
 .PHONY : all
 
 # The main recursive "preinstall" target.
@@ -71,34 +71,34 @@ preinstall:
 .PHONY : preinstall
 
 # The main recursive "clean" target.
-clean: CMakeFiles/energy.dir/clean
+clean: CMakeFiles/laminar.dir/clean
 .PHONY : clean
 
 #=============================================================================
-# Target rules for target CMakeFiles/energy.dir
+# Target rules for target CMakeFiles/laminar.dir
 
 # All Build rule for target.
-CMakeFiles/energy.dir/all:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/energy.dir/build.make CMakeFiles/energy.dir/depend
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/energy.dir/build.make CMakeFiles/energy.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/workspaces/kato_cpp/build/CMakeFiles --progress-num=1,2,3 "Built target energy"
-.PHONY : CMakeFiles/energy.dir/all
+CMakeFiles/laminar.dir/all:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/laminar.dir/build.make CMakeFiles/laminar.dir/depend
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/laminar.dir/build.make CMakeFiles/laminar.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/workspaces/cpp_codes/build/CMakeFiles --progress-num=1,2,3,4 "Built target laminar"
+.PHONY : CMakeFiles/laminar.dir/all
 
 # Build rule for subdir invocation for target.
-CMakeFiles/energy.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /workspaces/kato_cpp/build/CMakeFiles 3
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/energy.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /workspaces/kato_cpp/build/CMakeFiles 0
-.PHONY : CMakeFiles/energy.dir/rule
+CMakeFiles/laminar.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /workspaces/cpp_codes/build/CMakeFiles 4
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/laminar.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /workspaces/cpp_codes/build/CMakeFiles 0
+.PHONY : CMakeFiles/laminar.dir/rule
 
 # Convenience name for target.
-energy: CMakeFiles/energy.dir/rule
-.PHONY : energy
+laminar: CMakeFiles/laminar.dir/rule
+.PHONY : laminar
 
 # clean rule for target.
-CMakeFiles/energy.dir/clean:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/energy.dir/build.make CMakeFiles/energy.dir/clean
-.PHONY : CMakeFiles/energy.dir/clean
+CMakeFiles/laminar.dir/clean:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/laminar.dir/build.make CMakeFiles/laminar.dir/clean
+.PHONY : CMakeFiles/laminar.dir/clean
 
 #=============================================================================
 # Special targets to cleanup operation of make.

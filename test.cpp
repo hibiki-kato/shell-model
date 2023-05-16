@@ -1,9 +1,9 @@
 #include <eigen3/Eigen/Dense>
 #include <complex>
 #include <iostream>
+#include <vector>
 #include <random>
 #include <type_traits>
-// #include "gnuplot-iostream.h"
 // #include <cmath>
 #include "matplotlibcpp.h"
 namespace plt = matplotlibcpp;
@@ -133,7 +133,7 @@ int main(){
     std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
     double ddt = 0.01;
     double t_0 = 0;
-    double t = 1000000;
+    double t = 100000;
     double latter = 1;
     Eigen::VectorXcd x_0(14);
     x_0(0) = std::complex<double>(0.4350E+00 , 0.5008E+00);

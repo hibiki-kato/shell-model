@@ -96,20 +96,40 @@ void ShellModel::set_beta_(double input_beta){
     c_n_3 = Eigen::VectorXd::Zero(dim);
     c_n_3.bottomRows(dim-2) = k_n.middleRows(2, dim-2) * (beta - 1);
 }
-
-void ShellModel::set_x_0_(Eigen::VectorXcd input_x_0)
-{
+void ShellModel::set_t_0_(double input_t_0){
+    t_0 = input_t_0;
+}
+void ShellModel::set_t_(double input_t){
+    t = input_t;
+}
+void ShellModel::set_steps_(double input_steps){
+    steps = input_steps;
+}
+void ShellModel::set_x_0_(Eigen::VectorXcd input_x_0){
     x_0 = input_x_0;
 }
 
-Eigen::VectorXd ShellModel::get_k_n_()
-{
+double ShellModel::get_ddt_(){
+    return ddt;
+}
+double ShellModel::get_t_0_(){
+    return t_0;
+}
+double ShellModel::get_t_(){
+    return t;
+}
+int ShellModel::get_steps_(){
+    return steps;
+}
+Eigen::VectorXd ShellModel::get_k_n_(){
     return k_n;
+}
+Eigen::VectorXcd ShellModel::get_x_0_(){
+    return x_0;
 }
 
 
-Eigen::VectorXcd ShellModel::rk4_(Eigen::VectorXcd present)
-{
+Eigen::VectorXcd ShellModel::rk4_(Eigen::VectorXcd present){
     Eigen::VectorXcd k1 = ddt * ShellModel::goy_shell_model_(present).array();
     Eigen::VectorXcd k2 = ddt * ShellModel::goy_shell_model_(present.array() + k1.array() /2).array();
     Eigen::VectorXcd k3 = ddt * ShellModel::goy_shell_model_(present.array() + k2.array() /2).array();
@@ -117,8 +137,7 @@ Eigen::VectorXcd ShellModel::rk4_(Eigen::VectorXcd present)
     return present.array() + (k1.array() + 2 * k2.array() + 2 * k3.array() + k4.array()) / 6;
 }
 
-Eigen::VectorXcd ShellModel::goy_shell_model_(Eigen::VectorXcd state)
-{
+Eigen::VectorXcd ShellModel::goy_shell_model_(Eigen::VectorXcd state){
     int dim = state.rows();
     Eigen::VectorXcd u = Eigen::VectorXd::Zero(dim+4);
 
