@@ -27,7 +27,7 @@ Eigen::MatrixXcd LongLaminar::stagger_and_step_(){
     int stagger_and_step_num = static_cast<int>((end_time_of_stag_and_step - begin_time_of_stag_and_step) / progress_sec + 0.5); // times of stagger and step
     int check_steps = static_cast<int>(check_sec / ShellModel::get_ddt_() + 0.5); //steps of checked trajectory
     int progress_steps = static_cast<int>(progress_sec / ShellModel::get_ddt_() + 0.5); //steps of progress
-    int cycle_limit = 1E+03;
+    int cycle_limit = 1E+05;
     ShellModel::set_steps_(check_steps);
     
     for (int i = 0; i < stagger_and_step_num; i++){
@@ -42,8 +42,8 @@ Eigen::MatrixXcd LongLaminar::stagger_and_step_(){
         Eigen::MatrixXcd checked_traj = ShellModel::get_trajectory_();
         if (LongLaminar::isLaminarTrajectory_(checked_traj)){
             staggered_traj.middleCols(i*progress_steps, progress_steps+1) = checked_traj.leftCols(progress_steps+1);
-            ShellModel::set_t_0_(ShellModel::get_t_());
-            ShellModel::set_x_0_(checked_traj.topRightCorner(ShellModel::get_x_0_().size(), 1));
+            ShellModel::set_t_0_(ShellModel::get_t_0_() + progress_sec);
+            ShellModel::set_x_0_(checked_traj.block(0, progress_steps, ShellModel::get_x_0_().size(), 1));
         }
         else{
             std::cout << std::endl;
@@ -59,9 +59,12 @@ Eigen::MatrixXcd LongLaminar::stagger_and_step_(){
                     ShellModel::set_x_0_(LongLaminar::perturbator_(ShellModel::get_x_0_()));
                     Eigen::MatrixXcd checked_traj = ShellModel::get_trajectory_();
                     if (LongLaminar::isLaminarTrajectory_(checked_traj)) {
-                        staggered_traj.middleCols(i * progress_steps, progress_steps + 1) = checked_traj.leftCols(progress_steps + 1);
-                        ShellModel::set_t_0_(ShellModel::get_t_());
-                        ShellModel::set_x_0_(checked_traj.topRightCorner(ShellModel::get_x_0_().size(), 1));
+                        #pragma omp single 
+                        {
+                            staggered_traj.middleCols(i * progress_steps, progress_steps + 1) = checked_traj.leftCols(progress_steps + 1);
+                            ShellModel::set_t_0_(ShellModel::get_t_0_() + progress_sec);
+                            ShellModel::set_x_0_(checked_traj.block(0, progress_steps, ShellModel::get_x_0_().size(), 1));
+                        }
                         break;
                     }
                     if (local_counter >= local_cycle_limit / local_threads) {

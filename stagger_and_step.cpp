@@ -6,6 +6,7 @@
 #include "Runge_Kutta.hpp"
 #include <chrono>
 #include <random>
+#include <omp.h>
 #include "matplotlibcpp.h"
 namespace plt = matplotlibcpp;
 
@@ -15,8 +16,8 @@ int main(){
     std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
     double ddt = 0.01;
     double t_0 = 0;
-    double t = 1000;
-    double latter = 20;
+    double t = 100000;
+    double latter = 200;
     Eigen::VectorXcd x_0(14);
     x_0(0) = std::complex<double>(0.4350E+00 , 0.5008E+00);
     x_0(1) = std::complex<double>(0.1259E+00 , 0.2437E+00);
@@ -37,18 +38,21 @@ int main(){
     int skip = 1000;
     double check_sec = 1500;
     double progress_sec = 400;
-    int threads = 6;
+    int threads = omp_get_max_threads();
+    std::cout << threads << "threads" << std::endl;
 
 
     std::chrono::system_clock::time_point  start, end; // 型は auto で可
     start = std::chrono::system_clock::now(); // 計測開始時間
     ShellModel solver(nu, beta, f, ddt, t_0, t, latter, x_0);
     Eigen::MatrixXcd laminar = solver.get_trajectory_();
-    beta = 0.423;
-    nu = 0.0001758;
+
+    beta = 0.419;
+    nu = 0.00017216;
     latter = 1;
-    t = 2000;
+    t = 20000;
     x_0 = laminar.topRightCorner(x_0.size(), 1);
+
 
     LongLaminar challenger(nu, beta, f, ddt, t_0, t, latter, x_0, laminar, epsilon, skip, check_sec, progress_sec, threads);
     Eigen::MatrixXcd calced_laminar = challenger.stagger_and_step_();
@@ -63,8 +67,8 @@ int main(){
     }
 
     plt::plot(x,y);
-    const char* filename = "test.png";
-    std::cout << "Saving result to " << filename << std::endl;
+    const char* filename = "test1.png";
+    std::cout << "\n Saving result to " << filename << std::endl;
     plt::save(filename);
 
     end = std::chrono::system_clock::now();  // 計測終了時間
