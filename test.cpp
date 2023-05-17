@@ -6,7 +6,10 @@
 #include <type_traits>
 // #include <cmath>
 #include "matplotlibcpp.h"
+#include "cnpy/cnpy.h"
 namespace plt = matplotlibcpp;
+
+Eigen::VectorXcd perturbator(Eigen::VectorXcd state);
 
 class ShellModel
 {   //data members
@@ -127,6 +130,7 @@ private:
     }
 };
 
+
 int main(){
     double nu = 0.0001732;
     double beta = 0.417;
@@ -154,7 +158,12 @@ int main(){
     
     ShellModel solver(nu, beta, f, ddt, t_0, t, latter, x_0);
 
-    Eigen::MatrixXcd trajectory = solver.get_trajectory_();
+    // load npz
+    cnpy::NpyArray loaded = cnpy::npy_load("beta_0.417nu_0.00017256_100000period.npy");
+    Eigen::Map<const Eigen::MatrixXcd> Loaded(loaded.data<std::complex<double>>(), loaded.shape[0], loaded.shape[1]);
+    Eigen::MatrixXcd trajectory = Loaded;
+
+    // Eigen::MatrixXcd trajectory = solver.get_trajectory_();
     
     // Set the size of output image = 1200x780 pixels
     plt::figure_size(1200, 780);
@@ -167,9 +176,41 @@ int main(){
         y[i]=trajectory.cwiseAbs()(0, i);
     }
 
-    plt::plot(x,y);
+    // plt::plot(x,y);
+    Eigen::VectorXd state;
+    std::vector<double> u_0(10000);
+    std::vector<double> u_1(10000);
+    for(int i = 0; i < 10000; i++){
+        state = perturbator(x_0).cwiseAbs();
+        u_0[i] = state(0);
+        u_1[i] = state(1);
+    }
+    plt::scatter(u_0, u_1);
     const char* filename = "test.png";
     std::cout << "Saving result to " << filename << std::endl;
     plt::save(filename);
+
+
     
 }
+
+
+Eigen::VectorXcd perturbator(Eigen::VectorXcd state){   
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    double a = -3;
+    double b = -10;
+    std::uniform_real_distribution<double> s(-1, 1);
+    std::uniform_real_distribution<double> dis(b, a);
+
+    Eigen::VectorXd unit = Eigen::VectorXd::Ones(state.rows());
+    for(int i = 0; i < state.rows(); i++){
+        unit(i) = s(gen);
+    }
+
+    Eigen::VectorXcd u = state.cwiseProduct(unit);
+    u /= u.norm();
+
+    return (u.array() * std::pow(10, dis(gen)) + state.array()).matrix();
+
+};

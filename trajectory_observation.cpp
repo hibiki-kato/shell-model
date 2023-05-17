@@ -7,6 +7,7 @@
 #include "Runge_Kutta.hpp"
 #include <chrono>
 #include <random>
+#include "cnpy/cnpy.h"
 #include "matplotlibcpp.h"
 namespace plt = matplotlibcpp;
 
@@ -16,7 +17,7 @@ int main(){
     std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
     double ddt = 0.01;
     double t_0 = 0;
-    double t = 100000;
+    double t = 1000;
     double latter = 1;
     Eigen::VectorXcd x_0(14);
     x_0(0) = std::complex<double>(0.4350E+00 , 0.5008E+00);
@@ -53,13 +54,27 @@ int main(){
     plt::plot(x,y);
     std::ostringstream oss;
     oss << "../beta_" << beta << "nu_" << nu <<"_"<< t-t_0 << "period.png";  // 文字列を結合する
-    std::string filename = oss.str(); // 文字列を取得する
-    std::cout << "Saving result to " << filename << std::endl;
-    plt::save(filename);
+    std::string plotfname = oss.str(); // 文字列を取得する
+    std::cout << "Saving result to " << plotfname << std::endl;
+    plt::save(plotfname);
+
+    oss.str(""); //initializing the stringstream
+    Eigen::MatrixXcd transposed = trajectory.transpose();
+    // map to const mats in memory
+    Eigen::Map<const Eigen::MatrixXcd> MOut(&transposed(0,0), transposed.rows(), transposed.cols());
+    oss << "../beta_" << beta << "nu_" << nu <<"_"<< t-t_0 << "period.npy";  // 文字列を結合する
+    std::string npzfname = oss.str(); // 文字列を取得する
+
+    
+    // save to np-arrays files
+    cnpy::npy_save(npzfname, MOut.data(), {(size_t)transposed.rows(), (size_t)transposed.cols()}, "w");
 
     end = std::chrono::system_clock::now();  // 計測終了時間
-    double elapsed = std::chrono::duration_cast<std::chrono::seconds>(end-start).count(); //処理に要した時間をミリ秒に変換
-    std::cout << elapsed << std::endl;
+    int hours = std::chrono::duration_cast<std::chrono::hours>(end-start).count(); //処理に要した時間を変換
+    int minutes = std::chrono::duration_cast<std::chrono::minutes>(end-start).count(); //処理に要した時間を変換
+    int seconds = std::chrono::duration_cast<std::chrono::seconds>(end-start).count(); //処理に要した時間を変換
+    int milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count(); //処理に要した時間を変換
+    std::cout << hours << "h " << minutes % 60 << "m " << seconds % 60 << "s " << milliseconds % 1000 << "ms " << std::endl;
 
     // std::ofstream file("output.txt");
     // file << trajectory.cwiseAbs();

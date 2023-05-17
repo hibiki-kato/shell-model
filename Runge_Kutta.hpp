@@ -52,6 +52,8 @@ private:
 };
 
 
+
+
 class LongLaminar : public ShellModel{
 public:
     LongLaminar(double input_nu, double input_beta, std::complex<double> input_f, double input_ddt, double input_t_0, double input_t, double input_latter, Eigen::VectorXcd input_x_0, Eigen::MatrixXcd input_laminar, double input_epsilon, int input_skip, double input_check_sec, double input_progress_sec, int input_threads);

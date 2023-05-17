@@ -27,14 +27,10 @@ Eigen::MatrixXcd LongLaminar::stagger_and_step_(){
     int stagger_and_step_num = static_cast<int>((end_time_of_stag_and_step - begin_time_of_stag_and_step) / progress_sec + 0.5); // times of stagger and step
     int check_steps = static_cast<int>(check_sec / ShellModel::get_ddt_() + 0.5); //steps of checked trajectory
     int progress_steps = static_cast<int>(progress_sec / ShellModel::get_ddt_() + 0.5); //steps of progress
-    int cycle_limit = 1E+05;
+    int cycle_limit = 5E+04;
     ShellModel::set_steps_(check_steps);
     
     for (int i = 0; i < stagger_and_step_num; i++){
-        // displaying the time every 100 seconds
-        // if (fmod(std::abs(staggered_traj(ShellModel::get_x_0_().size(), i * progress_steps)), 100.0) == 0){
-        //     std::cout << "\r 現在" << static_cast<int>(std::abs(staggered_traj(ShellModel::get_x_0_().size(), i * progress_steps)) + 0.5) << "時間" << std::flush;
-        // }
         std::cout << "\r 現在" << i * progress_sec << "時間" << std::flush;
         ShellModel::set_t_(ShellModel::get_t_0_() + check_sec);
 
@@ -64,11 +60,12 @@ Eigen::MatrixXcd LongLaminar::stagger_and_step_(){
                             staggered_traj.middleCols(i * progress_steps, progress_steps + 1) = checked_traj.leftCols(progress_steps + 1);
                             ShellModel::set_t_0_(ShellModel::get_t_0_() + progress_sec);
                             ShellModel::set_x_0_(checked_traj.block(0, progress_steps, ShellModel::get_x_0_().size(), 1));
+                            std::cout << std::endl;
                         }
                         break;
                     }
                     if (local_counter >= local_cycle_limit / local_threads) {
-                        #pragma omp atomic write
+                        #pragma omp single
                         exit = true;
                         break;
                     }
@@ -112,7 +109,7 @@ Eigen::VectorXcd LongLaminar::perturbator_(Eigen::VectorXcd state){
 
     Eigen::VectorXd unit = Eigen::VectorXd::Ones(state.rows());
     for(int i = 0; i < state.rows(); i++){
-        unit(i) = dis(gen);
+        unit(i) = s(gen);
     }
 
     Eigen::VectorXcd u = state.cwiseProduct(unit);

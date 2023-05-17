@@ -129,6 +129,19 @@ laminar/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/laminar.dir/build.make CMakeFiles/laminar.dir/build
 .PHONY : laminar/fast
 
+#=============================================================================
+# Target rules for targets named cnpy
+
+# Build rule for target.
+cnpy: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 cnpy
+.PHONY : cnpy
+
+# fast build rule for target.
+cnpy/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/cnpy.dir/build.make CMakeFiles/cnpy.dir/build
+.PHONY : cnpy/fast
+
 LongLaminar.o: LongLaminar.cpp.o
 .PHONY : LongLaminar.o
 
@@ -177,29 +190,53 @@ ShellModel.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/laminar.dir/build.make CMakeFiles/laminar.dir/ShellModel.cpp.s
 .PHONY : ShellModel.cpp.s
 
-stagger_and_step.o: stagger_and_step.cpp.o
-.PHONY : stagger_and_step.o
+cnpy/cnpy.o: cnpy/cnpy.cpp.o
+.PHONY : cnpy/cnpy.o
 
 # target to build an object file
-stagger_and_step.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/laminar.dir/build.make CMakeFiles/laminar.dir/stagger_and_step.cpp.o
-.PHONY : stagger_and_step.cpp.o
+cnpy/cnpy.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/cnpy.dir/build.make CMakeFiles/cnpy.dir/cnpy/cnpy.cpp.o
+.PHONY : cnpy/cnpy.cpp.o
 
-stagger_and_step.i: stagger_and_step.cpp.i
-.PHONY : stagger_and_step.i
+cnpy/cnpy.i: cnpy/cnpy.cpp.i
+.PHONY : cnpy/cnpy.i
 
 # target to preprocess a source file
-stagger_and_step.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/laminar.dir/build.make CMakeFiles/laminar.dir/stagger_and_step.cpp.i
-.PHONY : stagger_and_step.cpp.i
+cnpy/cnpy.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/cnpy.dir/build.make CMakeFiles/cnpy.dir/cnpy/cnpy.cpp.i
+.PHONY : cnpy/cnpy.cpp.i
 
-stagger_and_step.s: stagger_and_step.cpp.s
-.PHONY : stagger_and_step.s
+cnpy/cnpy.s: cnpy/cnpy.cpp.s
+.PHONY : cnpy/cnpy.s
 
 # target to generate assembly for a file
-stagger_and_step.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/laminar.dir/build.make CMakeFiles/laminar.dir/stagger_and_step.cpp.s
-.PHONY : stagger_and_step.cpp.s
+cnpy/cnpy.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/cnpy.dir/build.make CMakeFiles/cnpy.dir/cnpy/cnpy.cpp.s
+.PHONY : cnpy/cnpy.cpp.s
+
+trajectory_observation.o: trajectory_observation.cpp.o
+.PHONY : trajectory_observation.o
+
+# target to build an object file
+trajectory_observation.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/laminar.dir/build.make CMakeFiles/laminar.dir/trajectory_observation.cpp.o
+.PHONY : trajectory_observation.cpp.o
+
+trajectory_observation.i: trajectory_observation.cpp.i
+.PHONY : trajectory_observation.i
+
+# target to preprocess a source file
+trajectory_observation.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/laminar.dir/build.make CMakeFiles/laminar.dir/trajectory_observation.cpp.i
+.PHONY : trajectory_observation.cpp.i
+
+trajectory_observation.s: trajectory_observation.cpp.s
+.PHONY : trajectory_observation.s
+
+# target to generate assembly for a file
+trajectory_observation.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/laminar.dir/build.make CMakeFiles/laminar.dir/trajectory_observation.cpp.s
+.PHONY : trajectory_observation.cpp.s
 
 # Help Target
 help:
@@ -209,6 +246,7 @@ help:
 	@echo "... depend"
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
+	@echo "... cnpy"
 	@echo "... laminar"
 	@echo "... LongLaminar.o"
 	@echo "... LongLaminar.i"
@@ -216,9 +254,12 @@ help:
 	@echo "... ShellModel.o"
 	@echo "... ShellModel.i"
 	@echo "... ShellModel.s"
-	@echo "... stagger_and_step.o"
-	@echo "... stagger_and_step.i"
-	@echo "... stagger_and_step.s"
+	@echo "... cnpy/cnpy.o"
+	@echo "... cnpy/cnpy.i"
+	@echo "... cnpy/cnpy.s"
+	@echo "... trajectory_observation.o"
+	@echo "... trajectory_observation.i"
+	@echo "... trajectory_observation.s"
 .PHONY : help
 
 

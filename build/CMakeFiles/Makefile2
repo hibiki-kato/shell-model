@@ -64,6 +64,7 @@ CMAKE_BINARY_DIR = /workspaces/kato_cpp/build
 
 # The main recursive "all" target.
 all: CMakeFiles/laminar.dir/all
+all: CMakeFiles/cnpy.dir/all
 .PHONY : all
 
 # The main recursive "preinstall" target.
@@ -72,21 +73,22 @@ preinstall:
 
 # The main recursive "clean" target.
 clean: CMakeFiles/laminar.dir/clean
+clean: CMakeFiles/cnpy.dir/clean
 .PHONY : clean
 
 #=============================================================================
 # Target rules for target CMakeFiles/laminar.dir
 
 # All Build rule for target.
-CMakeFiles/laminar.dir/all:
+CMakeFiles/laminar.dir/all: CMakeFiles/cnpy.dir/all
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/laminar.dir/build.make CMakeFiles/laminar.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/laminar.dir/build.make CMakeFiles/laminar.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/workspaces/kato_cpp/build/CMakeFiles --progress-num=1,2,3,4 "Built target laminar"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/workspaces/kato_cpp/build/CMakeFiles --progress-num=3,4,5,6 "Built target laminar"
 .PHONY : CMakeFiles/laminar.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/laminar.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /workspaces/kato_cpp/build/CMakeFiles 4
+	$(CMAKE_COMMAND) -E cmake_progress_start /workspaces/kato_cpp/build/CMakeFiles 6
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/laminar.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /workspaces/kato_cpp/build/CMakeFiles 0
 .PHONY : CMakeFiles/laminar.dir/rule
@@ -99,6 +101,32 @@ laminar: CMakeFiles/laminar.dir/rule
 CMakeFiles/laminar.dir/clean:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/laminar.dir/build.make CMakeFiles/laminar.dir/clean
 .PHONY : CMakeFiles/laminar.dir/clean
+
+#=============================================================================
+# Target rules for target CMakeFiles/cnpy.dir
+
+# All Build rule for target.
+CMakeFiles/cnpy.dir/all:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/cnpy.dir/build.make CMakeFiles/cnpy.dir/depend
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/cnpy.dir/build.make CMakeFiles/cnpy.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/workspaces/kato_cpp/build/CMakeFiles --progress-num=1,2 "Built target cnpy"
+.PHONY : CMakeFiles/cnpy.dir/all
+
+# Build rule for subdir invocation for target.
+CMakeFiles/cnpy.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /workspaces/kato_cpp/build/CMakeFiles 2
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/cnpy.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /workspaces/kato_cpp/build/CMakeFiles 0
+.PHONY : CMakeFiles/cnpy.dir/rule
+
+# Convenience name for target.
+cnpy: CMakeFiles/cnpy.dir/rule
+.PHONY : cnpy
+
+# clean rule for target.
+CMakeFiles/cnpy.dir/clean:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/cnpy.dir/build.make CMakeFiles/cnpy.dir/clean
+.PHONY : CMakeFiles/cnpy.dir/clean
 
 #=============================================================================
 # Special targets to cleanup operation of make.

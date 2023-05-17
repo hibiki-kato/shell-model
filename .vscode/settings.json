@@ -29,7 +29,7 @@
         "javascript": "node",
         "java": "cd $dir && javac $fileName && java $fileNameWithoutExt",
         "c": "cd $dir && gcc $fileName -o $fileNameWithoutExt && $dir$fileNameWithoutExt",
-        "cpp": "cd $dir && g++ -O3 -mtune=native -march=native -std=c++20 $fileName -I/usr/include/python3.10 -L/usr/lib/python3.10 -lpython3.10 && ./a.out ",
+        "cpp": "cd $dir && g++ -O3 -mtune=native -march=native -std=c++20 $fileName -I/usr/include/python3.10 -L/usr/lib/python3.10 -lpython3.10 -L/usr/lib/x86_64-linux-gnu -lz && ./a.out ",
         "objective-c": "cd $dir && gcc -framework Cocoa $fileName -o $fileNameWithoutExt && $dir$fileNameWithoutExt",
         "php": "php",
         "python": "python -u",

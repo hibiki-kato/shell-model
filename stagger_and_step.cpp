@@ -1,5 +1,6 @@
 #include <iostream>
 #include <fstream>
+#include <sstream>
 #include <eigen3/Eigen/Dense>
 #include <complex>
 #include <cmath>
@@ -8,6 +9,7 @@
 #include <random>
 #include <omp.h>
 #include "matplotlibcpp.h"
+#include "cnpy/cnpy.h"
 namespace plt = matplotlibcpp;
 
 int main(){
@@ -16,7 +18,7 @@ int main(){
     std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
     double ddt = 0.01;
     double t_0 = 0;
-    double t = 100000;
+    double t = 50000;
     double latter = 200;
     Eigen::VectorXcd x_0(14);
     x_0(0) = std::complex<double>(0.4350E+00 , 0.5008E+00);
@@ -47,10 +49,10 @@ int main(){
     ShellModel solver(nu, beta, f, ddt, t_0, t, latter, x_0);
     Eigen::MatrixXcd laminar = solver.get_trajectory_();
 
-    beta = 0.419;
-    nu = 0.00017216;
+    beta = 0.42;
+    nu = 0.000174;
     latter = 1;
-    t = 20000;
+    t = 2000;
     x_0 = laminar.topRightCorner(x_0.size(), 1);
 
 
@@ -58,16 +60,22 @@ int main(){
     Eigen::MatrixXcd calced_laminar = challenger.stagger_and_step_();
     plt::figure_size(1200, 780);
     // Add graph title
-    plt::title("Sample figure");
     std::vector<double> x(calced_laminar.cols()),y(calced_laminar.cols());
 
     for(int i=0;i<calced_laminar.cols();i++){
         x[i]=calced_laminar.cwiseAbs()(14, i);
         y[i]=calced_laminar.cwiseAbs()(0, i);
     }
+    // map to const mats in memory
+    Eigen::Map<const Eigen::MatrixXcd> VOut(&calced_laminar(0), calced_laminar.rows(), calced_laminar.cols());
+
+    // save to np-arrays files
+    cnpy::npy_save("./vertices.npy", VOut.data(), {(size_t)calced_laminar.rows(), (size_t)calced_laminar.cols()}, "w");
 
     plt::plot(x,y);
-    const char* filename = "test1.png";
+    std::ostringstream oss;
+    oss << "../generated_laminar_beta_" << beta << "nu_" << nu <<"_"<< t-t_0 << "period.png";  // 文字列を結合する
+    std::string filename = oss.str(); // 文字列を取得する
     std::cout << "\n Saving result to " << filename << std::endl;
     plt::save(filename);
 
@@ -78,6 +86,6 @@ int main(){
     int milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count(); //処理に要した時間を変換
     std::cout << hours << "h " << minutes % 60 << "m " << seconds % 60 << "s " << milliseconds % 1000 << "ms " << std::endl;
     
-
+    
 
 }
