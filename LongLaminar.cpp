@@ -83,7 +83,7 @@ Eigen::MatrixXcd LongLaminar::stagger_and_step_(){
 }
 
 bool LongLaminar::isLaminarPoint_(Eigen::VectorXcd state){
-// if the points is in laminar flow, return true. Otherwise return false.   
+// if the points is in laminar flow, return true. Otherwise return false.  state can include time bcause it will be dropped.
     int row_start = 0;
     int row_end = 4;
     Eigen::VectorXd distance = (laminar.middleRows(row_start, row_end).cwiseAbs() - state.middleRows(row_start, row_end).replicate(1, laminar.cols()).cwiseAbs()).colwise().norm();

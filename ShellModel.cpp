@@ -91,10 +91,10 @@ void ShellModel::set_beta_(double input_beta){
     int dim = x_0.rows();
     // update c_n_2 and c_n_3
     c_n_2 = Eigen::VectorXd::Zero(dim);
-    c_n_2.middleRows(1, dim-2) = k_n.middleRows(2, dim-2) * (-beta);
+    c_n_2.middleRows(1, dim-2) = k_n.topRows(dim-2).array() * (-beta);
 
     c_n_3 = Eigen::VectorXd::Zero(dim);
-    c_n_3.bottomRows(dim-2) = k_n.middleRows(2, dim-2) * (beta - 1);
+    c_n_3.bottomRows(dim-2) = k_n.topRows(dim-2).array() * (beta - 1);
 }
 void ShellModel::set_t_0_(double input_t_0){
     t_0 = input_t_0;
@@ -124,6 +124,7 @@ int ShellModel::get_steps_(){
 Eigen::VectorXd ShellModel::get_k_n_(){
     return k_n;
 }
+
 Eigen::VectorXcd ShellModel::get_x_0_(){
     return x_0;
 }
