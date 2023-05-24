@@ -12,6 +12,8 @@
 #include "cnpy/cnpy.h"
 namespace plt = matplotlibcpp;
 
+
+
 int main(){
     double nu = 0.00017256;
     double beta = 0.417;
@@ -46,8 +48,9 @@ int main(){
 
     std::chrono::system_clock::time_point  start, end; // 型は auto で可
     start = std::chrono::system_clock::now(); // 計測開始時間
-    ShellModel solver(nu, beta, f, ddt, t_0, t, latter, x_0);
-    Eigen::MatrixXcd laminar = solver.get_trajectory_();
+    ShellModel SM(nu, beta, f, ddt, t_0, t, latter, x_0);
+    Eigen::MatrixXcd laminar = SM.get_trajectory_();
+    delete SM;
 
     beta = 0.42;
     nu = 0.000174;
@@ -56,8 +59,8 @@ int main(){
     x_0 = laminar.topRightCorner(x_0.size(), 1);
 
 
-    LongLaminar challenger(nu, beta, f, ddt, t_0, t, latter, x_0, laminar, epsilon, skip, check_sec, progress_sec, threads);
-    Eigen::MatrixXcd calced_laminar = challenger.stagger_and_step_();
+    LongLaminar LL(nu, beta, f, ddt, t_0, t, latter, x_0, laminar, epsilon, skip, check_sec, progress_sec, threads);
+    Eigen::MatrixXcd calced_laminar = LL.stagger_and_step_();
     plt::figure_size(1200, 780);
     // Add graph title
     std::vector<double> x(calced_laminar.cols()),y(calced_laminar.cols());

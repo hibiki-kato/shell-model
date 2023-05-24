@@ -1,4 +1,4 @@
-# Install script for directory: /workspaces/kato_cpp
+# Install script for directory: /workspaces/cpp_codes
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -50,5 +50,5 @@ endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
-file(WRITE "/workspaces/kato_cpp/build/${CMAKE_INSTALL_MANIFEST}"
+file(WRITE "/workspaces/cpp_codes/build/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")

@@ -10,14 +10,15 @@
 #include "cnpy/cnpy.h"
 #include "matplotlibcpp.h"
 namespace plt = matplotlibcpp;
+void EigenMt2npy(Eigen::MatrixXcd Mat, std::string fname);
 
 int main(){
-    double nu = 0.00017256;
-    double beta = 0.417;
+    double nu = 0.00017;
+    double beta = 0.425;
     std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
     double ddt = 0.01;
     double t_0 = 0;
-    double t = 1000;
+    double t = 100000;
     double latter = 1;
     Eigen::VectorXcd x_0(14);
     x_0(0) = std::complex<double>(0.4350E+00 , 0.5008E+00);
@@ -58,16 +59,12 @@ int main(){
     std::cout << "Saving result to " << plotfname << std::endl;
     plt::save(plotfname);
 
-    oss.str(""); //initializing the stringstream
-    Eigen::MatrixXcd transposed = trajectory.transpose();
-    // map to const mats in memory
-    Eigen::Map<const Eigen::MatrixXcd> MOut(&transposed(0,0), transposed.rows(), transposed.cols());
-    oss << "../beta_" << beta << "nu_" << nu <<"_"<< t-t_0 << "period.npy";  // 文字列を結合する
-    std::string npzfname = oss.str(); // 文字列を取得する
-
-    
-    // save to np-arrays files
-    cnpy::npy_save(npzfname, MOut.data(), {(size_t)transposed.rows(), (size_t)transposed.cols()}, "w");
+    oss.str("");
+     // 文字列を取得する
+    oss << "../beta" << beta << "_nu" << nu <<"_"<< t-t_0 << "period.npy";  // 文字列を結合する
+    std::string npyfname = oss.str();
+    std::cout << "Saving result to " << npyfname << std::endl;
+    EigenMt2npy(trajectory, npyfname);
 
     end = std::chrono::system_clock::now();  // 計測終了時間
     int hours = std::chrono::duration_cast<std::chrono::hours>(end-start).count(); //処理に要した時間を変換
@@ -81,4 +78,12 @@ int main(){
     // file.close();
 
 
+}
+
+void EigenMt2npy(Eigen::MatrixXcd Mat, std::string fname){
+    Eigen::MatrixXcd transposed = Mat.transpose();
+    // map to const mats in memory
+    Eigen::Map<const Eigen::MatrixXcd> MOut(&transposed(0,0), transposed.cols(), transposed.rows());
+    // save to np-arrays files
+    cnpy::npy_save(fname, MOut.data(), {(size_t)transposed.cols(), (size_t)transposed.rows()}, "w");
 }

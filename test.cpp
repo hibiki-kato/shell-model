@@ -10,6 +10,7 @@
 namespace plt = matplotlibcpp;
 
 Eigen::VectorXcd perturbator(Eigen::VectorXcd state);
+std::vector<double> loc_max(Eigen::MatrixXcd Mt, int obs_dim, int output_dim);
 
 class ShellModel
 {   //data members
@@ -137,7 +138,7 @@ int main(){
     std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
     double ddt = 0.01;
     double t_0 = 0;
-    double t = 100000;
+    double t = 10000;
     double latter = 1;
     Eigen::VectorXcd x_0(14);
     x_0(0) = std::complex<double>(0.4350E+00 , 0.5008E+00);
@@ -158,12 +159,12 @@ int main(){
     
     ShellModel solver(nu, beta, f, ddt, t_0, t, latter, x_0);
 
-    // load npz
-    cnpy::NpyArray loaded = cnpy::npy_load("beta_0.417nu_0.00017256_100000period.npy");
-    Eigen::Map<const Eigen::MatrixXcd> Loaded(loaded.data<std::complex<double>>(), loaded.shape[0], loaded.shape[1]);
-    Eigen::MatrixXcd trajectory = Loaded;
+    // // load npz
+    // cnpy::NpyArray loaded = cnpy::npy_load("beta_0.417nu_0.00017256_100000period.npy");
+    // Eigen::Map<const Eigen::MatrixXcd> Loaded(loaded.data<std::complex<double>>(), loaded.shape[0], loaded.shape[1]);
+    // Eigen::MatrixXcd trajectory = Loaded;
 
-    // Eigen::MatrixXcd trajectory = solver.get_trajectory_();
+    Eigen::MatrixXcd trajectory = solver.get_trajectory_();
     
     // Set the size of output image = 1200x780 pixels
     plt::figure_size(1200, 780);
@@ -176,22 +177,10 @@ int main(){
         y[i]=trajectory.cwiseAbs()(0, i);
     }
 
-    // plt::plot(x,y);
-    Eigen::VectorXd state;
-    std::vector<double> u_0(10000);
-    std::vector<double> u_1(10000);
-    for(int i = 0; i < 10000; i++){
-        state = perturbator(x_0).cwiseAbs();
-        u_0[i] = state(0);
-        u_1[i] = state(1);
-    }
-    plt::scatter(u_0, u_1);
-    const char* filename = "test.png";
-    std::cout << "Saving result to " << filename << std::endl;
-    plt::save(filename);
+    plt::plot(x,y);
 
-
-    
+    std::vector<double> a = loc_max(trajectory, 3, 4);
+    std::cout << a.size() << std::endl;
 }
 
 
@@ -214,3 +203,24 @@ Eigen::VectorXcd perturbator(Eigen::VectorXcd state){
     return (u.array() * std::pow(10, dis(gen)) + state.array()).matrix();
 
 };
+
+std::vector<double> loc_max(Eigen::MatrixXcd Mt, int obs_dim, int output_dim){
+    int rowToCopy = obs_dim - 1;
+    std::vector<double> vec(Mt.cols());
+    for (int i = 0; i < Mt.cols(); i++){
+        vec[i] = Mt.cwiseAbs()(rowToCopy, i);
+    }
+    std::vector<double> loc_max_point;
+    loc_max_point.reserve(vec.size()/10000);
+    for (int i = 0; i < vec.size()-6; ++i){
+        if (vec[i+1] - vec[i] > 0
+        && vec[i+2] - vec[i+1] > 0
+        && vec[i+3] - vec[i+2] > 0
+        && vec[i+4] - vec[i+3] < 0
+        && vec[i+5] - vec[i+4] < 0
+        && vec[i+6] - vec[i+5] < 0){
+            loc_max_point.push_back(Mt.cwiseAbs()(output_dim - 1, i+3));
+        }
+    }
+    return loc_max_point;
+}
