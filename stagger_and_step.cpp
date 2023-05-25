@@ -17,14 +17,15 @@ void EigenMt2npy(Eigen::MatrixXcd Mat, std::string fname);
 
 int main(){
     auto start = std::chrono::system_clock::now(); // 計測開始時間
-    double nu = 0.00017256;
-    double beta = 0.417;
+    // generating laminar sample for detection
+    double nu = 0.00017520319481270297;
+    double beta = 0.416;
     std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
     double ddt = 0.01;
     double t_0 = 0;
     double t = 50000;
     double latter = 200;
-    Eigen::VectorXcd x_0 = npy2EigenVec("../beta0.416_nu0.00017520319481270297_step0.01_10000.0period_laminar.npy");
+    Eigen::VectorXcd x_0 = npy2EigenVec("../initials/beta0.416_nu0.00017520319481270297_step0.01_10000.0period_laminar.npy");
 
     double epsilon=1E-01;
     int skip = 1000;
@@ -36,11 +37,11 @@ int main(){
     ShellModel SM(nu, beta, f, ddt, t_0, t, latter, x_0);
     Eigen::MatrixXcd laminar = SM.get_trajectory_();
 
-    beta = 0.42;
-    nu = 0.000174;
+    beta = 0.423;
+    nu = 0.000175848;
     latter = 1;
-    t = 800;
-    x_0 = laminar.topRightCorner(x_0.size(), 1);
+    t = 10000;
+    x_0 = npy2EigenVec("../initials/beta0.423_nu0.000175848_2000period.npy");
 
 
     LongLaminar LL(nu, beta, f, ddt, t_0, t, latter, x_0, laminar, epsilon, skip, check_sec, progress_sec, threads);

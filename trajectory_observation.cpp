@@ -11,36 +11,21 @@
 #include "matplotlibcpp.h"
 namespace plt = matplotlibcpp;
 void EigenMt2npy(Eigen::MatrixXcd Mat, std::string fname);
+Eigen::VectorXcd npy2EigenVec(const char* fname);
 
 int main(){
-    double nu = 0.00017;
-    double beta = 0.425;
+    auto start = std::chrono::system_clock::now(); // 計測開始時間
+    double nu = 0.00017584784643038092;
+    double beta = 0.423;
     std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
     double ddt = 0.01;
     double t_0 = 0;
-    double t = 100000;
+    double t = 10000;
     double latter = 1;
-    Eigen::VectorXcd x_0(14);
-    x_0(0) = std::complex<double>(0.4350E+00 , 0.5008E+00);
-    x_0(1) = std::complex<double>(0.1259E+00 , 0.2437E+00);
-    x_0(2) = std::complex<double>(-0.8312E-01 , -0.4802E-01);
-    x_0(3) = std::complex<double>(0.5164E-01 , -0.1599E+00);
-    x_0(4) = std::complex<double>(-0.1899E+00 , -0.3602E-01);
-    x_0(5) = std::complex<double>(0.4093E-03 , 0.8506E-01);
-    x_0(6) = std::complex<double>(0.9539E-01 , 0.3215E-01);
-    x_0(7) = std::complex<double>(-0.5834E-01 , 0.4433E-01);
-    x_0(8) = std::complex<double>(-0.8790E-02 , 0.2502E-01);
-    x_0(9) = std::complex<double>(0.3385E-02 , 0.1148E-02);
-    x_0(10) = std::complex<double>(-0.7072E-04 , 0.5598E-04);
-    x_0(11) = std::complex<double>(-0.5238E-07 , 0.1467E-06);
-    x_0(12) = std::complex<double>(0.1E-07 ,0.1E-06);
-    x_0(13) = std::complex<double>(0.1E-07 ,0.1E-06);
-
-    std::chrono::system_clock::time_point  start, end; // 型は auto で可
-    start = std::chrono::system_clock::now(); // 計測開始時間
+    Eigen::VectorXcd x_0 = npy2EigenVec("../initials/beta0.423_nu0.000175848_2000period.npy");
     ShellModel solver(nu, beta, f, ddt, t_0, t, latter, x_0);
 
-    Eigen::MatrixXcd trajectory = solver.get_trajectory_();
+    Eigen::MatrixXcd trajectory = solver.get_trajectory_(); 
     // Set the size of output image = 1200x780 pixels
     plt::figure_size(1200, 780);
     // Add graph title
@@ -66,7 +51,7 @@ int main(){
     std::cout << "Saving result to " << npyfname << std::endl;
     EigenMt2npy(trajectory, npyfname);
 
-    end = std::chrono::system_clock::now();  // 計測終了時間
+    auto end = std::chrono::system_clock::now();  // 計測終了時間
     int hours = std::chrono::duration_cast<std::chrono::hours>(end-start).count(); //処理に要した時間を変換
     int minutes = std::chrono::duration_cast<std::chrono::minutes>(end-start).count(); //処理に要した時間を変換
     int seconds = std::chrono::duration_cast<std::chrono::seconds>(end-start).count(); //処理に要した時間を変換
@@ -78,6 +63,16 @@ int main(){
     // file.close();
 
 
+}
+Eigen::VectorXcd npy2EigenVec(const char* fname){
+    std::string fname_str(fname);
+    cnpy::NpyArray arr = cnpy::npy_load(fname_str);
+    if (arr.word_size != sizeof(std::complex<double>)) {
+        throw std::runtime_error("Unsupported data type in the npy file.");
+    }
+    std::complex<double>* data = arr.data<std::complex<double>>();
+    Eigen::Map<Eigen::VectorXcd> vec(data, arr.shape[0]);
+    return vec;
 }
 
 void EigenMt2npy(Eigen::MatrixXcd Mat, std::string fname){

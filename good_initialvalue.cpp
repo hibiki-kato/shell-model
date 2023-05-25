@@ -13,11 +13,79 @@
 #include "cnpy/cnpy.h"
 namespace plt = matplotlibcpp;
 Eigen::VectorXcd npy2EigenVec(const char* fname);
-void EigenMt2npy(Eigen::MatrixXd Mat, std::string fname);
+void EigenVec2npy(Eigen::VectorXcd Vec, std::string fname);
 
 int main(){
+    auto start = std::chrono::system_clock::now(); // 計測開始時間
     
+    // generating laminar sample
+    double nu = 0.00017520319481270297;
+    double beta = 0.416;
+    std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
+    double ddt = 0.01;
+    double t_0 = 0;
+    double t = 1000;
+    double latter = 4;
+    Eigen::VectorXcd x_0 = npy2EigenVec("../beta0.416_nu0.00017520319481270297_step0.01_10000.0period_laminar.npy");
+    ShellModel SM(nu, beta, f, ddt, t_0, t, latter, x_0);
+    Eigen::MatrixXcd laminar = SM.get_trajectory_();
+    int numRows = laminar.cols() / 10;
+    Eigen::MatrixXcd laminar_sample(laminar.rows(), numRows);
+    for (int i = 0; i < numRows; i++){
+        int colIdx = 10 * i;
+        laminar_sample.col(i) = laminar.col(colIdx);
+    }
 
+    // set up for search
+    t=2000;
+    latter = 1;
+    nu = 0.00017584784643038092;
+    beta = 0.423;
+    int skip = 100;
+    double epsilon = 1E-1;
+    int threads = omp_get_max_threads();
+    std::cout << threads << "threads" << std::endl;
+
+    LongLaminar LL(nu, beta, f, ddt, t_0, t, latter, x_0, laminar_sample, epsilon, skip, 100, 10, threads);
+    int num_of_candidates = 1000;
+    Eigen::MatrixXcd initials(x_0.size(), num_of_candidates);
+    double longest;
+
+    for(int i = 0; i < 4; i++){
+        // make matrix that each cols are candidates of initial value
+        initials.col(0) = LL.get_x_0_();
+        for(int i = 1; i < num_of_candidates - 1; i++){
+            initials.col(i) = LL.perturbator_(LL.get_x_0_());
+        }
+        Eigen::VectorXd durations(num_of_candidates);
+        #pragma omp parallel for num_threads(threads)
+        for(int i = 0; i < num_of_candidates; i++){
+            LongLaminar local_LL = LL;
+            local_LL.set_x_0_(initials.col(i));
+            Eigen::MatrixXcd trajectory = local_LL.get_trajectory_();
+            durations(i) = local_LL.laminar_duration_(trajectory);
+            }
+        int maxId;
+        longest = durations.maxCoeff(&maxId);
+        LL.set_x_0_(initials.col(maxId));
+        std::cout << "現在最高" << longest << std::endl;
+        if (longest > 0.99*t){
+            break;
+        }
+    }
+    
+    std::ostringstream oss;
+    oss << "../initials/beta" << beta << "_nu" << nu<< "_" << static_cast<int>(longest+0.5) << "period.npy";  // 文字列を結合する
+    std::string fname = oss.str(); // 文字列を取得する
+    std::cout << "saving as " << fname << std::endl;
+    EigenVec2npy(LL.get_x_0_(), fname);
+
+    auto end = std::chrono::system_clock::now();  // 計測終了時間
+    int hours = std::chrono::duration_cast<std::chrono::hours>(end-start).count(); //処理に要した時間を変換
+    int minutes = std::chrono::duration_cast<std::chrono::minutes>(end-start).count(); //処理に要した時間を変換
+    int seconds = std::chrono::duration_cast<std::chrono::seconds>(end-start).count(); //処理に要した時間を変換
+    int milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count(); //処理に要した時間を変換
+    std::cout << hours << "h " << minutes % 60 << "m " << seconds % 60 << "s " << milliseconds % 1000 << "ms " << std::endl;
 }
 
 Eigen::VectorXcd npy2EigenVec(const char* fname){
@@ -31,10 +99,10 @@ Eigen::VectorXcd npy2EigenVec(const char* fname){
     return vec;
 }
 
-void EigenMt2npy(Eigen::MatrixXd Mat, std::string fname){
-    Eigen::MatrixXd transposed = Mat.transpose();
-    // map to const mats in memory
-    Eigen::Map<const Eigen::MatrixXd> MOut(&transposed(0,0), transposed.cols(), transposed.rows());
-    // save to np-arrays files
-    cnpy::npy_save(fname, MOut.data(), {(size_t)transposed.cols(), (size_t)transposed.rows()}, "w");
+void EigenVec2npy(Eigen::VectorXcd Vec, std::string fname){
+    std::vector<std::complex<double>> x(Vec.size());
+    for(int i=0;i<Vec.size();i++){
+        x[i]=Vec(i);
+    }
+    cnpy::npy_save(fname, &x[0], {(size_t)Vec.size()}, "w");
 }
