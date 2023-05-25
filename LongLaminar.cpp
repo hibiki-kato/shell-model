@@ -147,3 +147,15 @@ double LongLaminar::laminar_duration_max_(Eigen::MatrixXcd trajectory){
 
     return maxConsecutiveOnes * ShellModel::get_ddt_() * skip;
 }
+
+double LongLaminar::laminar_duration_(Eigen::MatrixXcd trajectory){
+    double duration = 0;
+    for (int i = 0; i < trajectory.cols()/skip; i++){
+        if (!isLaminarPoint_(trajectory.col(i*skip))) {
+            return duration;
+        }
+        duration += ShellModel::get_ddt_() * skip;
+    }
+    return duration;
+}
+

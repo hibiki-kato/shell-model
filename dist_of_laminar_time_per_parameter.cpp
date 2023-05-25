@@ -46,7 +46,7 @@ int main(){
 
     LongLaminar LL(nu, beta, f, ddt, t_0, t, latter, x_0, laminar_sample, epsilon, skip, 100, 10, threads);
     
-    int param_steps = 10;
+    int param_steps = 100;
     double beta_begin = 0.415;
     double beta_end = 0.428;
     double nu_begin = 0.00018;
@@ -58,11 +58,12 @@ int main(){
     
     #pragma omp parallel for num_threads(threads)
     for(int i = 0; i < param_steps; i++){
-        LL.set_beta_(betas(i));
+        LongLaminar local_LL = LL;
+        local_LL.set_beta_(betas(i));
         for(int j = 0; j < param_steps; j++){
-            LL.set_nu_(nus(j));
-            auto trajectory = LL.get_trajectory_();
-            double maxtime = LL.laminar_duration_max_(trajectory);
+            local_LL.set_nu_(nus(j));
+            auto trajectory = local_LL.get_trajectory_();
+            double maxtime = local_LL.laminar_duration_max_(trajectory);
             #pragma omp critical
             result.row(param_steps * i + j) << betas(i), nus(j), maxtime;
         }
@@ -70,7 +71,7 @@ int main(){
 
 
     std::ostringstream oss;
-    oss << "../max_laminar_time_beta" << beta_begin <<"to"<< beta_end << "_nu" << nu_begin <<"to" << nu_end <<_<< param_steps << times<<"_epsilon" << epsilon << "_" << t-t_0 << "period_latter" << std::setprecision(2) << 1 / latter << ".npy";  // 文字列を結合する
+    oss << "../max_laminar_time_beta" << beta_begin <<"to"<< beta_end << "_nu" << nu_begin <<"to" << nu_end <<"_"<< param_steps << "times_epsilon" << epsilon << "_" << t-t_0 << "period_latter" << std::setprecision(2) << 1 / latter << ".npy";  // 文字列を結合する
     std::string fname = oss.str(); // 文字列を取得する
     std::cout << "saving as . . ." << fname << std::endl;
     EigenMt2npy(result, fname);
