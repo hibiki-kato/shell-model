@@ -58,11 +58,12 @@ int main(){
     
     #pragma omp parallel for num_threads(threads)
     for(int i = 0; i < param_steps; i++){
-        LL.set_beta_(betas(i));
+        LongLaminar local_LL = LL
+        local_LL.set_beta_(betas(i));
         for(int j = 0; j < param_steps; j++){
-            LL.set_nu_(nus(j));
-            Eigen::MatrixXcd trajectory = LL.get_trajectory_();
-            int binValue = LL.isLaminarTrajectory_(trajectory) ? 1 : 0;
+            local_LL.set_nu_(nus(j));
+            Eigen::MatrixXcd trajectory = loal_LL.get_trajectory_();
+            int binValue = local_LL.isLaminarTrajectory_(trajectory) ? 1 : 0;
             #pragma omp critical
             result.row(param_steps * i + j) << betas(i), nus(j), binValue;
         }
