@@ -37,8 +37,8 @@ int main(){
     }
 
     // set up for search
-    t=2000;
-    latter = 10;
+    t=20000;
+    latter = 4;
     int skip = 100;
     double epsilon = 1E-1;
     int threads = omp_get_max_threads();
@@ -58,11 +58,11 @@ int main(){
     
     #pragma omp parallel for num_threads(threads)
     for(int i = 0; i < param_steps; i++){
-        LongLaminar local_LL = LL
+        LongLaminar local_LL = LL;
         local_LL.set_beta_(betas(i));
         for(int j = 0; j < param_steps; j++){
             local_LL.set_nu_(nus(j));
-            Eigen::MatrixXcd trajectory = loal_LL.get_trajectory_();
+            Eigen::MatrixXcd trajectory = local_LL.get_trajectory_();
             int binValue = local_LL.isLaminarTrajectory_(trajectory) ? 1 : 0;
             #pragma omp critical
             result.row(param_steps * i + j) << betas(i), nus(j), binValue;
@@ -71,7 +71,7 @@ int main(){
 
 
     std::ostringstream oss;
-    oss << "../stable_beta" << beta_begin <<"to"<< beta_end << "_nu" << nu_begin <<"to" << nu_end <<"epsilon" << epsilon << "_" << t-t_0 << "period_latter" << std::setprecision(2) << 1 / latter << ".npy";  // 文字列を結合する
+    oss << "../stable_beta" << beta_begin <<"to"<< beta_end << "_nu" << nu_begin <<"to" << nu_end<<"_"<< param_steps << "times_" <<"epsilon" << epsilon << "_" << t-t_0 << "period_latter" << std::setprecision(2) << 1 / latter << ".npy";  // 文字列を結合する
     std::string fname = oss.str(); // 文字列を取得する
     std::cout << "saving as . . ." << fname << std::endl;
     EigenMt2npy(result, fname);
