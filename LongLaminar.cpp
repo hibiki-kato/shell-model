@@ -5,6 +5,7 @@
 #include <math.h>
 #include <chrono>
 #include <iostream>
+#include <regex>
 #include <random>
 #include <omp.h>
 
@@ -119,3 +120,30 @@ Eigen::VectorXcd LongLaminar::perturbator_(Eigen::VectorXcd state){
 
 }
 
+double LongLaminar::laminar_duration_max_(Eigen::MatrixXcd trajectory){
+    int check_times = trajectory.cols()/skip + 1;
+    std::vector<int> sequence(check_times);
+    for(int i =0; i < check_times; i++){
+        sequence[i] = LongLaminar::isLaminarPoint_(trajectory.col(i*skip));
+    }
+    std::string sequenceString;
+    for (int num : sequence) {
+        sequenceString += std::to_string(num);
+    }
+
+    std::regex pattern("1+"); // パターン: 1が1回以上連続する
+
+    std::smatch match;
+    double maxConsecutiveOnes = 0;
+
+    auto it = sequenceString.cbegin();
+    while (std::regex_search(it, sequenceString.cend(), match, pattern)) {
+        int consecutiveOnes = match.str().length();
+        if (consecutiveOnes > maxConsecutiveOnes) {
+            maxConsecutiveOnes = consecutiveOnes;
+        }
+        it = match.suffix().first; // 次の検索の開始位置を設定
+    }
+
+    return maxConsecutiveOnes * ShellModel::get_ddt_() * skip;
+}

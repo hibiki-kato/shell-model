@@ -1,4 +1,5 @@
 #include <iostream>
+#include <iomanip>
 #include <fstream>
 #include <sstream>
 #include <eigen3/Eigen/Dense>
@@ -12,60 +13,67 @@
 #include "cnpy/cnpy.h"
 namespace plt = matplotlibcpp;
 Eigen::VectorXcd npy2EigenVec(const char* fname);
-void EigenMt2npy(Eigen::MatrixXcd Mat, std::string fname);
-
+void EigenMt2npy(Eigen::MatrixXd Mat, std::string fname);
 
 int main(){
     auto start = std::chrono::system_clock::now(); // 計測開始時間
-    double nu = 0.00017256;
-    double beta = 0.417;
+    
+    // generating laminar sample
+    double nu = 0.00017520319481270297;
+    double beta = 0.416;
     std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
     double ddt = 0.01;
     double t_0 = 0;
-    double t = 50000;
-    double latter = 200;
+    double t = 1000;
+    double latter = 4;
     Eigen::VectorXcd x_0 = npy2EigenVec("../beta0.416_nu0.00017520319481270297_step0.01_10000.0period_laminar.npy");
+    ShellModel SM(nu, beta, f, ddt, t_0, t, latter, x_0);
+    Eigen::MatrixXcd laminar = SM.get_trajectory_();
+    int numRows = laminar.cols() / 10;
+    Eigen::MatrixXcd laminar_sample(laminar.rows(), numRows);
+    for (int i = 0; i < numRows; i++){
+        int colIdx = 10 * i;
+        laminar_sample.col(i) = laminar.col(colIdx);
+    }
 
-    double epsilon=1E-01;
+    // set up for search
+    t=20000;
+    latter = 1;
     int skip = 1000;
-    double check_sec = 1500;
-    double progress_sec = 400;
+    double epsilon = 1E-1;
     int threads = omp_get_max_threads();
     std::cout << threads << "threads" << std::endl;
 
-    ShellModel SM(nu, beta, f, ddt, t_0, t, latter, x_0);
-    Eigen::MatrixXcd laminar = SM.get_trajectory_();
+    LongLaminar LL(nu, beta, f, ddt, t_0, t, latter, x_0, laminar_sample, epsilon, skip, 100, 10, threads);
+    
+    int param_steps = 10;
+    double beta_begin = 0.415;
+    double beta_end = 0.428;
+    double nu_begin = 0.00018;
+    double nu_end = 0.000165;
+    auto betas = Eigen::VectorXd::LinSpaced(param_steps, beta_begin, beta_end);
+    auto nus = Eigen::VectorXd::LinSpaced(param_steps, nu_begin, nu_end);
 
-    beta = 0.42;
-    nu = 0.000174;
-    latter = 1;
-    t = 800;
-    x_0 = laminar.topRightCorner(x_0.size(), 1);
-
-
-    LongLaminar LL(nu, beta, f, ddt, t_0, t, latter, x_0, laminar, epsilon, skip, check_sec, progress_sec, threads);
-    Eigen::MatrixXcd calced_laminar = LL.stagger_and_step_();
-    plt::figure_size(1200, 780);
-    // Add graph title
-    std::vector<double> x(calced_laminar.cols()),y(calced_laminar.cols());
-
-    for(int i=0;i<calced_laminar.cols();i++){
-        x[i]=calced_laminar.cwiseAbs()(14, i);
-        y[i]=calced_laminar.cwiseAbs()(0, i);
+    Eigen::MatrixXd result(param_steps * param_steps, 3);
+    
+    #pragma omp parallel for num_threads(threads)
+    for(int i = 0; i < param_steps; i++){
+        LL.set_beta_(betas(i));
+        for(int j = 0; j < param_steps; j++){
+            LL.set_nu_(nus(j));
+            auto trajectory = LL.get_trajectory_();
+            double maxtime = LL.laminar_duration_max_(trajectory);
+            #pragma omp critical
+            result.row(param_steps * i + j) << betas(i), nus(j), maxtime;
+        }
     }
 
-    plt::plot(x,y);
-    std::ostringstream oss;
-    oss << "../generated_laminar_beta_" << beta << "nu_" << nu <<"_"<< t-t_0 << "period.png";  // 文字列を結合する
-    std::string filename = oss.str(); // 文字列を取得する
-    std::cout << "\n Saving result to " << filename << std::endl;
-    plt::save(filename);
 
-    oss.str("");
-    oss << "../generated_laminar_beta_" << beta << "nu_" << nu <<"_"<< t-t_0 << "period" << check_sec << "check" << progress_sec << "progress" << "eps" << epsilon << ".npy";
+    std::ostringstream oss;
+    oss << "../max_laminar_time_beta" << beta_begin <<"to"<< beta_end << "_nu" << nu_begin <<"to" << nu_end <<"epsilon" << epsilon << "_" << t-t_0 << "period_latter" << std::setprecision(2) << 1 / latter << ".npy";  // 文字列を結合する
     std::string fname = oss.str(); // 文字列を取得する
-    std::cout << "saving as " << fname << std::endl;
-    EigenMt2npy(calced_laminar, fname);
+    std::cout << "saving as . . ." << fname << std::endl;
+    EigenMt2npy(result, fname);
 
     auto end = std::chrono::system_clock::now();  // 計測終了時間
     int hours = std::chrono::duration_cast<std::chrono::hours>(end-start).count(); //処理に要した時間を変換
@@ -86,10 +94,10 @@ Eigen::VectorXcd npy2EigenVec(const char* fname){
     return vec;
 }
 
-void EigenMt2npy(Eigen::MatrixXcd Mat, std::string fname){
-    Eigen::MatrixXcd transposed = Mat.transpose();
+void EigenMt2npy(Eigen::MatrixXd Mat, std::string fname){
+    Eigen::MatrixXd transposed = Mat.transpose();
     // map to const mats in memory
-    Eigen::Map<const Eigen::MatrixXcd> MOut(&transposed(0,0), transposed.cols(), transposed.rows());
+    Eigen::Map<const Eigen::MatrixXd> MOut(&transposed(0,0), transposed.cols(), transposed.rows());
     // save to np-arrays files
     cnpy::npy_save(fname, MOut.data(), {(size_t)transposed.cols(), (size_t)transposed.rows()}, "w");
 }

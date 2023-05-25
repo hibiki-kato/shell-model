@@ -98,9 +98,13 @@ void ShellModel::set_beta_(double input_beta){
 }
 void ShellModel::set_t_0_(double input_t_0){
     t_0 = input_t_0;
+    steps = static_cast<int>((t - t_0) / ddt / latter+ 0.5);
+    t_latter_begin = t - (t - t_0) / latter;
 }
 void ShellModel::set_t_(double input_t){
     t = input_t;
+    steps = static_cast<int>((t - t_0) / ddt / latter+ 0.5);
+    t_latter_begin = t - (t - t_0) / latter;
 }
 void ShellModel::set_steps_(double input_steps){
     steps = input_steps;

@@ -4,6 +4,7 @@
 #include <cmath>
 #include <math.h>
 #include <iostream>
+#include <regex>
 #include <random>
 #include <omp.h>
 
@@ -60,6 +61,7 @@ public:
     ~LongLaminar();
     Eigen::MatrixXcd stagger_and_step_();
     bool isLaminarTrajectory_(Eigen::MatrixXcd trajectory);
+    double laminar_duration_max_(Eigen::MatrixXcd trajectory);
 
 private:
     Eigen::MatrixXcd laminar;
