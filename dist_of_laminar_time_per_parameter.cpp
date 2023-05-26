@@ -74,7 +74,7 @@ int main(){
 
 
     std::ostringstream oss;
-    oss << "../max_time_para/max_laminar_time_beta" << beta_begin <<"to"<< beta_end << "_nu" << nu_begin <<"to" << nu_end <<"_"<< param_steps << "times_epsilon" << epsilon << "_" << t-t_0 << "period_latter" << std::setprecision(2) << 1 / latter << "laminar0.42.npy";  // 文字列を結合する
+    oss << "../max_time_para/max_laminar_time_beta" << beta_begin <<"to"<< beta_end << "_nu" << nu_begin <<"to" << nu_end <<"_"<< param_steps << "times_epsilon" << epsilon << "_" << t-t_0 << "period_latter" << std::setprecision(2) << 1 / latter << "laminar0.47.npy";  // 文字列を結合する
     std::string fname = oss.str(); // 文字列を取得する
     std::cout << "saving as . . ." << fname << std::endl;
     EigenMt2npy(result, fname);

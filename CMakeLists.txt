@@ -2,7 +2,7 @@
 cmake_minimum_required(VERSION 3.14)
 # プロジェクト名と使用する言語を設定
 project(ShellModel CXX)
-add_executable(laminar dist_of_laminar_time_per_parameter.cpp ShellModel.cpp LongLaminar.cpp)
+add_executable(laminar stagger_and_step.cpp ShellModel.cpp LongLaminar.cpp)
 
 
 #includeパス

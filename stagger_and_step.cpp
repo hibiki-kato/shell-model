@@ -36,6 +36,12 @@ int main(){
 
     ShellModel SM(nu, beta, f, ddt, t_0, t, latter, x_0);
     Eigen::MatrixXcd laminar = SM.get_trajectory_();
+    int numCols = laminar.cols() / 10;
+    Eigen::MatrixXcd laminar_sample(laminar.rows(), numCols);
+    for (int i = 0; i < numCols; i++){
+        int colIdx = 10 * i;
+        laminar_sample.col(i) = laminar.col(colIdx);
+    }
 
     beta = 0.423;
     nu = 0.000175848;
@@ -44,11 +50,12 @@ int main(){
     x_0 = npy2EigenVec("../initials/beta0.423_nu0.000175848_2000period.npy");
 
 
-    LongLaminar LL(nu, beta, f, ddt, t_0, t, latter, x_0, laminar, epsilon, skip, check_sec, progress_sec, threads);
+    LongLaminar LL(nu, beta, f, ddt, t_0, t, latter, x_0, laminar_sample, epsilon, skip, check_sec, progress_sec, threads);
     Eigen::MatrixXcd calced_laminar = LL.stagger_and_step_();
     plt::figure_size(1200, 780);
     // Add graph title
     std::vector<double> x(calced_laminar.cols()),y(calced_laminar.cols());
+    int reach = static_cast<int>(calced_laminar.bottomRightCorner(1, 1).cwiseAbs()(0, 0) + 0.5); 
 
     for(int i=0;i<calced_laminar.cols();i++){
         x[i]=calced_laminar.cwiseAbs()(14, i);
@@ -57,13 +64,13 @@ int main(){
 
     plt::plot(x,y);
     std::ostringstream oss;
-    oss << "../generated_laminar_beta_" << beta << "nu_" << nu <<"_"<< t-t_0 << "period.png";  // 文字列を結合する
+    oss << "../generated_laminar_beta_" << beta << "nu_" << nu <<"_"<< reach << "period.png";  // 文字列を結合する
     std::string filename = oss.str(); // 文字列を取得する
     std::cout << "\n Saving result to " << filename << std::endl;
     plt::save(filename);
 
     oss.str("");
-    oss << "../generated_laminar_beta_" << beta << "nu_" << nu <<"_"<< t-t_0 << "period" << check_sec << "check" << progress_sec << "progress" << "eps" << epsilon << ".npy";
+    oss << "../generated_laminar_beta_" << beta << "nu_" << nu <<"_"<< reach << "period" << check_sec << "check" << progress_sec << "progress" << "eps" << epsilon << ".npy";
     std::string fname = oss.str(); // 文字列を取得する
     std::cout << "saving as " << fname << std::endl;
     EigenMt2npy(calced_laminar, fname);
