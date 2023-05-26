@@ -19,14 +19,14 @@ int main(){
     auto start = std::chrono::system_clock::now(); // 計測開始時間
     
     // generating laminar sample
-    double nu = 0.00017520319481270297;
-    double beta = 0.416;
+    double nu = 0.00011815;
+    double beta = 0.469363;
     std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
     double ddt = 0.01;
     double t_0 = 0;
-    double t = 1000;
-    double latter = 4;
-    Eigen::VectorXcd x_0 = npy2EigenVec("../beta0.416_nu0.00017520319481270297_step0.01_10000.0period_laminar.npy");
+    double t = 10000;
+    double latter = 20;
+    Eigen::VectorXcd x_0 = npy2EigenVec("../initials/beta0.469363_nu0.00011815_2000period.npy");
     ShellModel SM(nu, beta, f, ddt, t_0, t, latter, x_0);
     Eigen::MatrixXcd laminar = SM.get_trajectory_();
     int numRows = laminar.cols() / 10;
@@ -47,10 +47,10 @@ int main(){
     LongLaminar LL(nu, beta, f, ddt, t_0, t, latter, x_0, laminar_sample, epsilon, skip, 100, 10, threads);
     
     int param_steps = 100;
-    double beta_begin = 0.415;
-    double beta_end = 0.428;
-    double nu_begin = 0.00018;
-    double nu_end = 0.000165;
+    double beta_begin = 0.4;
+    double beta_end = 0.5;
+    double nu_begin = 0.0002;
+    double nu_end = 0.00005;
     auto betas = Eigen::VectorXd::LinSpaced(param_steps, beta_begin, beta_end);
     auto nus = Eigen::VectorXd::LinSpaced(param_steps, nu_begin, nu_end);
 
@@ -58,6 +58,9 @@ int main(){
     
     #pragma omp parallel for num_threads(threads)
     for(int i = 0; i < param_steps; i++){
+        if (omp_get_thread_num() ==0){
+            std::cout << "\r 現在" << i << "/" << param_steps << std::flush;
+        }
         LongLaminar local_LL = LL;
         local_LL.set_beta_(betas(i));
         for(int j = 0; j < param_steps; j++){
@@ -71,7 +74,7 @@ int main(){
 
 
     std::ostringstream oss;
-    oss << "../max_laminar_time_beta" << beta_begin <<"to"<< beta_end << "_nu" << nu_begin <<"to" << nu_end <<"_"<< param_steps << "times_epsilon" << epsilon << "_" << t-t_0 << "period_latter" << std::setprecision(2) << 1 / latter << ".npy";  // 文字列を結合する
+    oss << "../max_time_para/max_laminar_time_beta" << beta_begin <<"to"<< beta_end << "_nu" << nu_begin <<"to" << nu_end <<"_"<< param_steps << "times_epsilon" << epsilon << "_" << t-t_0 << "period_latter" << std::setprecision(2) << 1 / latter << "laminar0.42.npy";  // 文字列を結合する
     std::string fname = oss.str(); // 文字列を取得する
     std::cout << "saving as . . ." << fname << std::endl;
     EigenMt2npy(result, fname);
