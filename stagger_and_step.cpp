@@ -13,6 +13,7 @@
 namespace plt = matplotlibcpp;
 Eigen::VectorXcd npy2EigenVec(const char* fname);
 void EigenMt2npy(Eigen::MatrixXcd Mat, std::string fname);
+Eigen::MatrixXcd npy2EigenMat(const char* fname);
 
 
 int main(){
@@ -100,4 +101,14 @@ void EigenMt2npy(Eigen::MatrixXcd Mat, std::string fname){
     Eigen::Map<const Eigen::MatrixXcd> MOut(&transposed(0,0), transposed.cols(), transposed.rows());
     // save to np-arrays files
     cnpy::npy_save(fname, MOut.data(), {(size_t)transposed.cols(), (size_t)transposed.rows()}, "w");
+}
+
+Eigen::MatrixXcd npy2EigenMat(const char* fname){
+    std::string fname_str(fname);
+    cnpy::NpyArray arr = cnpy::npy_load(fname_str);
+    if (arr.word_size != sizeof(std::complex<double>)){
+        throw std::runtime_error("Unsupported data type in the npy file.");
+    }
+    Eigen::Map<const Eigen::MatrixXcd> MatT(arr.data<std::complex<double>>(), arr.shape[1], arr.shape[0]);
+    return MatT.transpose();
 }

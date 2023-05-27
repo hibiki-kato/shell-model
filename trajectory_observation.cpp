@@ -48,8 +48,8 @@ int main(){
      // 文字列を取得する
     oss << "../beta" << beta << "_nu" << nu <<"_"<< t-t_0 << "period.npy";  // 文字列を結合する
     std::string npyfname = oss.str();
-    // std::cout << "Saving result to " << npyfname << std::endl;
-    // EigenMt2npy(trajectory, npyfname);
+    std::cout << "Saving result to " << npyfname << std::endl;
+    EigenMt2npy(trajectory, npyfname);
 
     auto end = std::chrono::system_clock::now();  // 計測終了時間
     int hours = std::chrono::duration_cast<std::chrono::hours>(end-start).count(); //処理に要した時間を変換
@@ -57,13 +57,8 @@ int main(){
     int seconds = std::chrono::duration_cast<std::chrono::seconds>(end-start).count(); //処理に要した時間を変換
     int milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count(); //処理に要した時間を変換
     std::cout << hours << "h " << minutes % 60 << "m " << seconds % 60 << "s " << milliseconds % 1000 << "ms " << std::endl;
-
-    // std::ofstream file("output.txt");
-    // file << trajectory.cwiseAbs();
-    // file.close();
-
-
 }
+
 Eigen::VectorXcd npy2EigenVec(const char* fname){
     std::string fname_str(fname);
     cnpy::NpyArray arr = cnpy::npy_load(fname_str);

@@ -8,129 +8,7 @@
 #include "matplotlibcpp.h"
 #include "cnpy/cnpy.h"
 namespace plt = matplotlibcpp;
-
-Eigen::VectorXcd perturbator(Eigen::VectorXcd state);
-std::vector<double> loc_max(Eigen::MatrixXcd Mt, int obs_dim, int output_dim);
-
-class ShellModel
-{   //data members
-    double nu;
-    double beta;
-    std::complex<double> f;
-    double ddt;
-    double t_0;
-    double t;
-    double latter;
-    int steps;
-    double t_latter_begin;
-    Eigen::VectorXd k_n;
-    Eigen::VectorXd c_n_1;
-    Eigen::VectorXd c_n_2;
-    Eigen::VectorXd c_n_3;
-    Eigen::VectorXcd x_0;
-public:
-    //constructor
-    ShellModel(double input_nu, double input_beta, std::complex<double> input_f, double input_ddt, double input_t_0, double input_t, double input_latter, Eigen::VectorXcd input_x_0){
-        nu = input_nu;
-        beta = input_beta;
-        f = input_f;
-        ddt = input_ddt;
-        t_0 = input_t_0;
-        t = input_t;
-        latter = input_latter;
-        x_0 = input_x_0;
-        
-        // make k_n and c_n using beta
-        int dim = x_0.rows();
-        k_n = Eigen::VectorXd::Zero(dim);
-        double q = 2.0;
-        double k_0 = pow(2, -4);
-        
-        for (int i = 0; i < dim; i++) {
-            k_n(i) = k_0 * pow(q, i+1);
-        };
-        c_n_1 = Eigen::VectorXd::Zero(dim);
-        c_n_1.topRows(dim-2) = k_n.topRows(dim-2);
-
-        c_n_2 = Eigen::VectorXd::Zero(dim);
-        c_n_2.middleRows(1, dim-2) = k_n.topRows(dim-2).array() * (-beta);
-
-        c_n_3 = Eigen::VectorXd::Zero(dim);
-        c_n_3.bottomRows(dim-2) = k_n.topRows(dim-2).array() * (beta - 1);
-        steps = static_cast<int>((t - t_0) / ddt / latter+ 0.5);
-        t_latter_begin = t - (t - t_0) / latter;
-    }
-    //destructor
-    ~ShellModel(){
-    }
-    
-
-    Eigen::MatrixXcd get_trajectory_(){
-        int row = x_0.rows() + 1;
-        Eigen::MatrixXcd trajectory(row, steps+1);
-        double time = t_0;
-
-        //set initial point
-        trajectory.block(0, 0, row-1, 1) = x_0;
-        trajectory(row-1, 0) = time;
-        //renew x_0 while reaching latter
-        for (int i = 0; i < static_cast<int>((t - t_0) / ddt +0.5) - steps; i++){
-            trajectory.block(0, 0, row-1, 1) = rk4_(trajectory.block(0, 0, row-1, 1));
-            trajectory(row-1, 0) = time;
-            time += ddt;
-        }
-        
-        //solve
-        for(int i = 0; i < steps; i++){
-            trajectory.block(0, i+1, row-1, 1) = rk4_(trajectory.block(0, i, row-1, 1));
-            trajectory(row-1, i+1) = time;
-            time += ddt;
-        }
-        return trajectory;
-    };
-
-    void set_nu_(double input_nu){
-        nu = input_nu;
-    }
-    void set_beta_(double input_beta){
-        beta = input_beta;
-        int dim = x_0.rows();
-        // update c_n_2 and c_n_3
-        c_n_2 = Eigen::VectorXd::Zero(dim);
-        c_n_2.middleRows(1, dim-2) = k_n.middleRows(2, dim-2) * (-beta);
-
-        c_n_3 = Eigen::VectorXd::Zero(dim);
-        c_n_3.bottomRows(dim-2) = k_n.middleRows(2, dim-2) * (beta - 1);
-    }
-
-    void set_x_0_(Eigen::VectorXcd input_x_0){
-        x_0 = input_x_0;
-    }
-private:
-   Eigen::VectorXcd rk4_(Eigen::VectorXcd present)
-    {
-        Eigen::VectorXcd k1 = ddt * goy_shell_model_(present);
-        Eigen::VectorXcd k2 = ddt * goy_shell_model_(present.array() + k1.array() /2);
-        Eigen::VectorXcd k3 = ddt * goy_shell_model_(present.array() + k2.array() /2);
-        Eigen::VectorXcd k4 = ddt * goy_shell_model_(present.array() + k3.array());
-        return present.array() + (k1.array() + 2 * k2.array() + 2 * k3.array() + k4.array()) / 6;
-    }
-
-    Eigen::VectorXcd goy_shell_model_(Eigen::VectorXcd state)
-    {
-        int dim = state.rows();
-        Eigen::VectorXcd u = Eigen::VectorXd::Zero(dim+4);
-
-        u.middleRows(2, state.rows()) = state;
-        Eigen::VectorXcd ddt_u = (c_n_1.array() * u.middleRows(3,dim).conjugate().array() * u.bottomRows(dim).conjugate().array()
-                                + c_n_2.array() * u.middleRows(1,dim).conjugate().array() * u.middleRows(3,dim).conjugate().array()
-                                + c_n_3.array() * u.middleRows(1,dim).conjugate().array() * u.topRows(dim).conjugate().array()) * std::complex<double>(0, 1.0)
-                                - nu * u.middleRows(2,dim).array() * k_n.array().square();
-        ddt_u(0) += f;
-        return ddt_u;
-    }
-};
-
+Eigen::MatrixXcd npy2EigenMat(const char* fname);
 
 int main(){
     double nu = 0.0001732;
@@ -156,16 +34,7 @@ int main(){
     x_0(12) = std::complex<double>(0.1E-07 ,0.1E-06);
     x_0(13) = std::complex<double>(0.1E-07 ,0.1E-06);
 
-    
-    ShellModel solver(nu, beta, f, ddt, t_0, t, latter, x_0);
-
-    // // load npz
-    // cnpy::NpyArray loaded = cnpy::npy_load("beta_0.417nu_0.00017256_100000period.npy");
-    // Eigen::Map<const Eigen::MatrixXcd> Loaded(loaded.data<std::complex<double>>(), loaded.shape[0], loaded.shape[1]);
-    // Eigen::MatrixXcd trajectory = Loaded;
-
-    Eigen::MatrixXcd trajectory = solver.get_trajectory_();
-    
+    Eigen::MatrixXcd trajectory = npy2EigenMat("../beta0.46711_nu0.000118716_100000period.npy"); 
     // Set the size of output image = 1200x780 pixels
     plt::figure_size(1200, 780);
     // Add graph title
@@ -178,49 +47,19 @@ int main(){
     }
 
     plt::plot(x,y);
-
-    std::vector<double> a = loc_max(trajectory, 3, 4);
-    std::cout << a.size() << std::endl;
+    std::ostringstream oss;
+    oss << "../beta_" << beta << "nu_" << nu <<"_"<< t-t_0 << "period.png";  // 文字列を結合する
+    std::string plotfname = oss.str(); // 文字列を取得する
+    std::cout << "Saving result to " << plotfname << std::endl;
+    plt::save(plotfname);
 }
 
-
-Eigen::VectorXcd perturbator(Eigen::VectorXcd state){   
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    double a = -3;
-    double b = -10;
-    std::uniform_real_distribution<double> s(-1, 1);
-    std::uniform_real_distribution<double> dis(b, a);
-
-    Eigen::VectorXd unit = Eigen::VectorXd::Ones(state.rows());
-    for(int i = 0; i < state.rows(); i++){
-        unit(i) = s(gen);
+Eigen::MatrixXcd npy2EigenMat(const char* fname){
+    std::string fname_str(fname);
+    cnpy::NpyArray arr = cnpy::npy_load(fname_str);
+    if (arr.word_size != sizeof(std::complex<double>)){
+        throw std::runtime_error("Unsupported data type in the npy file.");
     }
-
-    Eigen::VectorXcd u = state.cwiseProduct(unit);
-    u /= u.norm();
-
-    return (u.array() * std::pow(10, dis(gen)) + state.array()).matrix();
-
-};
-
-std::vector<double> loc_max(Eigen::MatrixXcd Mt, int obs_dim, int output_dim){
-    int rowToCopy = obs_dim - 1;
-    std::vector<double> vec(Mt.cols());
-    for (int i = 0; i < Mt.cols(); i++){
-        vec[i] = Mt.cwiseAbs()(rowToCopy, i);
-    }
-    std::vector<double> loc_max_point;
-    loc_max_point.reserve(vec.size()/10000);
-    for (int i = 0; i < vec.size()-6; ++i){
-        if (vec[i+1] - vec[i] > 0
-        && vec[i+2] - vec[i+1] > 0
-        && vec[i+3] - vec[i+2] > 0
-        && vec[i+4] - vec[i+3] < 0
-        && vec[i+5] - vec[i+4] < 0
-        && vec[i+6] - vec[i+5] < 0){
-            loc_max_point.push_back(Mt.cwiseAbs()(output_dim - 1, i+3));
-        }
-    }
-    return loc_max_point;
+    Eigen::Map<const Eigen::MatrixXcd> MatT(arr.data<std::complex<double>>(), arr.shape[1], arr.shape[0]);
+    return MatT.transpose();
 }
