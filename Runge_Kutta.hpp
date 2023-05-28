@@ -62,8 +62,10 @@ public:
     Eigen::MatrixXcd stagger_and_step_();
     bool isLaminarTrajectory_(Eigen::MatrixXcd trajectory);
     double laminar_duration_max_(Eigen::MatrixXcd trajectory);
+    double laminar_duration_mean_(Eigen::MatrixXcd trajectory);
     double laminar_duration_(Eigen::MatrixXcd trajectory);
     Eigen::VectorXcd perturbator_(Eigen::VectorXcd state);
+
 
 private:
     Eigen::MatrixXcd laminar;

@@ -24,13 +24,13 @@
 				"streetsidesoftware.code-spell-checker",
 				"ionutvmi.path-autocomplete",
 				"esbenp.prettier-vscode",
-				"TabNine.tabnine-vscode",
 				"VisualStudioExptTeam.vscodeintellicode",
 				"VisualStudioExptTeam.intellicode-api-usage-examples",
 				"vscodevim.vim",
 				"ms-azuretools.vscode-docker",
 				"MS-CEINTL.vscode-language-pack-ja",
-				"ms-vscode.makefile-tools"
+				"ms-vscode.makefile-tools",
+				"GitHub.copilot"
 			]
 		}
 	}

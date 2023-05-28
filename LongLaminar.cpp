@@ -148,6 +148,37 @@ double LongLaminar::laminar_duration_max_(Eigen::MatrixXcd trajectory){
     return maxConsecutiveOnes * ShellModel::get_ddt_() * skip;
 }
 
+double LongLaminar::laminar_duration_mean_(Eigen::MatrixXcd trajectory){
+    int check_times = trajectory.cols()/skip + 1;
+    std::vector<int> sequence(check_times);
+    // ラミナーだったら1, そうでなかったら0をsequenceに格納
+    for(int i =0; i < check_times; i++){
+        sequence[i] = LongLaminar::isLaminarPoint_(trajectory.col(i*skip));
+    }
+
+    int consecutiveOnes = 0;  // 連続している1の数
+    int consecutiveBlocks = 0;  // 1の連続ブロックの数
+    bool inBlock = false;  // 1の連続ブロック内にいるかどうかのフラグ
+
+    for (int num : sequence) {
+        if (num == 1) {
+            if (!inBlock) {
+                inBlock = true;
+                consecutiveBlocks++;
+            }
+            consecutiveOnes++;
+        } else {
+            inBlock = false;
+        }
+    }
+
+    if (consecutiveBlocks == 0) {
+        return 0.0;  // 1の連続ブロックが存在しない場合は0を返す
+    }
+
+    return static_cast<double>(consecutiveOnes) / consecutiveBlocks * ShellModel::get_ddt_() * skip;
+}
+
 double LongLaminar::laminar_duration_(Eigen::MatrixXcd trajectory){
     double duration = 0;
     for (int i = 0; i < trajectory.cols()/skip; i++){
