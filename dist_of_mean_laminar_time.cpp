@@ -47,8 +47,8 @@ int main(){
     LongLaminar LL(nu, beta, f, ddt, t_0, t, latter, x_0, laminar_sample, epsilon, skip, 100, 10, threads);
     
     int param_steps = 100;
-    double beta_begin = 0.46;
-    double beta_end = 0.465;
+    double beta_begin = 0.416;
+    double beta_end = 0.4165;
     double nu_begin = 0.00018;
     double nu_end = 0.00018;
     auto betas = Eigen::VectorXd::LinSpaced(param_steps, beta_begin, beta_end);

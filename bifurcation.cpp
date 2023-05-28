@@ -10,8 +10,9 @@
 #include "cnpy/cnpy.h"
 #include "matplotlibcpp.h"
 namespace plt = matplotlibcpp;
-Eigen::MatrixXd loc_max(Eigen::MatrixXd Mt, int obs_dim);
+Eigen::MatrixXd loc_max(Eigen::MatrixXd traj_abs, int obs_dim);
 Eigen::VectorXcd npy2EigenVec(const char* fname);
+Eigen::MatrixXd poincare_section(Eigen::MatrixXd traj_abs, int cut_dim, double cut_value);
 
 
 int main(){
@@ -21,17 +22,17 @@ int main(){
     std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
     double ddt = 0.01;
     double t_0 = 0;
-    double t = 10000;
+    double t = 20000;
     double latter = 10;
     Eigen::VectorXcd x_0 = npy2EigenVec("../initials/beta0.416_nu0.00017520319481270297_step0.01_10000.0period_laminar.npy");
     int threads = omp_get_max_threads();
     std::cout << threads << "threads" << std::endl;
 
     int param_steps = 100;
-    double beta_begin = 0.414;
-    double beta_end = 0.441;
+    double beta_begin = 0.416;
+    double beta_end = 0.4165;
     double nu_begin = 0.00018;
-    double nu_end = 0.000135;
+    double nu_end = 0.00018;
     int loc_max_dim = 3;
     int target_dim = 4;
 
@@ -148,7 +149,7 @@ Eigen::MatrixXd loc_max(Eigen::MatrixXd traj_abs, int loc_max_dim){
     return loc_max_point;
 }
 
-Eigen::MatrixXd poincare_section(Eigen::MatrixXd Mat, int cut_dim, double cut_value){
+Eigen::MatrixXd poincare_section(Eigen::MatrixXd traj_abs, int cut_dim, double cut_value){
     // 条件に合えば1, 合わなければ0のベクトルを作成
     std::vector<int> binLoc_max(traj_abs.cols(), 0);
 
