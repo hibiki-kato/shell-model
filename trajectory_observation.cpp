@@ -15,14 +15,14 @@ Eigen::VectorXcd npy2EigenVec(const char* fname);
 
 int main(){
     auto start = std::chrono::system_clock::now(); // 計測開始時間
-    double nu = 0.000118716;
-    double beta = 0.46711;
+    double nu = 1.80000000e-04;
+    double beta = 4.16060606e-01;
     std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
     double ddt = 0.01;
     double t_0 = 0;
     double t = 100000;
     double latter = 1;
-    Eigen::VectorXcd x_0 = npy2EigenVec("../initials/beta0.469363_nu0.00011815_2000period.npy");
+    Eigen::VectorXcd x_0 = npy2EigenVec("../initials/beta0.416_nu0.00017520319481270297_step0.01_10000.0period_laminar.npy");
     ShellModel solver(nu, beta, f, ddt, t_0, t, latter, x_0);
 
     Eigen::MatrixXcd trajectory = solver.get_trajectory_(); 

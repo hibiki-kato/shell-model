@@ -19,8 +19,8 @@ int main(){
     auto start = std::chrono::system_clock::now(); // 計測開始時間
     
     // generating laminar sample
-    double nu = 0.00011815;
-    double beta = 0.469363;
+    double nu = 0.00017520319481270297;
+    double beta = 0.416;
     std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
     double ddt = 0.01;
     double t_0 = 0;

@@ -19,8 +19,8 @@ int main(){
     auto start = std::chrono::system_clock::now(); // 計測開始時間
     
     // generating laminar sample
-    double nu = 0.00011815;
-    double beta = 0.469363;
+    double nu = 0.00017520319481270297;
+    double beta = 0.416;
     std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
     double ddt = 0.01;
     double t_0 = 0;
@@ -47,10 +47,10 @@ int main(){
     LongLaminar LL(nu, beta, f, ddt, t_0, t, latter, x_0, laminar_sample, epsilon, skip, 100, 10, threads);
     
     int param_steps = 100;
-    double beta_begin = 0.41;
-    double beta_end = 0.43;
-    double nu_begin = 0.000168;
-    double nu_end = 0.00016;
+    double beta_begin = 0.46;
+    double beta_end = 0.465;
+    double nu_begin = 0.00018;
+    double nu_end = 0.00018;
     auto betas = Eigen::VectorXd::LinSpaced(param_steps, beta_begin, beta_end);
     auto nus = Eigen::VectorXd::LinSpaced(param_steps, nu_begin, nu_end);
     bool line = true;
@@ -75,7 +75,7 @@ int main(){
             result.row(i) << betas(i), nus(i), mean_time;
             }
         }
-        oss << "../mean_time_para/max_laminar_time_beta" << beta_begin <<"to"<< beta_end << "_nu" << nu_begin <<"to" << nu_end <<"_"<< param_steps << "times_epsilon" << epsilon << "_" << t-t_0 << "period_latter" << std::setprecision(2) << 1 / latter << "laminar0.47.npy";  // 文字列を結合する
+        oss << "../mean_time_para/mean_laminar_time_beta" << beta_begin <<"to"<< beta_end << "_nu" << nu_begin <<"to" << nu_end <<"_"<< param_steps << "times_epsilon" << epsilon << "_" << t-t_0 << "period_latter" << std::setprecision(2) << 1 / latter << "laminar0.47.npy";  // 文字列を結合する
     }
     else{
         // beta nuを同時に動かす O(n)の場合
