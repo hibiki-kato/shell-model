@@ -214,29 +214,29 @@ cnpy/cnpy.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/cnpy.dir/build.make CMakeFiles/cnpy.dir/cnpy/cnpy.cpp.s
 .PHONY : cnpy/cnpy.cpp.s
 
-trajectory_observation.o: trajectory_observation.cpp.o
-.PHONY : trajectory_observation.o
+dist_of_mean_laminar_time.o: dist_of_mean_laminar_time.cpp.o
+.PHONY : dist_of_mean_laminar_time.o
 
 # target to build an object file
-trajectory_observation.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/laminar.dir/build.make CMakeFiles/laminar.dir/trajectory_observation.cpp.o
-.PHONY : trajectory_observation.cpp.o
+dist_of_mean_laminar_time.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/laminar.dir/build.make CMakeFiles/laminar.dir/dist_of_mean_laminar_time.cpp.o
+.PHONY : dist_of_mean_laminar_time.cpp.o
 
-trajectory_observation.i: trajectory_observation.cpp.i
-.PHONY : trajectory_observation.i
+dist_of_mean_laminar_time.i: dist_of_mean_laminar_time.cpp.i
+.PHONY : dist_of_mean_laminar_time.i
 
 # target to preprocess a source file
-trajectory_observation.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/laminar.dir/build.make CMakeFiles/laminar.dir/trajectory_observation.cpp.i
-.PHONY : trajectory_observation.cpp.i
+dist_of_mean_laminar_time.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/laminar.dir/build.make CMakeFiles/laminar.dir/dist_of_mean_laminar_time.cpp.i
+.PHONY : dist_of_mean_laminar_time.cpp.i
 
-trajectory_observation.s: trajectory_observation.cpp.s
-.PHONY : trajectory_observation.s
+dist_of_mean_laminar_time.s: dist_of_mean_laminar_time.cpp.s
+.PHONY : dist_of_mean_laminar_time.s
 
 # target to generate assembly for a file
-trajectory_observation.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/laminar.dir/build.make CMakeFiles/laminar.dir/trajectory_observation.cpp.s
-.PHONY : trajectory_observation.cpp.s
+dist_of_mean_laminar_time.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/laminar.dir/build.make CMakeFiles/laminar.dir/dist_of_mean_laminar_time.cpp.s
+.PHONY : dist_of_mean_laminar_time.cpp.s
 
 # Help Target
 help:
@@ -257,9 +257,9 @@ help:
 	@echo "... cnpy/cnpy.o"
 	@echo "... cnpy/cnpy.i"
 	@echo "... cnpy/cnpy.s"
-	@echo "... trajectory_observation.o"
-	@echo "... trajectory_observation.i"
-	@echo "... trajectory_observation.s"
+	@echo "... dist_of_mean_laminar_time.o"
+	@echo "... dist_of_mean_laminar_time.i"
+	@echo "... dist_of_mean_laminar_time.s"
 .PHONY : help
 
 

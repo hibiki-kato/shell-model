@@ -28,7 +28,7 @@ int main(){
     int threads = omp_get_max_threads();
     std::cout << threads << "threads" << std::endl;
 
-    int param_steps = 100;
+    int param_steps = 400;
     double beta_begin = 0.416;
     double beta_end = 0.4165;
     double nu_begin = 0.00018;

@@ -17,6 +17,7 @@ public:
     ~ShellModel();
     Eigen::MatrixXcd get_trajectory_();
     Eigen::VectorXd get_energy_spectrum_();
+    Eigen::VectorXcd rk4_(Eigen::VectorXcd present);
 
     void set_nu_(double input_nu);
     void set_beta_(double input_beta);
@@ -48,7 +49,6 @@ private:
     Eigen::VectorXd c_n_3;
     Eigen::VectorXcd x_0;
 
-    Eigen::VectorXcd rk4_(Eigen::VectorXcd present);
     Eigen::VectorXcd goy_shell_model_(Eigen::VectorXcd state);
 };
 
@@ -61,8 +61,8 @@ public:
     ~LongLaminar();
     Eigen::MatrixXcd stagger_and_step_();
     bool isLaminarTrajectory_(Eigen::MatrixXcd trajectory);
-    double laminar_duration_max_(Eigen::MatrixXcd trajectory);
-    double laminar_duration_mean_(Eigen::MatrixXcd trajectory);
+    double laminar_duration_max_(const Eigen::MatrixXcd& trajectory = Eigen::MatrixXcd());
+    double laminar_duration_mean_(const Eigen::MatrixXcd& trajectory = Eigen::MatrixXcd());
     double laminar_duration_(Eigen::MatrixXcd trajectory);
     Eigen::VectorXcd perturbator_(Eigen::VectorXcd state);
 

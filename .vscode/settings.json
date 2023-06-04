@@ -20,6 +20,13 @@
 
     //c++の設定
     "cmake.configureOnOpen": true,
+    "cmake.configureSettings": {
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "YES",
+        "CMAKE_CXX_USE_RESPONSE_FILE_FOR_INCLUDES": "OFF",
+        "CMAKE_C_USE_RESPONSE_FILE_FOR_INCLUDES": "OFF",
+        "CMAKE_SUPPRESS_REGENERATION": "ON",
+        "CMAKE_SKIP_INSTALL_RULES": "ON"
+    },
    
     "clang.executable": "g++",
     "clang.cxxflags": [ "-std=c++23"],

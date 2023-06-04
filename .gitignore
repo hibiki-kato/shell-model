@@ -4,3 +4,6 @@ build/
 *.npy
 *.npz
 CMakeCache.txt
+CMakeFiles/
+*.png
+.DS_Store

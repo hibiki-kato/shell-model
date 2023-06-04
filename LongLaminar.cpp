@@ -120,12 +120,30 @@ Eigen::VectorXcd LongLaminar::perturbator_(Eigen::VectorXcd state){
 
 }
 
-double LongLaminar::laminar_duration_max_(Eigen::MatrixXcd trajectory){
-    int check_times = trajectory.cols()/skip + 1;
-    std::vector<int> sequence(check_times);
-    for(int i =0; i < check_times; i++){
-        sequence[i] = LongLaminar::isLaminarPoint_(trajectory.col(i*skip));
+double LongLaminar::laminar_duration_max_(const Eigen::MatrixXcd& trajectory){
+    // get binary sequence of whether laminar or not
+    int check_times;
+    std::vector<int> sequence;
+    if (trajectory.rows() == 0){
+        check_times = (ShellModel::get_steps_()+1)/skip + 1;
+        sequence.resize(check_times);
+        Eigen::VectorXcd x = ShellModel::get_x_0_();
+        // calc trajectory and check whether laminar or not for "check_times" times
+        for (int i = 0; i < ShellModel::get_steps_() ; i++){
+            x = ShellModel::rk4_(x);
+            if (i % skip == 0){
+                sequence[i/skip] = LongLaminar::isLaminarPoint_(x);
+            }
+        }
     }
+    else{
+        check_times = trajectory.cols()/skip + 1;
+        sequence.resize(check_times);
+        for(int i =0; i < check_times; i++){
+            sequence[i] = LongLaminar::isLaminarPoint_(trajectory.col(i*skip));
+        }
+    }
+
     std::string sequenceString;
     for (int num : sequence) {
         sequenceString += std::to_string(num);
@@ -148,12 +166,28 @@ double LongLaminar::laminar_duration_max_(Eigen::MatrixXcd trajectory){
     return maxConsecutiveOnes * ShellModel::get_ddt_() * skip;
 }
 
-double LongLaminar::laminar_duration_mean_(Eigen::MatrixXcd trajectory){
-    int check_times = trajectory.cols()/skip + 1;
-    std::vector<int> sequence(check_times);
-    // ラミナーだったら1, そうでなかったら0をsequenceに格納
-    for(int i =0; i < check_times; i++){
-        sequence[i] = LongLaminar::isLaminarPoint_(trajectory.col(i*skip));
+double LongLaminar::laminar_duration_mean_(const Eigen::MatrixXcd& trajectory){
+    // get binary sequence of whether laminar or not
+    int check_times;
+    std::vector<int> sequence;
+    if (trajectory.rows() == 0){
+        check_times = (ShellModel::get_steps_()+1)/skip + 1;
+        sequence.resize(check_times);
+        Eigen::VectorXcd x = ShellModel::get_x_0_();
+        // calc trajectory and check whether laminar or not for "check_times" times
+        for (int i = 0; i < ShellModel::get_steps_() ; i++){
+            x = ShellModel::rk4_(x);
+            if (i % skip == 0){
+                sequence[i/skip] = LongLaminar::isLaminarPoint_(x);
+            }
+        }
+    }
+    else{
+        check_times = trajectory.cols()/skip + 1;
+        sequence.resize(check_times);
+        for(int i =0; i < check_times; i++){
+            sequence[i] = LongLaminar::isLaminarPoint_(trajectory.col(i*skip));
+        }
     }
 
     int consecutiveOnes = 0;  // 連続している1の数
