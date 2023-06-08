@@ -23,13 +23,13 @@ public:
     void set_beta_(double input_beta);
     void set_t_0_(double input_t_0);
     void set_t_(double input_t);
-    void set_steps_(double input_steps);
+    void set_steps_(long input_steps);
     void set_x_0_(Eigen::VectorXcd input_x_0);
 
     double get_ddt_();
     double get_t_0_();
     double get_t_();
-    int get_steps_();
+    long get_steps_();
     Eigen::VectorXd get_k_n_();
     Eigen::VectorXcd get_x_0_();
 private:
@@ -41,7 +41,7 @@ private:
     double t_0;
     double t;
     double latter;
-    int steps;
+    long steps;
     double t_latter_begin;
     Eigen::VectorXd k_n;
     Eigen::VectorXd c_n_1;

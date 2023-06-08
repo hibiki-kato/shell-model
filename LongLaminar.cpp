@@ -29,7 +29,7 @@ Eigen::MatrixXcd LongLaminar::stagger_and_step_(){
     int check_steps = static_cast<int>(check_sec / ShellModel::get_ddt_() + 0.5); //steps of checked trajectory
     int progress_steps = static_cast<int>(progress_sec / ShellModel::get_ddt_() + 0.5); //steps of progress
     int cycle_limit = 2E+05;
-    ShellModel::set_steps_(check_steps);
+    // ShellModel::set_steps_(check_steps); //　多分いらない?
     
     for (int i = 0; i < stagger_and_step_num; i++){
         std::cout << "\r 現在" << i * progress_sec << "時間" << std::flush;
@@ -163,6 +163,7 @@ double LongLaminar::laminar_duration_mean_(const Eigen::MatrixXcd& trajectory){
     if (trajectory.rows() == 0){
         Eigen::VectorXcd x = ShellModel::get_x_0_();
         int counter = 0;
+        std::cout << ShellModel::get_steps_() << std::endl;
         for (int i = 0; i < ShellModel::get_steps_() ; i++){
             x = ShellModel::rk4_(x);
             if (i % skip == 0){

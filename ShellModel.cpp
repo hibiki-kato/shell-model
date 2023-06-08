@@ -33,7 +33,7 @@ ShellModel::ShellModel(double input_nu, double input_beta, std::complex<double> 
 
     c_n_3 = Eigen::VectorXd::Zero(dim);
     c_n_3.bottomRows(dim-2) = k_n.topRows(dim-2).array() * (beta - 1);
-    steps = static_cast<int>((t - t_0) / ddt / latter+ 0.5);
+    steps = static_cast<long>((t - t_0) / ddt / latter+ 0.5);
     t_latter_begin = t - (t - t_0) / latter;
  }
 //destructor
@@ -49,7 +49,7 @@ Eigen::MatrixXcd ShellModel::get_trajectory_(){
     trajectory.block(0, 0, row-1, 1) = x_0;
     trajectory(row-1, 0) = time;
     //renew x_0 while reaching latter
-    for (int i = 0; i < static_cast<int>((t - t_0) / ddt +0.5) - steps; i++){
+    for (long i = 0; i < static_cast<long>((t - t_0) / ddt +0.5) - steps; i++){
         trajectory.block(0, 0, row-1, 1) = ShellModel::rk4_(trajectory.block(0, 0, row-1, 1));
         trajectory(row-1, 0) = time;
         time += ddt;
@@ -57,7 +57,7 @@ Eigen::MatrixXcd ShellModel::get_trajectory_(){
 
     //solve
 
-    for(int i = 0; i < steps; i++){
+    for(long i = 0; i < steps; i++){
         trajectory.block(0, i+1, row-1, 1) = ShellModel::rk4_(trajectory.block(0, i, row-1, 1));
         trajectory(row-1, i+1) = time;
         time += ddt;
@@ -70,13 +70,13 @@ Eigen::VectorXd ShellModel::get_energy_spectrum_(){
     Eigen::VectorXd sum(x_0.rows(), 1);
     
     //renew x_0 while reaching latter
-    for (int i = 0; i < static_cast<int>((t - t_0) / ddt +0.5) - steps; i++){
+    for (long i = 0; i < static_cast<long>((t - t_0) / ddt +0.5) - steps; i++){
         x = ShellModel::rk4_(x);
     }
 
     // get energy spectrum by calc mean of absolute value of each shell's
     sum = x.cwiseAbs();
-    for (int i = 0; i < steps; i++){
+    for (long i = 0; i < steps; i++){
         x = ShellModel::rk4_(x);
         sum += x.cwiseAbs();
     }
@@ -98,15 +98,15 @@ void ShellModel::set_beta_(double input_beta){
 }
 void ShellModel::set_t_0_(double input_t_0){
     t_0 = input_t_0;
-    steps = static_cast<int>((t - t_0) / ddt / latter+ 0.5);
+    steps = static_cast<long>((t - t_0) / ddt / latter+ 0.5);
     t_latter_begin = t - (t - t_0) / latter;
 }
 void ShellModel::set_t_(double input_t){
     t = input_t;
-    steps = static_cast<int>((t - t_0) / ddt / latter+ 0.5);
+    steps = static_cast<long>((t - t_0) / ddt / latter+ 0.5);
     t_latter_begin = t - (t - t_0) / latter;
 }
-void ShellModel::set_steps_(double input_steps){
+void ShellModel::set_steps_(long input_steps){
     steps = input_steps;
 }
 void ShellModel::set_x_0_(Eigen::VectorXcd input_x_0){
@@ -122,7 +122,7 @@ double ShellModel::get_t_0_(){
 double ShellModel::get_t_(){
     return t;
 }
-int ShellModel::get_steps_(){
+long ShellModel::get_steps_(){
     return steps;
 }
 Eigen::VectorXd ShellModel::get_k_n_(){
