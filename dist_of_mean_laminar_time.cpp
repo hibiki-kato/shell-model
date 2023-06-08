@@ -39,7 +39,7 @@ int main(){
     auto beta_of_laminar = beta;
 
     // set up for search
-    t=100;
+    t=10000;
     latter = 1;
     int skip = 1000;
     double epsilon = 1E-1;
@@ -74,7 +74,7 @@ int main(){
                 double mean_time = local_LL.laminar_duration_mean_();
                 
                 #pragma omp critical
-                result.row(param_steps * i + j) << betas(i), nus(i), mean_time;
+                result.row(param_steps * i + j) << betas(i), nus(j), mean_time;
             }
         }
         oss << "../mean_time_para/mean_laminar_time_beta" << beta_begin <<"to"<< beta_end << "_nu" << nu_begin <<"to" << nu_end <<"_"<< param_steps << "times_epsilon" << epsilon << "_" << t-t_0 << "period_latter" << std::setprecision(2) << 1 / latter << "laminar"<< beta_of_laminar << ".npy";  // 文字列を結合する

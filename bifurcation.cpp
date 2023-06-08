@@ -10,9 +10,9 @@
 #include "cnpy/cnpy.h"
 #include "matplotlibcpp.h"
 namespace plt = matplotlibcpp;
-Eigen::MatrixXd loc_max(Eigen::MatrixXd traj_abs, int obs_dim);
+Eigen::MatrixXd loc_max(const Eigen::MatrixXd& traj_abs, int obs_dim);
 Eigen::VectorXcd npy2EigenVec(const char* fname);
-Eigen::MatrixXd poincare_section(Eigen::MatrixXd traj_abs, int cut_dim, double cut_value);
+Eigen::MatrixXd poincare_section(const Eigen::MatrixXd& traj_abs, int cut_dim, double cut_value);
 
 
 int main(){
@@ -28,7 +28,7 @@ int main(){
     int threads = omp_get_max_threads();
     std::cout << threads << "threads" << std::endl;
 
-    int param_steps = 400;
+    int param_steps = 200;
     double beta_begin = 0.416;
     double beta_end = 0.4165;
     double nu_begin = 0.00018;
@@ -59,14 +59,12 @@ int main(){
         local_SM.set_nu_(nus(i));
         Eigen::MatrixXcd trajectory = local_SM.get_trajectory_();
         auto poincare_section = loc_max(trajectory.cwiseAbs(), loc_max_dim);
-        
         #pragma omp critical
         {
             file << betas(i) << " " << nus(i) << " ";
-            
-            //target_dim - 1行目を出力
+            //poincare_section_vecを続きに書き込む
             for (int j = 0; j < poincare_section.cols(); j++){
-                file << poincare_section(target_dim - 1, j) << " ";
+                file << poincare_section(target_dim-1, j) << " ";
             }
             file << std::endl;
         }
@@ -94,29 +92,7 @@ Eigen::VectorXcd npy2EigenVec(const char* fname){
     return vec;
 }
 
-
-// std::vector<double> loc_max(Eigen::MatrixXcd Mt, int obs_dim, int output_dim){
-//     int rowToCopy = obs_dim - 1;
-//     std::vector<double> vec(Mt.cols());
-//     for (int i = 0; i < Mt.cols(); i++){
-//         vec[i] = Mt.cwiseAbs()(rowToCopy, i);
-//     }
-//     std::vector<double> loc_max_point;
-//     loc_max_point.reserve(vec.size()/10000);
-//     for (int i = 0; i < vec.size()-6; ++i){
-//         if (vec[i+1] - vec[i] > 0
-//         && vec[i+2] - vec[i+1] > 0
-//         && vec[i+3] - vec[i+2] > 0
-//         && vec[i+4] - vec[i+3] < 0
-//         && vec[i+5] - vec[i+4] < 0
-//         && vec[i+6] - vec[i+5] < 0){
-//             loc_max_point.push_back(Mt.cwiseAbs()(output_dim - 1, i+3));
-//         }
-//     }
-//     return loc_max_point;
-// }
-
-Eigen::MatrixXd loc_max(Eigen::MatrixXd traj_abs, int loc_max_dim){
+Eigen::MatrixXd loc_max(const Eigen::MatrixXd& traj_abs, int loc_max_dim){
     // 条件に合えば1, 合わなければ0のベクトルを作成
     std::vector<int> binLoc_max(traj_abs.cols());
     //　最初の3点と最後の3点は条件を満たせないので0
@@ -149,24 +125,32 @@ Eigen::MatrixXd loc_max(Eigen::MatrixXd traj_abs, int loc_max_dim){
     return loc_max_point;
 }
 
-Eigen::MatrixXd poincare_section(Eigen::MatrixXd traj_abs, int cut_dim, double cut_value){
+Eigen::MatrixXd poincare_section(const Eigen::MatrixXd& traj_abs, int cut_dim, double cut_value){
     // 条件に合えば1, 合わなければ0のベクトルを作成
-    std::vector<int> binLoc_max(traj_abs.cols(), 0);
+    std::vector<int> binSection(traj_abs.cols(), 0);
 
     for (int i = 0; i < traj_abs.cols() -1; ++i){
-        if (traj_abs(cut_dim, i) > cut_value && traj_abs(cut_dim, i+1) < cut_value
-        || traj_abs(cut_dim, i) < cut_value && traj_abs(cut_dim, i+1) > cut_value){
-            binLoc_max[i] = 1;
-            binLoc_max[i+1] = 1;
+        if ((traj_abs(cut_dim, i) > cut_value && traj_abs(cut_dim, i+1) < cut_value)
+        || (traj_abs(cut_dim, i) < cut_value && traj_abs(cut_dim, i+1) > cut_value)){
+            binSection[i] = 1;
+            binSection[i+1] = 1;
         }
     }
-    Eigen::MatrixXd loc_max_point(traj_abs.rows(), binLoc_max.size());
+    //binSectionの1の数を数える
+    int count = 0;
+    for (int i = 0; i < binSection.size(); ++i){
+        if (binSection[i] == 1){
+            count++;
+        }
+    }
+    //binSectionの1の数だけの行列を作成
+    Eigen::MatrixXd PoincareSection(traj_abs.rows(), count);
     int col_now = 0;
-    for (int i = 0; i < binLoc_max.size(); ++i){
-        if (binLoc_max[i] == 1){
-            loc_max_point.col(col_now) = traj_abs.col(i);
+    for (int i = 0; i < binSection.size(); ++i){
+        if (binSection[i] == 1){
+            PoincareSection.col(col_now) = traj_abs.col(i);
             col_now++;
         }
     }
-    return loc_max_point;
+    return PoincareSection;
 }

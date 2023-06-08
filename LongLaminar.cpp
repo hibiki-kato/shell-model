@@ -121,96 +121,83 @@ Eigen::VectorXcd LongLaminar::perturbator_(Eigen::VectorXcd state){
 }
 
 double LongLaminar::laminar_duration_max_(const Eigen::MatrixXcd& trajectory){
-    // get binary sequence of whether laminar or not
-    int check_times;
-    std::vector<int> sequence;
+    int max = 0;
+    int counter = 0;
     if (trajectory.rows() == 0){
-        check_times = (ShellModel::get_steps_()+1)/skip + 1;
-        sequence.resize(check_times);
         Eigen::VectorXcd x = ShellModel::get_x_0_();
-        // calc trajectory and check whether laminar or not for "check_times" times
         for (int i = 0; i < ShellModel::get_steps_() ; i++){
             x = ShellModel::rk4_(x);
             if (i % skip == 0){
-                sequence[i/skip] = LongLaminar::isLaminarPoint_(x);
+                if (LongLaminar::isLaminarPoint_(x)){
+                    counter++;
+                }
+                else{
+                    if (counter > max){
+                        max = counter;
+                    }
+                    counter = 0;
+                }
             }
         }
     }
     else{
-        check_times = trajectory.cols()/skip + 1;
-        sequence.resize(check_times);
+        int check_times = trajectory.cols()/skip + 1;
         for(int i =0; i < check_times; i++){
-            sequence[i] = LongLaminar::isLaminarPoint_(trajectory.col(i*skip));
+            if (LongLaminar::isLaminarPoint_(trajectory.col(i*skip))){
+                counter++;
+            }
+            else{
+                if (counter > max){
+                    max = counter;
+                }
+                counter = 0;
+            }
         }
     }
-
-    std::string sequenceString;
-    for (int num : sequence) {
-        sequenceString += std::to_string(num);
-    }
-
-    std::regex pattern("1+"); // パターン: 1が1回以上連続する
-
-    std::smatch match;
-    double maxConsecutiveOnes = 0;
-
-    auto it = sequenceString.cbegin();
-    while (std::regex_search(it, sequenceString.cend(), match, pattern)) {
-        int consecutiveOnes = match.str().length();
-        if (consecutiveOnes > maxConsecutiveOnes) {
-            maxConsecutiveOnes = consecutiveOnes;
-        }
-        it = match.suffix().first; // 次の検索の開始位置を設定
-    }
-
-    return maxConsecutiveOnes * ShellModel::get_ddt_() * skip;
+    return max * ShellModel::get_ddt_() * skip;
 }
 
 double LongLaminar::laminar_duration_mean_(const Eigen::MatrixXcd& trajectory){
-    // get binary sequence of whether laminar or not
-    int check_times;
-    std::vector<int> sequence;
+    double sum = 0;
+    int duration_counter = 0;
     if (trajectory.rows() == 0){
-        check_times = (ShellModel::get_steps_()+1)/skip + 1;
-        sequence.resize(check_times);
         Eigen::VectorXcd x = ShellModel::get_x_0_();
-        // calc trajectory and check whether laminar or not for "check_times" times
+        int counter = 0;
         for (int i = 0; i < ShellModel::get_steps_() ; i++){
             x = ShellModel::rk4_(x);
             if (i % skip == 0){
-                sequence[i/skip] = LongLaminar::isLaminarPoint_(x);
+                if (LongLaminar::isLaminarPoint_(x) == 1){
+                    counter++;
+                }
+                else{
+                    if (counter != 0){
+                        sum += counter;
+                        duration_counter++;
+                        counter = 0;
+                    }
+                }
             }
         }
     }
     else{
-        check_times = trajectory.cols()/skip + 1;
-        sequence.resize(check_times);
+        int counter = 0;
+        int check_times = trajectory.cols()/skip + 1;
         for(int i =0; i < check_times; i++){
-            sequence[i] = LongLaminar::isLaminarPoint_(trajectory.col(i*skip));
-        }
-    }
-
-    int consecutiveOnes = 0;  // 連続している1の数
-    int consecutiveBlocks = 0;  // 1の連続ブロックの数
-    bool inBlock = false;  // 1の連続ブロック内にいるかどうかのフラグ
-
-    for (int num : sequence) {
-        if (num == 1) {
-            if (!inBlock) {
-                inBlock = true;
-                consecutiveBlocks++;
+            if (LongLaminar::isLaminarPoint_(trajectory.col(i*skip)) == 1){
+                counter++;
             }
-            consecutiveOnes++;
-        } else {
-            inBlock = false;
+            else{
+                if (counter != 0){
+                    sum += counter;
+                    duration_counter++;
+                    counter = 0;
+                }
+            }
         }
     }
+    // calc the average of durations
 
-    if (consecutiveBlocks == 0) {
-        return 0.0;  // 1の連続ブロックが存在しない場合は0を返す
-    }
-
-    return static_cast<double>(consecutiveOnes) / consecutiveBlocks * ShellModel::get_ddt_() * skip;
+    return sum / duration_counter * ShellModel::get_ddt_() * skip;
 }
 
 double LongLaminar::laminar_duration_(Eigen::MatrixXcd trajectory){
@@ -224,3 +211,14 @@ double LongLaminar::laminar_duration_(Eigen::MatrixXcd trajectory){
     return duration;
 }
 
+Eigen::MatrixXcd LongLaminar::extractor(const Eigen::MatrixXcd& trajectory, int index, double back, double forward){
+    int backIndex = index - static_cast<int>(std::round(back / ShellModel::get_ddt_()));
+    if (backIndex < 0){
+        throw std::runtime_error("Backward time is out of range.");
+    }
+    int forwardIndex = index + static_cast<int>(std::round(forward / ShellModel::get_ddt_()));
+    if (forwardIndex > trajectory.cols()){
+        throw std::runtime_error("Forward time is out of range.");
+    }
+    return trajectory.middleCols(backIndex, forwardIndex - backIndex + 1);
+}

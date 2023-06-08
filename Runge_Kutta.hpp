@@ -65,7 +65,8 @@ public:
     double laminar_duration_mean_(const Eigen::MatrixXcd& trajectory = Eigen::MatrixXcd());
     double laminar_duration_(Eigen::MatrixXcd trajectory);
     Eigen::VectorXcd perturbator_(Eigen::VectorXcd state);
-
+    bool isLaminarPoint_(Eigen::VectorXcd state);
+    Eigen::MatrixXcd extractor(const Eigen::MatrixXcd& trajectory, int index, double back, double forward);
 
 private:
     Eigen::MatrixXcd laminar;
@@ -76,6 +77,7 @@ private:
     double begin_time_of_stag_and_step;
     double end_time_of_stag_and_step;
     int threads;
+
+
     
-    bool isLaminarPoint_(Eigen::VectorXcd state);
 };

@@ -37,7 +37,7 @@ int main(){
     }
 
     // set up for search
-    t=20000;
+    t=100000;
     latter = 1;
     int skip = 1000;
     double epsilon = 1E-1;
@@ -46,11 +46,11 @@ int main(){
 
     LongLaminar LL(nu, beta, f, ddt, t_0, t, latter, x_0, laminar_sample, epsilon, skip, 100, 10, threads);
     
-    int param_steps = 200;
-    double beta_begin = 0.41;
+    int param_steps = 100;
+    double beta_begin = 0.416;
     double beta_end = 0.43;
-    double nu_begin = 0.000168;
-    double nu_end = 0.00016;
+    double nu_begin = 0.00018;
+    double nu_end = 0.00018;
     auto betas = Eigen::VectorXd::LinSpaced(param_steps, beta_begin, beta_end);
     auto nus = Eigen::VectorXd::LinSpaced(param_steps, nu_begin, nu_end);
     bool line = true;
@@ -69,8 +69,7 @@ int main(){
             local_LL.set_beta_(betas(i));
             for(int j = 0; j < param_steps; j++){
                 local_LL.set_nu_(nus(j));
-                auto trajectory = local_LL.get_trajectory_();
-                double maxtime = local_LL.laminar_duration_max_(trajectory);
+                double maxtime = local_LL.laminar_duration_max_();
                 #pragma omp critical
                 result.row(param_steps * i + j) << betas(i), nus(j), maxtime;
             }
@@ -88,8 +87,7 @@ int main(){
             LongLaminar local_LL = LL;
             local_LL.set_beta_(betas(i));
             local_LL.set_nu_(nus(i));
-            auto trajectory = local_LL.get_trajectory_();
-            double maxtime = local_LL.laminar_duration_max_(trajectory);
+            double maxtime = local_LL.laminar_duration_max_();
             #pragma omp critical
             result.row(i) << betas(i), nus(i), maxtime;
             }

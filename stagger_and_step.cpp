@@ -44,11 +44,11 @@ int main(){
         laminar_sample.col(i) = laminar.col(colIdx);
     }
 
-    beta = 0.423;
-    nu = 0.000175848;
+    beta = 0.418;
+    nu = 0.000173;
     latter = 1;
-    t = 10000;
-    x_0 = npy2EigenVec("../initials/beta0.423_nu0.000175848_2000period.npy");
+    t = 20000;
+    x_0 = npy2EigenVec("../initials/beta0.418_nu0.000173_2000period.npy");
 
 
     LongLaminar LL(nu, beta, f, ddt, t_0, t, latter, x_0, laminar_sample, epsilon, skip, check_sec, progress_sec, threads);
