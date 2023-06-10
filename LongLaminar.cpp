@@ -100,13 +100,11 @@ bool LongLaminar::isLaminarTrajectory_(Eigen::MatrixXcd trajectory){
     }
     return true;
 }
-Eigen::VectorXcd LongLaminar::perturbator_(Eigen::VectorXcd state){   
+Eigen::VectorXcd LongLaminar::perturbator_(Eigen::VectorXcd state, int s_min, int s_max){   
     std::random_device rd;
     std::mt19937 gen(rd());
-    double a = -3;
-    double b = -10;
     std::uniform_real_distribution<double> s(-1, 1);
-    std::uniform_real_distribution<double> dis(b, a);
+    std::uniform_real_distribution<double> dis(s_min, s_max);
 
     Eigen::VectorXd unit = Eigen::VectorXd::Ones(state.rows());
     for(int i = 0; i < state.rows(); i++){

@@ -40,9 +40,9 @@ int main(){
     t=2000;
     latter = 1;
     nu = 0.00018;
-    beta = 0.419;
-    x_0 = npy2EigenVec("../initials/beta0.418_nu0.00018_495period.npy");
-    int num_of_candidates = 1000;
+    beta = 0.424;
+    x_0 = npy2EigenVec("../initials/beta0.424_nu0.00018_1895period.npy");
+    int num_of_candidates = 100;
     int skip = 100;
     double epsilon = 1E-1;
     int threads = omp_get_max_threads();
@@ -52,12 +52,12 @@ int main(){
     Eigen::MatrixXcd initials(x_0.size(), num_of_candidates);
     double longest;
 
-    for(int i = 0; i < 4; i++){
+    for(int i = 0; i < 40; i++){
         // make matrix that each cols are candidates of initial value
         std::cout << "現在"  << i+1 << "回" <<std::endl;
         initials.col(0) = LL.get_x_0_();
         for(int j = 1; j < num_of_candidates - 1; j++){
-            initials.col(j) = LL.perturbator_(LL.get_x_0_());
+            initials.col(j) = LL.perturbator_(LL.get_x_0_(), -10, -1);
         }
         Eigen::VectorXd durations(num_of_candidates);
         #pragma omp parallel for num_threads(threads)
