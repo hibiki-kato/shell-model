@@ -18,7 +18,7 @@ void EigenVec2npy(Eigen::VectorXcd Vec, std::string fname);
 int main(){
     auto start = std::chrono::system_clock::now(); // 計測開始時間
     
-    // generating laminar sample
+    // generating laminar sample !DO NOT CHANGE!
     double nu = 0.00017520319481270297;
     double beta = 0.416;
     std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
@@ -39,31 +39,36 @@ int main(){
     // set up for search
     t=2000;
     latter = 1;
-    nu = 0.000173;
-    beta = 0.418;
+    nu = 0.00018;
+    beta = 0.419;
+    x_0 = npy2EigenVec("../initials/beta0.418_nu0.00018_495period.npy");
+    int num_of_candidates = 1000;
     int skip = 100;
     double epsilon = 1E-1;
     int threads = omp_get_max_threads();
     std::cout << threads << "threads" << std::endl;
 
     LongLaminar LL(nu, beta, f, ddt, t_0, t, latter, x_0, laminar_sample, epsilon, skip, 100, 10, threads);
-    int num_of_candidates = 1000;
     Eigen::MatrixXcd initials(x_0.size(), num_of_candidates);
     double longest;
 
     for(int i = 0; i < 4; i++){
         // make matrix that each cols are candidates of initial value
+        std::cout << "現在"  << i+1 << "回" <<std::endl;
         initials.col(0) = LL.get_x_0_();
-        for(int i = 1; i < num_of_candidates - 1; i++){
-            initials.col(i) = LL.perturbator_(LL.get_x_0_());
+        for(int j = 1; j < num_of_candidates - 1; j++){
+            initials.col(j) = LL.perturbator_(LL.get_x_0_());
         }
         Eigen::VectorXd durations(num_of_candidates);
         #pragma omp parallel for num_threads(threads)
-        for(int i = 0; i < num_of_candidates; i++){
+        for(int j = 0; j < num_of_candidates; j++){
+            if (omp_get_thread_num() == 0){
+                std::cout << "\r" << (j + 1) * threads << "個目" << std::flush;
+            }
             LongLaminar local_LL = LL;
-            local_LL.set_x_0_(initials.col(i));
+            local_LL.set_x_0_(initials.col(j));
             Eigen::MatrixXcd trajectory = local_LL.get_trajectory_();
-            durations(i) = local_LL.laminar_duration_(trajectory);
+            durations(j) = local_LL.laminar_duration_(trajectory);
             }
         int maxId;
         longest = durations.maxCoeff(&maxId);

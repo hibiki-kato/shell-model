@@ -15,8 +15,8 @@ Eigen::VectorXcd npy2EigenVec(const char* fname);
 
 int main(){
     auto start = std::chrono::system_clock::now(); // 計測開始時間
-    double nu = 0.000173;
-    double beta = 0.418;
+    double nu = 0.00018;
+    double beta = 0.42;
     std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
     double ddt = 0.01;
     double t_0 = 0;

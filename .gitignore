@@ -1,9 +1,9 @@
-build/
+build/*
 *.o
 *.out
 *.npy
 *.npz
 CMakeCache.txt
-CMakeFiles/
-*.png
-.DS_Store
+*.DS_Store
+
+!initials/*

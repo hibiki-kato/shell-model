@@ -9,7 +9,7 @@
 #include <random>
 #include <omp.h>
 
-LongLaminar::LongLaminar(double input_nu, double input_beta, std::complex<double> input_f, double input_ddt, double input_t_0, double input_t, double input_latter, Eigen::VectorXcd input_x_0, Eigen::MatrixXcd input_laminar, double input_epsilon, int input_skip, double input_check_sec, double input_progress_sec, int input_threads = omp_get_num_threads()) : ShellModel(input_nu, input_beta, input_f, input_ddt, input_t_0, input_t, input_latter, input_x_0){
+LongLaminar::LongLaminar(double input_nu, double input_beta, std::complex<double> input_f, double input_ddt, double input_t_0, double input_t, double input_latter, Eigen::VectorXcd input_x_0, Eigen::MatrixXcd input_laminar, double input_epsilon, int input_skip, double input_check_sec, double input_progress_sec, int input_threads = omp_get_max_threads()) : ShellModel(input_nu, input_beta, input_f, input_ddt, input_t_0, input_t, input_latter, input_x_0){
     laminar = input_laminar;
     epsilon = input_epsilon;
     skip = input_skip;
@@ -163,7 +163,6 @@ double LongLaminar::laminar_duration_mean_(const Eigen::MatrixXcd& trajectory){
     if (trajectory.rows() == 0){
         Eigen::VectorXcd x = ShellModel::get_x_0_();
         int counter = 0;
-        std::cout << ShellModel::get_steps_() << std::endl;
         for (int i = 0; i < ShellModel::get_steps_() ; i++){
             x = ShellModel::rk4_(x);
             if (i % skip == 0){
