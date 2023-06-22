@@ -1,0 +1,4 @@
+/workspaces/cpp/code/build/CMakeFiles/laminar.dir
+/workspaces/cpp/code/build/CMakeFiles/cnpy.dir
+/workspaces/cpp/code/build/CMakeFiles/edit_cache.dir
+/workspaces/cpp/code/build/CMakeFiles/rebuild_cache.dir

@@ -1,0 +1,1 @@
+/usr/bin/c++ -std=c++20 -O0 -g -fopenmp -mtune=native -march=native -I/usr/include/python3.10 -L/usr/lib/python3.10 -lpython3.10 CMakeFiles/laminar.dir/lyapunov_lorenz.cpp.o CMakeFiles/laminar.dir/LongLaminar.cpp.o CMakeFiles/laminar.dir/ShellModel.cpp.o -o laminar  -Wl,-rpath,/workspaces/cpp/code/build -lpython3.10 libcnpy.so -lz 
