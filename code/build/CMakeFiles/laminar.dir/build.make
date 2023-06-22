@@ -69,19 +69,19 @@ include CMakeFiles/laminar.dir/progress.make
 # Include the compile flags for this target's objects.
 include CMakeFiles/laminar.dir/flags.make
 
-CMakeFiles/laminar.dir/lyapunov_lorenz.cpp.o: CMakeFiles/laminar.dir/flags.make
-CMakeFiles/laminar.dir/lyapunov_lorenz.cpp.o: ../lyapunov_lorenz.cpp
-CMakeFiles/laminar.dir/lyapunov_lorenz.cpp.o: CMakeFiles/laminar.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/workspaces/cpp/code/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/laminar.dir/lyapunov_lorenz.cpp.o"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/laminar.dir/lyapunov_lorenz.cpp.o -MF CMakeFiles/laminar.dir/lyapunov_lorenz.cpp.o.d -o CMakeFiles/laminar.dir/lyapunov_lorenz.cpp.o -c /workspaces/cpp/code/lyapunov_lorenz.cpp
+CMakeFiles/laminar.dir/good_initialvalue.cpp.o: CMakeFiles/laminar.dir/flags.make
+CMakeFiles/laminar.dir/good_initialvalue.cpp.o: ../good_initialvalue.cpp
+CMakeFiles/laminar.dir/good_initialvalue.cpp.o: CMakeFiles/laminar.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/workspaces/cpp/code/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/laminar.dir/good_initialvalue.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/laminar.dir/good_initialvalue.cpp.o -MF CMakeFiles/laminar.dir/good_initialvalue.cpp.o.d -o CMakeFiles/laminar.dir/good_initialvalue.cpp.o -c /workspaces/cpp/code/good_initialvalue.cpp
 
-CMakeFiles/laminar.dir/lyapunov_lorenz.cpp.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/laminar.dir/lyapunov_lorenz.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /workspaces/cpp/code/lyapunov_lorenz.cpp > CMakeFiles/laminar.dir/lyapunov_lorenz.cpp.i
+CMakeFiles/laminar.dir/good_initialvalue.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/laminar.dir/good_initialvalue.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /workspaces/cpp/code/good_initialvalue.cpp > CMakeFiles/laminar.dir/good_initialvalue.cpp.i
 
-CMakeFiles/laminar.dir/lyapunov_lorenz.cpp.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/laminar.dir/lyapunov_lorenz.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /workspaces/cpp/code/lyapunov_lorenz.cpp -o CMakeFiles/laminar.dir/lyapunov_lorenz.cpp.s
+CMakeFiles/laminar.dir/good_initialvalue.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/laminar.dir/good_initialvalue.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /workspaces/cpp/code/good_initialvalue.cpp -o CMakeFiles/laminar.dir/good_initialvalue.cpp.s
 
 CMakeFiles/laminar.dir/LongLaminar.cpp.o: CMakeFiles/laminar.dir/flags.make
 CMakeFiles/laminar.dir/LongLaminar.cpp.o: ../LongLaminar.cpp
@@ -113,14 +113,14 @@ CMakeFiles/laminar.dir/ShellModel.cpp.s: cmake_force
 
 # Object files for target laminar
 laminar_OBJECTS = \
-"CMakeFiles/laminar.dir/lyapunov_lorenz.cpp.o" \
+"CMakeFiles/laminar.dir/good_initialvalue.cpp.o" \
 "CMakeFiles/laminar.dir/LongLaminar.cpp.o" \
 "CMakeFiles/laminar.dir/ShellModel.cpp.o"
 
 # External object files for target laminar
 laminar_EXTERNAL_OBJECTS =
 
-laminar: CMakeFiles/laminar.dir/lyapunov_lorenz.cpp.o
+laminar: CMakeFiles/laminar.dir/good_initialvalue.cpp.o
 laminar: CMakeFiles/laminar.dir/LongLaminar.cpp.o
 laminar: CMakeFiles/laminar.dir/ShellModel.cpp.o
 laminar: CMakeFiles/laminar.dir/build.make

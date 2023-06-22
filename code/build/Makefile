@@ -214,29 +214,29 @@ cnpy/cnpy.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/cnpy.dir/build.make CMakeFiles/cnpy.dir/cnpy/cnpy.cpp.s
 .PHONY : cnpy/cnpy.cpp.s
 
-lyapunov_lorenz.o: lyapunov_lorenz.cpp.o
-.PHONY : lyapunov_lorenz.o
+good_initialvalue.o: good_initialvalue.cpp.o
+.PHONY : good_initialvalue.o
 
 # target to build an object file
-lyapunov_lorenz.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/laminar.dir/build.make CMakeFiles/laminar.dir/lyapunov_lorenz.cpp.o
-.PHONY : lyapunov_lorenz.cpp.o
+good_initialvalue.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/laminar.dir/build.make CMakeFiles/laminar.dir/good_initialvalue.cpp.o
+.PHONY : good_initialvalue.cpp.o
 
-lyapunov_lorenz.i: lyapunov_lorenz.cpp.i
-.PHONY : lyapunov_lorenz.i
+good_initialvalue.i: good_initialvalue.cpp.i
+.PHONY : good_initialvalue.i
 
 # target to preprocess a source file
-lyapunov_lorenz.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/laminar.dir/build.make CMakeFiles/laminar.dir/lyapunov_lorenz.cpp.i
-.PHONY : lyapunov_lorenz.cpp.i
+good_initialvalue.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/laminar.dir/build.make CMakeFiles/laminar.dir/good_initialvalue.cpp.i
+.PHONY : good_initialvalue.cpp.i
 
-lyapunov_lorenz.s: lyapunov_lorenz.cpp.s
-.PHONY : lyapunov_lorenz.s
+good_initialvalue.s: good_initialvalue.cpp.s
+.PHONY : good_initialvalue.s
 
 # target to generate assembly for a file
-lyapunov_lorenz.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/laminar.dir/build.make CMakeFiles/laminar.dir/lyapunov_lorenz.cpp.s
-.PHONY : lyapunov_lorenz.cpp.s
+good_initialvalue.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/laminar.dir/build.make CMakeFiles/laminar.dir/good_initialvalue.cpp.s
+.PHONY : good_initialvalue.cpp.s
 
 # Help Target
 help:
@@ -257,9 +257,9 @@ help:
 	@echo "... cnpy/cnpy.o"
 	@echo "... cnpy/cnpy.i"
 	@echo "... cnpy/cnpy.s"
-	@echo "... lyapunov_lorenz.o"
-	@echo "... lyapunov_lorenz.i"
-	@echo "... lyapunov_lorenz.s"
+	@echo "... good_initialvalue.o"
+	@echo "... good_initialvalue.i"
+	@echo "... good_initialvalue.s"
 .PHONY : help
 
 

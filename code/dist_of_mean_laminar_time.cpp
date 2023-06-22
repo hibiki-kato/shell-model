@@ -70,6 +70,8 @@ int main(){
             LongLaminar local_LL = LL;
             local_LL.set_beta_(betas(i));
             for(int j = 0; j < param_steps; j++){
+                Eigen::VectorXcd perturbated_x_0 = local_LL.perturbator_(local_LL.get_x_0_());
+                local_LL.set_x_0_(perturbated_x_0);
                 local_LL.set_nu_(nus(j));
                 double mean_time = local_LL.laminar_duration_mean_();
                 
@@ -88,6 +90,8 @@ int main(){
                 std::cout << "\r 現在" << i*threads << "/" << param_steps << std::flush;
             }
             LongLaminar local_LL = LL;
+            Eigen::VectorXcd perturbated_x_0 = local_LL.perturbator_(local_LL.get_x_0_());
+            local_LL.set_x_0_(perturbated_x_0);
             local_LL.set_beta_(betas(i));
             local_LL.set_nu_(nus(i));
             // auto trajectory = local_LL.get_trajectory_();

@@ -26,7 +26,7 @@ int main(){
     double t_0 = 0;
     double t = 1000;
     double latter = 4;
-    Eigen::VectorXcd x_0 = npy2EigenVec("../initials/beta0.416_nu0.00017520319481270297_step0.01_10000.0period_laminar.npy");
+    Eigen::VectorXcd x_0 = npy2EigenVec("../../initials/beta0.416_nu0.00017520319481270297_step0.01_10000.0period_laminar.npy");
     ShellModel SM(nu, beta, f, ddt, t_0, t, latter, x_0);
     Eigen::MatrixXcd laminar = SM.get_trajectory_();
     int numRows = laminar.cols() / 10;
@@ -37,11 +37,11 @@ int main(){
     }
 
     // set up for search
-    t=2000;
+    t=4000;
     latter = 1;
-    nu = 0.00018;
-    beta = 0.424;
-    x_0 = npy2EigenVec("../initials/beta0.424_nu0.00018_1895period.npy");
+    nu = 0.00017256;
+    beta = 0.418;
+    x_0 = npy2EigenVec("../../initials/beta0.424_nu0.00018_1895period.npy");
     int num_of_candidates = 100;
     int skip = 100;
     double epsilon = 1E-1;
