@@ -55,7 +55,7 @@
 				}
 			],
 			"type" : "INTERNAL",
-			"value" : "/workspaces/cpp/code/build"
+			"value" : "/workspaces/cpp_codes/code/build"
 		},
 		{
 			"name" : "CMAKE_CACHE_MAJOR_VERSION",
@@ -479,7 +479,7 @@
 				}
 			],
 			"type" : "INTERNAL",
-			"value" : "/workspaces/cpp/code"
+			"value" : "/workspaces/cpp_codes/code"
 		},
 		{
 			"name" : "CMAKE_INSTALL_PREFIX",
@@ -1015,7 +1015,7 @@
 				}
 			],
 			"type" : "STATIC",
-			"value" : "/workspaces/cpp/code/build"
+			"value" : "/workspaces/cpp_codes/code/build"
 		},
 		{
 			"name" : "ShellModel_IS_TOP_LEVEL",
@@ -1039,7 +1039,7 @@
 				}
 			],
 			"type" : "STATIC",
-			"value" : "/workspaces/cpp/code"
+			"value" : "/workspaces/cpp_codes/code"
 		}
 	],
 	"kind" : "cache",

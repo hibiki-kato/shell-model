@@ -26,7 +26,7 @@ int main(){
     double t_0 = 0;
     double t = 50000;
     double latter = 200;
-    Eigen::VectorXcd x_0 = npy2EigenVec("../initials/beta0.416_nu0.00017520319481270297_step0.01_10000.0period_laminar.npy");
+    Eigen::VectorXcd x_0 = npy2EigenVec("../../initials/beta0.416_nu0.00017520319481270297_step0.01_10000.0period_laminar.npy");
 
     double epsilon=1E-01;
     int skip = 1000;
@@ -48,10 +48,10 @@ int main(){
     nu = 0.00018;
     latter = 1;
     t = 200000;
-    t_0 = 125000;
-    Eigen::MatrixXcd loaded = npy2EigenMat("../generated_lam/generated_laminar_beta_0.42nu_0.00018_126400period1400check400progresseps0.1.npy");
-    x_0 = loaded.block(0, 125000*100, 14, 1);
-
+    t_0 = 0;
+    // Eigen::MatrixXcd loaded = npy2EigenMat("../../generated_lam/generated_laminar_beta_0.42nu_0.00018_126400period1400check400progresseps0.1.npy");
+    // x_0 = loaded.block(0, 125000*100, 14, 1);
+    x_0
 
     LongLaminar LL(nu, beta, f, ddt, t_0, t, latter, x_0, laminar_sample, epsilon, skip, check_sec, progress_sec, threads);
     Eigen::MatrixXcd calced_laminar = LL.stagger_and_step_();
@@ -67,13 +67,13 @@ int main(){
 
     plt::plot(x,y);
     std::ostringstream oss;
-    oss << "../generated_lam_imag/generated_laminar_beta_" << beta << "nu_" << nu <<"_"<< reach << "period.png";  // 文字列を結合する
+    oss << "../../generated_lam_imag/generated_laminar_beta_" << beta << "nu_" << nu <<"_"<< reach << "period.png";  // 文字列を結合する
     std::string filename = oss.str(); // 文字列を取得する
     std::cout << "\n Saving result to " << filename << std::endl;
     plt::save(filename);
 
     oss.str("");
-    oss << "../generated_lam/generated_laminar_beta_" << beta << "nu_" << nu <<"_"<< reach << "period" << check_sec << "check" << progress_sec << "progress" << "eps" << epsilon << ".npy";
+    oss << "../../generated_lam/generated_laminar_beta_" << beta << "nu_" << nu <<"_"<< reach << "period" << check_sec << "check" << progress_sec << "progress" << "eps" << epsilon << ".npy";
     std::string fname = oss.str(); // 文字列を取得する
     std::cout << "saving as " << fname << std::endl;
     EigenMt2npy(calced_laminar, fname);
