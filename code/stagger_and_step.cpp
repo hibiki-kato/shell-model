@@ -18,7 +18,8 @@ Eigen::MatrixXcd npy2EigenMat(const char* fname);
 
 int main(){
     auto start = std::chrono::system_clock::now(); // 計測開始時間
-    // generating laminar sample for detection !DO NOT CHANGE!
+    // generating laminar sample for detection
+    // !DO NOT CHANGE!
     double nu = 0.00017520319481270297;
     double beta = 0.416;
     std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
@@ -44,14 +45,14 @@ int main(){
         laminar_sample.col(i) = laminar.col(colIdx);
     }
 
-    beta = 0.42;
-    nu = 0.00018;
+    beta = 0.418;
+    nu = 0.00017256;
     latter = 1;
     t = 200000;
     t_0 = 0;
     // Eigen::MatrixXcd loaded = npy2EigenMat("../../generated_lam/generated_laminar_beta_0.42nu_0.00018_126400period1400check400progresseps0.1.npy");
     // x_0 = loaded.block(0, 125000*100, 14, 1);
-    x_0
+    x_0 = npy2EigenVec("../../initials/beta0.418_nu0.00017256_5000period.npy");
 
     LongLaminar LL(nu, beta, f, ddt, t_0, t, latter, x_0, laminar_sample, epsilon, skip, check_sec, progress_sec, threads);
     Eigen::MatrixXcd calced_laminar = LL.stagger_and_step_();

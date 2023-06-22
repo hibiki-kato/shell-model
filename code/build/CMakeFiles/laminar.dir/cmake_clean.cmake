@@ -3,8 +3,8 @@ file(REMOVE_RECURSE
   "CMakeFiles/laminar.dir/LongLaminar.cpp.o.d"
   "CMakeFiles/laminar.dir/ShellModel.cpp.o"
   "CMakeFiles/laminar.dir/ShellModel.cpp.o.d"
-  "CMakeFiles/laminar.dir/good_initialvalue.cpp.o"
-  "CMakeFiles/laminar.dir/good_initialvalue.cpp.o.d"
+  "CMakeFiles/laminar.dir/stagger_and_step.cpp.o"
+  "CMakeFiles/laminar.dir/stagger_and_step.cpp.o.d"
   "laminar"
   "laminar.pdb"
 )
