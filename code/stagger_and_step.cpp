@@ -29,9 +29,9 @@ int main(){
     double latter = 200;
     Eigen::VectorXcd x_0 = npy2EigenVec("../../initials/beta0.416_nu0.00017520319481270297_step0.01_10000.0period_laminar.npy");
 
-    double epsilon=1E-01;
+    double epsilon=8E-2;
     int skip = 1000;
-    double check_sec = 1400;
+    double check_sec = 2000;
     double progress_sec = 400;
     int threads = omp_get_max_threads();
     std::cout << threads << "threads" << std::endl;

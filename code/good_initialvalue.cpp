@@ -41,10 +41,10 @@ int main(){
     latter = 1;
     nu = 0.00017256;
     beta = 0.418;
-    x_0 = npy2EigenVec("../../initials/beta0.418_nu0.00017256_2000period.npy");
-    int num_of_candidates = 96;
+    x_0 = npy2EigenVec("../../initials/beta0.418_nu0.00017256_5000period.npy");
+    int num_of_candidates = 32;
     int skip = 100;
-    double epsilon = 1E-1;
+    double epsilon = 8E-2;
     int threads = omp_get_max_threads();
     std::cout << threads << "threads" << std::endl;
 
