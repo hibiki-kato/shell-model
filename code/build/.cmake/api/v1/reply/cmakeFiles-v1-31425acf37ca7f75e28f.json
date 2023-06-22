@@ -86,8 +86,8 @@
 	"kind" : "cmakeFiles",
 	"paths" : 
 	{
-		"build" : "/workspaces/cpp/code/build",
-		"source" : "/workspaces/cpp/code"
+		"build" : "/workspaces/cpp_codes/code/build",
+		"source" : "/workspaces/cpp_codes/code"
 	},
 	"version" : 
 	{

@@ -26,7 +26,7 @@ int main(){
     double t_0 = 0;
     double t = 10000;
     double latter = 20;
-    Eigen::VectorXcd x_0 = npy2EigenVec("../initials/beta0.416_nu0.00017520319481270297_step0.01_10000.0period_laminar.npy");
+    Eigen::VectorXcd x_0 = npy2EigenVec("../../initials/beta0.416_nu0.00017520319481270297_step0.01_10000.0period_laminar.npy");
     ShellModel SM(nu, beta, f, ddt, t_0, t, latter, x_0);
     Eigen::MatrixXcd laminar = SM.get_trajectory_();
     int numRows = laminar.cols() / 10;
@@ -79,7 +79,7 @@ int main(){
                 result.row(param_steps * i + j) << betas(i), nus(j), mean_time;
             }
         }
-        oss << "../mean_time_para/mean_laminar_time_beta" << beta_begin <<"to"<< beta_end << "_nu" << nu_begin <<"to" << nu_end <<"_"<< param_steps << "times_epsilon" << epsilon << "_" << t-t_0 << "period_latter" << std::setprecision(2) << 1 / latter << "laminar"<< beta_of_laminar << ".npy";  // 文字列を結合する
+        oss << "../../mean_time_para/mean_laminar_time_beta" << beta_begin <<"to"<< beta_end << "_nu" << nu_begin <<"to" << nu_end <<"_"<< param_steps << "times_epsilon" << epsilon << "_" << t-t_0 << "period_latter" << std::setprecision(2) << 1 / latter << "laminar"<< beta_of_laminar << ".npy";  // 文字列を結合する
     }
     else{
         // beta nuを同時に動かす O(n)の場合
@@ -99,7 +99,7 @@ int main(){
             #pragma omp critical
             result.row(i) << betas(i), nus(i), mean_time;
             }
-        oss << "../mean_time_para/mean_laminar_time(line)_beta" << beta_begin <<"to"<< beta_end << "_nu" << nu_begin <<"to" << nu_end <<"_"<< param_steps << "times_epsilon" << epsilon << "_" << t-t_0 << "period_latter" << std::setprecision(2) << 1 / latter <<"laminar"<< beta_of_laminar <<".npy";  // 文字列を結合する
+        oss << "../../mean_time_para/mean_laminar_time(line)_beta" << beta_begin <<"to"<< beta_end << "_nu" << nu_begin <<"to" << nu_end <<"_"<< param_steps << "times_epsilon" << epsilon << "_" << t-t_0 << "period_latter" << std::setprecision(2) << 1 / latter <<"laminar"<< beta_of_laminar <<".npy";  // 文字列を結合する
     }
     
 

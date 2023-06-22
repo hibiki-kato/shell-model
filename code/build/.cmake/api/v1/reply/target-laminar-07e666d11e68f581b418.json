@@ -49,14 +49,14 @@
 			"compileCommandFragments" : 
 			[
 				{
-					"fragment" : "-std=c++20 -O0 -g -fopenmp -mtune=native -march=native -I/usr/include/python3.10 -L/usr/lib/python3.10 -lpython3.10"
+					"fragment" : "-std=c++20 -O3 -fopenmp -mtune=native -march=native -I/usr/include/python3.10 -L/usr/lib/python3.10 -lpython3.10"
 				}
 			],
 			"includes" : 
 			[
 				{
 					"backtrace" : 3,
-					"path" : "/workspaces/cpp/code/$/usr/include/python3.10"
+					"path" : "/workspaces/cpp_codes/code/$/usr/include/python3.10"
 				}
 			],
 			"language" : "CXX",
@@ -81,7 +81,7 @@
 		"commandFragments" : 
 		[
 			{
-				"fragment" : "-std=c++20 -O0 -g -fopenmp -mtune=native -march=native -I/usr/include/python3.10 -L/usr/lib/python3.10 -lpython3.10",
+				"fragment" : "-std=c++20 -O3 -fopenmp -mtune=native -march=native -I/usr/include/python3.10 -L/usr/lib/python3.10 -lpython3.10",
 				"role" : "flags"
 			},
 			{
@@ -89,7 +89,7 @@
 				"role" : "flags"
 			},
 			{
-				"fragment" : "-Wl,-rpath,/workspaces/cpp/code/build",
+				"fragment" : "-Wl,-rpath,/workspaces/cpp_codes/code/build",
 				"role" : "libraries"
 			},
 			{
@@ -134,7 +134,7 @@
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "stagger_and_step.cpp",
+			"path" : "dist_of_mean_laminar_time.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{

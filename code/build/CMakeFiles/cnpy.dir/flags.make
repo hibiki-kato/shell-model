@@ -6,5 +6,5 @@ CXX_DEFINES = -Dcnpy_EXPORTS
 
 CXX_INCLUDES = 
 
-CXX_FLAGS = -std=c++20 -O0 -g -fopenmp -mtune=native -march=native -I/usr/include/python3.10 -L/usr/lib/python3.10 -lpython3.10 -fPIC
+CXX_FLAGS = -std=c++20 -O3 -fopenmp -mtune=native -march=native -I/usr/include/python3.10 -L/usr/lib/python3.10 -lpython3.10 -fPIC
 
