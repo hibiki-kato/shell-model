@@ -24,13 +24,13 @@ int main(){
     std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
     double ddt = 0.01;
     double t_0 = 0;
-    double t = 50000;
-    double latter = 200;
+    double t = 5000;
+    double latter = 20;
     Eigen::VectorXcd x_0 = npy2EigenVec("../initials/beta0.416_nu0.00017520319481270297_step0.01_10000.0period_laminar.npy");
 
     double epsilon=1E-01;
     int skip = 1000;
-    double check_sec = 1500;
+    double check_sec = 1300;
     double progress_sec = 400;
     int threads = omp_get_max_threads();
     std::cout << threads << "threads" << std::endl;
@@ -44,11 +44,13 @@ int main(){
         laminar_sample.col(i) = laminar.col(colIdx);
     }
 
-    beta = 0.418;
-    nu = 0.000173;
+    beta = 0.421;
+    nu = 0.00018;
     latter = 1;
-    t = 20000;
-    x_0 = npy2EigenVec("../initials/beta0.418_nu0.000173_2000period.npy");
+    t = 200000;
+    Eigen::MatrixXcd loaded = npy2EigenMat("../generated_laminar_beta_0.421nu_0.00018_72400period1300check400progresseps0.1.npy");
+    t_0 = 70000;
+    x_0 = loaded.block(0, t_0*100, 14, 1);
 
 
     LongLaminar LL(nu, beta, f, ddt, t_0, t, latter, x_0, laminar_sample, epsilon, skip, check_sec, progress_sec, threads);
