@@ -118,26 +118,42 @@ Eigen::VectorXcd LongLaminar::perturbator_(Eigen::VectorXcd state, int s_min, in
 
 }
 
-double LongLaminar::laminar_duration_max_(const Eigen::MatrixXcd& trajectory){
-    int max = 0;
-    int counter = 0;
+std::vector<double> LongLaminar::laminar_duration_(const Eigen::MatrixXcd& trajectory){
+    int counter = -1;
+    std::vector<double> durations;
+    // 軌道が与えられていない場合
     if (trajectory.rows() == 0){
-        Eigen::VectorXcd x = ShellModel::get_x_0_();
-        for (int i = 0; i < ShellModel::get_steps_() ; i++){
-            x = ShellModel::rk4_(x);
-            if (i % skip == 0){
-                if (LongLaminar::isLaminarPoint_(x)){
+
+        Eigen::VectorXcd x = LongLaminar::get_x_0_();
+        for (int i = 0; i < LongLaminar::get_steps_(); i++) {
+            x = LongLaminar::rk4_(x);
+            
+            if (i % skip == 0) {
+                if (LongLaminar::isLaminarPoint_(x) == 1) {
                     counter++;
-                }
-                else{
-                    if (counter > max){
-                        max = counter;
+                } else {
+                    // カウンターが1以上の時のみ記録
+                    if (counter > 0) {
+                        durations.push_back(counter * LongLaminar::get_ddt_() * skip);
+                        counter = -1;
                     }
-                    counter = 0;
+                    // カウンターをリセット
+                    counter = -1;
                 }
             }
         }
+        // 途切れた場合は最後の点までの時間を記録 (暫定的処理)
+        if (counter > 0){
+            durations.push_back(counter * LongLaminar::get_ddt_() * skip);
+        }
+        // 一度もラミナーに入らなかった場合は0を入れる
+        if (durations.size() == 0){
+            durations.push_back(0);
+        }
+
     }
+
+    // 軌道が与えられている場合
     else{
         int check_times = trajectory.cols()/skip + 1;
         for(int i =0; i < check_times; i++){
@@ -145,60 +161,26 @@ double LongLaminar::laminar_duration_max_(const Eigen::MatrixXcd& trajectory){
                 counter++;
             }
             else{
-                if (counter > max){
-                    max = counter;
+                if (counter > 0){
+                    durations.push_back(counter * LongLaminar::get_ddt_() * skip);
+                    counter = -1;
                 }
-                counter = 0;
+                counter = -1;
             }
         }
+        // 途切れた場合は最後の点までの時間を記録 (暫定的処理)
+        if (counter > 0){
+            durations.push_back(counter * LongLaminar::get_ddt_() * skip);
+        }
+        // 一度もラミナーに入らなかった場合は0を入れる
+        if (durations.size() == 0){
+            durations.push_back(0);
+        }
     }
-    return max * ShellModel::get_ddt_() * skip;
+    return durations;
 }
 
-double LongLaminar::laminar_duration_mean_(const Eigen::MatrixXcd& trajectory){
-    double sum = 0;
-    int duration_counter = 0;
-    if (trajectory.rows() == 0){
-        Eigen::VectorXcd x = ShellModel::get_x_0_();
-        int counter = 0;
-        for (int i = 0; i < ShellModel::get_steps_() ; i++){
-            x = ShellModel::rk4_(x);
-            if (i % skip == 0){
-                if (LongLaminar::isLaminarPoint_(x) == 1){
-                    counter++;
-                }
-                else{
-                    if (counter != 0){
-                        sum += counter;
-                        duration_counter++;
-                        counter = 0;
-                    }
-                }
-            }
-        }
-    }
-    else{
-        int counter = 0;
-        int check_times = trajectory.cols()/skip + 1;
-        for(int i =0; i < check_times; i++){
-            if (LongLaminar::isLaminarPoint_(trajectory.col(i*skip)) == 1){
-                counter++;
-            }
-            else{
-                if (counter != 0){
-                    sum += counter;
-                    duration_counter++;
-                    counter = 0;
-                }
-            }
-        }
-    }
-    // calc the average of durations
-
-    return sum / duration_counter * ShellModel::get_ddt_() * skip;
-}
-
-double LongLaminar::laminar_duration_(Eigen::MatrixXcd trajectory){
+double LongLaminar::laminar_persistent_(Eigen::MatrixXcd trajectory){
     double duration = 0;
     for (int i = 0; i < trajectory.cols()/skip; i++){
         if (!isLaminarPoint_(trajectory.col(i*skip))) {

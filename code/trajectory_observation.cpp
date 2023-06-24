@@ -16,13 +16,13 @@ Eigen::VectorXcd npy2EigenVec(const char* fname);
 int main(){
     auto start = std::chrono::system_clock::now(); // 計測開始時間
     double nu = 0.00018;
-    double beta = 0.419;
+    double beta = 0.4162;
     std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
     double ddt = 0.01;
     double t_0 = 0;
-    double t = 2E+5;
-    double latter = 1;
-    Eigen::VectorXcd x_0 = npy2EigenVec("../initials/beta0.416_nu0.00018_20000period.npy");
+    double t = 2E+4;
+    double latter = 2;
+    Eigen::VectorXcd x_0 = npy2EigenVec("../../initials/beta0.416_nu0.00018_20000period.npy");
     ShellModel solver(nu, beta, f, ddt, t_0, t, latter, x_0);
     Eigen::MatrixXcd trajectory = solver.get_trajectory_(); 
     // Set the size of output image = 1200x780 pixels
@@ -38,14 +38,14 @@ int main(){
 
     plt::plot(x,y);
     std::ostringstream oss;
-    oss << "../traj_images/beta_" << beta << "nu_" << nu <<"_"<< t-t_0 << "period.png";  // 文字列を結合する
+    oss << "../../traj_images/beta_" << beta << "nu_" << nu <<"_"<< t-t_0 << "period.png";  // 文字列を結合する
     std::string plotfname = oss.str(); // 文字列を取得する
     std::cout << "Saving result to " << plotfname << std::endl;
     plt::save(plotfname);
 
     oss.str("");
      // 文字列を取得する
-    oss << "../beta" << beta << "_nu" << nu <<"_"<< t-t_0 << "period.npy";  // 文字列を結合する
+    oss << "../../beta" << beta << "_nu" << nu <<"_"<< t-t_0 << "period.npy";  // 文字列を結合する
     std::string npyfname = oss.str();
     std::cout << "Saving result to " << npyfname << std::endl;
     EigenMt2npy(trajectory, npyfname);

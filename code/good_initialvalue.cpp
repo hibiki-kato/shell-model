@@ -68,7 +68,7 @@ int main(){
             LongLaminar local_LL = LL;
             local_LL.set_x_0_(initials.col(j));
             Eigen::MatrixXcd trajectory = local_LL.get_trajectory_();
-            durations(j) = local_LL.laminar_duration_(trajectory);
+            durations(j) = local_LL.laminar_persistent_(trajectory);
             }
         int maxId;
         longest = durations.maxCoeff(&maxId);

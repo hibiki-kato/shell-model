@@ -57,10 +57,10 @@ RM = /opt/cmake/bin/cmake -E rm -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /workspaces/cpp_codes/code
+CMAKE_SOURCE_DIR = /workspaces/cpp/code
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /workspaces/cpp_codes/code/build
+CMAKE_BINARY_DIR = /workspaces/cpp/code/build
 
 #=============================================================================
 # Targets provided globally by CMake.
@@ -87,9 +87,9 @@ rebuild_cache/fast: rebuild_cache
 
 # The main all target
 all: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /workspaces/cpp_codes/code/build/CMakeFiles /workspaces/cpp_codes/code/build//CMakeFiles/progress.marks
+	$(CMAKE_COMMAND) -E cmake_progress_start /workspaces/cpp/code/build/CMakeFiles /workspaces/cpp/code/build//CMakeFiles/progress.marks
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 all
-	$(CMAKE_COMMAND) -E cmake_progress_start /workspaces/cpp_codes/code/build/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /workspaces/cpp/code/build/CMakeFiles 0
 .PHONY : all
 
 # The main clean target
@@ -214,29 +214,29 @@ cnpy/cnpy.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/cnpy.dir/build.make CMakeFiles/cnpy.dir/cnpy/cnpy.cpp.s
 .PHONY : cnpy/cnpy.cpp.s
 
-dist_of_mean_laminar_time.o: dist_of_mean_laminar_time.cpp.o
-.PHONY : dist_of_mean_laminar_time.o
+dist_of_laminar_time.o: dist_of_laminar_time.cpp.o
+.PHONY : dist_of_laminar_time.o
 
 # target to build an object file
-dist_of_mean_laminar_time.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/laminar.dir/build.make CMakeFiles/laminar.dir/dist_of_mean_laminar_time.cpp.o
-.PHONY : dist_of_mean_laminar_time.cpp.o
+dist_of_laminar_time.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/laminar.dir/build.make CMakeFiles/laminar.dir/dist_of_laminar_time.cpp.o
+.PHONY : dist_of_laminar_time.cpp.o
 
-dist_of_mean_laminar_time.i: dist_of_mean_laminar_time.cpp.i
-.PHONY : dist_of_mean_laminar_time.i
+dist_of_laminar_time.i: dist_of_laminar_time.cpp.i
+.PHONY : dist_of_laminar_time.i
 
 # target to preprocess a source file
-dist_of_mean_laminar_time.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/laminar.dir/build.make CMakeFiles/laminar.dir/dist_of_mean_laminar_time.cpp.i
-.PHONY : dist_of_mean_laminar_time.cpp.i
+dist_of_laminar_time.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/laminar.dir/build.make CMakeFiles/laminar.dir/dist_of_laminar_time.cpp.i
+.PHONY : dist_of_laminar_time.cpp.i
 
-dist_of_mean_laminar_time.s: dist_of_mean_laminar_time.cpp.s
-.PHONY : dist_of_mean_laminar_time.s
+dist_of_laminar_time.s: dist_of_laminar_time.cpp.s
+.PHONY : dist_of_laminar_time.s
 
 # target to generate assembly for a file
-dist_of_mean_laminar_time.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/laminar.dir/build.make CMakeFiles/laminar.dir/dist_of_mean_laminar_time.cpp.s
-.PHONY : dist_of_mean_laminar_time.cpp.s
+dist_of_laminar_time.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/laminar.dir/build.make CMakeFiles/laminar.dir/dist_of_laminar_time.cpp.s
+.PHONY : dist_of_laminar_time.cpp.s
 
 # Help Target
 help:
@@ -257,9 +257,9 @@ help:
 	@echo "... cnpy/cnpy.o"
 	@echo "... cnpy/cnpy.i"
 	@echo "... cnpy/cnpy.s"
-	@echo "... dist_of_mean_laminar_time.o"
-	@echo "... dist_of_mean_laminar_time.i"
-	@echo "... dist_of_mean_laminar_time.s"
+	@echo "... dist_of_laminar_time.o"
+	@echo "... dist_of_laminar_time.i"
+	@echo "... dist_of_laminar_time.s"
 .PHONY : help
 
 

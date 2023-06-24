@@ -34,7 +34,7 @@ int main() {
     MatrixXd R = qr.matrixQR().triangularView<Eigen::Upper>();  // 行列Rを取得
     VectorXd sum = R.diagonal();
 
-    for (int i = 1; i < 100; ++i) {
+    for (int i = 1; i < numTimeSteps; ++i) {
         VectorXd state = rawData.col(i);
         // QR分解によるヤコビアンの更新
         jacobian = computeJacobian(state, sigma, rho, beta);
@@ -43,9 +43,8 @@ int main() {
         Q = qr.householderQ();
         R = qr.matrixQR().triangularView<Eigen::Upper>();
         sum += R.diagonal();
-        std::cout << R << std::endl;
     }
-    VectorXd lyapunovExponents = sum.array() / 100;
+    VectorXd lyapunovExponents = sum.array() / numTimeSteps;
 
     // 結果の表示
     std::cout << lyapunovExponents.rows() << std::endl;
@@ -61,18 +60,18 @@ MatrixXd computeJacobian(const VectorXd& state, double sigma, double rho, double
     MatrixXd jacobian(dim, dim);
     double dt = 0.01;
 
-    // for (int i = 0; i < dim; ++i) {
-    //     VectorXd perturbedState = state; // 毎回初期化
-    //     perturbedState(i) += 1e-6;  // 無限小の微小変化をi変数のみに加える
+    for (int i = 0; i < dim; ++i) {
+        VectorXd perturbedState = state; // 毎回初期化
+        perturbedState(i) += 1e-8;  // 無限小の微小変化をi変数のみに加える
 
-    //     // 微分方程式での時間発展(1ステップ)
-    //     Vector3d ddt_u_perturbed;
-    //     ddt_u_perturbed = computeLorenzDerivative(perturbedState, sigma, rho, beta);
-    //     jacobian.col(i) = (ddt_u_perturbed - perturbedState) / 1e-6;
-    // }
-    jacobian.row(0) = Vector3d(-sigma, sigma, 0.0);
-    jacobian.row(1) = Vector3d(rho - state(2), -1.0, -state(0));
-    jacobian.row(2) = Vector3d(state(1), state(0), -beta);
+        // 微分方程式での時間発展(1ステップ)
+        Vector3d ddt_u_perturbed;
+        ddt_u_perturbed = computeLorenzDerivative(perturbedState, sigma, rho, beta);
+        jacobian.col(i) = (ddt_u_perturbed - perturbedState) / 1e-8;
+    }
+    // jacobian.row(0) = Vector3d(-sigma, sigma, 0.0);
+    // jacobian.row(1) = Vector3d(rho - state(2), -1.0, -state(0));
+    // jacobian.row(2) = Vector3d(state(1), state(0), -beta);
 
     return jacobian;
 }

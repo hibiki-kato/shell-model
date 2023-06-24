@@ -6,4 +6,5 @@ CMakeCache.txt
 *.DS_Store
 
 !initials/*
-!mean_time_para/
+!average_time_para/*
+!max_time_para/*
