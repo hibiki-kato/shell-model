@@ -20,7 +20,7 @@ int main(){
     std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
     double ddt = 0.01;
     double t_0 = 0;
-    double t = 2E+4;
+    double t = 1E+5;
     double latter = 2;
     Eigen::VectorXcd x_0 = npy2EigenVec("../../initials/beta0.416_nu0.00018_20000period.npy");
     ShellModel solver(nu, beta, f, ddt, t_0, t, latter, x_0);
@@ -43,12 +43,12 @@ int main(){
     std::cout << "Saving result to " << plotfname << std::endl;
     plt::save(plotfname);
 
-    oss.str("");
-     // 文字列を取得する
-    oss << "../../beta" << beta << "_nu" << nu <<"_"<< t-t_0 << "period.npy";  // 文字列を結合する
-    std::string npyfname = oss.str();
-    std::cout << "Saving result to " << npyfname << std::endl;
-    EigenMt2npy(trajectory, npyfname);
+    // oss.str("");
+    //  // 文字列を取得する
+    // oss << "../../beta" << beta << "_nu" << nu <<"_"<< t-t_0 << "period.npy";  // 文字列を結合する
+    // std::string npyfname = oss.str();
+    // std::cout << "Saving result to " << npyfname << std::endl;
+    // EigenMt2npy(trajectory, npyfname);
 
     auto end = std::chrono::system_clock::now();  // 計測終了時間
     int hours = std::chrono::duration_cast<std::chrono::hours>(end-start).count(); //処理に要した時間を変換

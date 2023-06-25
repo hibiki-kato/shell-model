@@ -69,19 +69,19 @@ include CMakeFiles/laminar.dir/progress.make
 # Include the compile flags for this target's objects.
 include CMakeFiles/laminar.dir/flags.make
 
-CMakeFiles/laminar.dir/dist_of_laminar_time.cpp.o: CMakeFiles/laminar.dir/flags.make
-CMakeFiles/laminar.dir/dist_of_laminar_time.cpp.o: ../dist_of_laminar_time.cpp
-CMakeFiles/laminar.dir/dist_of_laminar_time.cpp.o: CMakeFiles/laminar.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/workspaces/cpp/code/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/laminar.dir/dist_of_laminar_time.cpp.o"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/laminar.dir/dist_of_laminar_time.cpp.o -MF CMakeFiles/laminar.dir/dist_of_laminar_time.cpp.o.d -o CMakeFiles/laminar.dir/dist_of_laminar_time.cpp.o -c /workspaces/cpp/code/dist_of_laminar_time.cpp
+CMakeFiles/laminar.dir/dist_of_average_laminar_time.cpp.o: CMakeFiles/laminar.dir/flags.make
+CMakeFiles/laminar.dir/dist_of_average_laminar_time.cpp.o: ../dist_of_average_laminar_time.cpp
+CMakeFiles/laminar.dir/dist_of_average_laminar_time.cpp.o: CMakeFiles/laminar.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/workspaces/cpp/code/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/laminar.dir/dist_of_average_laminar_time.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/laminar.dir/dist_of_average_laminar_time.cpp.o -MF CMakeFiles/laminar.dir/dist_of_average_laminar_time.cpp.o.d -o CMakeFiles/laminar.dir/dist_of_average_laminar_time.cpp.o -c /workspaces/cpp/code/dist_of_average_laminar_time.cpp
 
-CMakeFiles/laminar.dir/dist_of_laminar_time.cpp.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/laminar.dir/dist_of_laminar_time.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /workspaces/cpp/code/dist_of_laminar_time.cpp > CMakeFiles/laminar.dir/dist_of_laminar_time.cpp.i
+CMakeFiles/laminar.dir/dist_of_average_laminar_time.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/laminar.dir/dist_of_average_laminar_time.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /workspaces/cpp/code/dist_of_average_laminar_time.cpp > CMakeFiles/laminar.dir/dist_of_average_laminar_time.cpp.i
 
-CMakeFiles/laminar.dir/dist_of_laminar_time.cpp.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/laminar.dir/dist_of_laminar_time.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /workspaces/cpp/code/dist_of_laminar_time.cpp -o CMakeFiles/laminar.dir/dist_of_laminar_time.cpp.s
+CMakeFiles/laminar.dir/dist_of_average_laminar_time.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/laminar.dir/dist_of_average_laminar_time.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /workspaces/cpp/code/dist_of_average_laminar_time.cpp -o CMakeFiles/laminar.dir/dist_of_average_laminar_time.cpp.s
 
 CMakeFiles/laminar.dir/LongLaminar.cpp.o: CMakeFiles/laminar.dir/flags.make
 CMakeFiles/laminar.dir/LongLaminar.cpp.o: ../LongLaminar.cpp
@@ -113,14 +113,14 @@ CMakeFiles/laminar.dir/ShellModel.cpp.s: cmake_force
 
 # Object files for target laminar
 laminar_OBJECTS = \
-"CMakeFiles/laminar.dir/dist_of_laminar_time.cpp.o" \
+"CMakeFiles/laminar.dir/dist_of_average_laminar_time.cpp.o" \
 "CMakeFiles/laminar.dir/LongLaminar.cpp.o" \
 "CMakeFiles/laminar.dir/ShellModel.cpp.o"
 
 # External object files for target laminar
 laminar_EXTERNAL_OBJECTS =
 
-laminar: CMakeFiles/laminar.dir/dist_of_laminar_time.cpp.o
+laminar: CMakeFiles/laminar.dir/dist_of_average_laminar_time.cpp.o
 laminar: CMakeFiles/laminar.dir/LongLaminar.cpp.o
 laminar: CMakeFiles/laminar.dir/ShellModel.cpp.o
 laminar: CMakeFiles/laminar.dir/build.make

@@ -69,7 +69,7 @@
 			},
 			{
 				"backtrace" : 2,
-				"fragment" : "-L\"/workspaces/cpp_codes/code/\\$$/usr/lib/python3.10\"",
+				"fragment" : "-L\"/workspaces/cpp/code/\\$$/usr/lib/python3.10\"",
 				"role" : "libraryPath"
 			}
 		],

@@ -3,6 +3,8 @@
 #include <fstream>
 #include <sstream>
 #include <eigen3/Eigen/Dense>
+#include <algorithm>
+#include <iterator>
 #include <complex>
 #include <cmath>
 #include <chrono>
@@ -39,8 +41,9 @@ int main(){
     auto beta_of_laminar = beta;
 
     // set up for search
-    double dump = 1e+5;
-    t=1E+5;
+    t=1E+8;
+    double dump = 1e+4;
+    double floor_threshold = 3.5e+3;
     latter = 1;
     int skip = 1000;
     double epsilon = 1E-1;
@@ -50,9 +53,9 @@ int main(){
     LongLaminar LL(nu, beta, f, ddt, t_0, t, latter, x_0, laminar_sample, epsilon, skip, 100, 10, threads);
     
     int repetitions = 1;
-    int param_steps = 1;
-    double beta_begin = 4.16162258e-01;
-    double beta_end = 4.16162258e-01;
+    int param_steps = 32;
+    double beta_begin = 0.416155;
+    double beta_end = 0.41618;
     double nu_begin = 0.00018;
     double nu_end = 0.00018;
     auto betas = Eigen::VectorXd::LinSpaced(param_steps, beta_begin, beta_end);
@@ -84,7 +87,10 @@ int main(){
                     LL_for_dump.set_x_0_(LL_for_dump.perturbator_(LL_for_dump.get_x_0_()));
                     local_LL.set_x_0_(LL_for_dump.get_trajectory_().topRightCorner(14, 1));
                     std::vector<double> durations = local_LL.laminar_duration_();
-                    average_time += std::accumulate(durations.begin(), durations.end(), 0.0) / durations.size();
+                    std::vector<double> filtered;
+                    std::copy_if(durations.begin(), durations.end(), std::back_inserter(filtered), [](double x){ return x > 1e+4; });
+
+                    average_time += std::accumulate(durations.begin(), filtered.end(), 0.0) / filtered.size();
                 }
                 #pragma omp critical
                 result.row(param_steps * i + j) << betas(i), nus(j), average_time / repetitions;
@@ -114,7 +120,9 @@ int main(){
                 LL_for_dump.set_x_0_(LL_for_dump.perturbator_(LL_for_dump.get_x_0_()));
                 local_LL.set_x_0_(LL_for_dump.get_trajectory_().topRightCorner(14, 1));
                 std::vector<double> durations = local_LL.laminar_duration_();
-                average_time += std::accumulate(durations.begin(), durations.end(), 0.0) / durations.size();
+                std::vector<double> filtered;
+                std::copy_if(durations.begin(), durations.end(), std::back_inserter(filtered), [](double x){ return x > 1e+4; });
+                average_time += std::accumulate(filtered.begin(), filtered.end(), 0.0) / filtered.size();
             }
             #pragma omp critical
             result.row(i) << betas(i), nus(i), average_time / repetitions;
