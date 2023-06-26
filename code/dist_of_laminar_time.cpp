@@ -31,7 +31,6 @@ int main(){
     double check_sec = 2000;
     double progress_sec = 400;
     int threads = omp_get_max_threads();
-    std::cout << threads << "threads" << std::endl;
 
     ShellModel SM(nu, beta, f, ddt, t_0, t, latter, x_0);
     Eigen::MatrixXcd laminar = SM.get_trajectory_();
@@ -42,7 +41,8 @@ int main(){
         laminar_sample.col(i) = laminar.col(colIdx);
     }
 
-    beta = 4.17e-01;
+    beta = 4.168e-01;
+    std::cout << "beta = " << beta << std::endl;
     nu = 0.00018;
     latter = 1;
     double dump = 1e+4;

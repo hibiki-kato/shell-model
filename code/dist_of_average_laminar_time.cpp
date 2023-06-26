@@ -41,7 +41,7 @@ int main(){
     auto beta_of_laminar = beta;
 
     // set up for search
-    t=1E+7;
+    t=1E+9;
     double dump = 1e+4;
     double floor_threshold = 3e+3;
     latter = 1;
@@ -54,8 +54,8 @@ int main(){
     
     int repetitions = 1;
     int param_steps = 64;
-    double beta_begin = 0.41618;
-    double beta_end = 0.417;
+    double beta_begin = 0.41614;
+    double beta_end = 0.416165;
     double nu_begin = 0.00018;
     double nu_end = 0.00018;
     auto betas = Eigen::VectorXd::LinSpaced(param_steps, beta_begin, beta_end);
