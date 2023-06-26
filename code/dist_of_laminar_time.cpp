@@ -42,7 +42,7 @@ int main(){
         laminar_sample.col(i) = laminar.col(colIdx);
     }
 
-    beta = 4.1621e-01;
+    beta = 4.17e-01;
     nu = 0.00018;
     latter = 1;
     double dump = 1e+4;
