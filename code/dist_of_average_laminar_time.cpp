@@ -41,26 +41,25 @@ int main(){
     auto beta_of_laminar = beta;
 
     // set up for search
-    t=1E+9;
+    t=1E+8;
     double dump = 1e+4;
-    double floor_threshold = 3e+3;
+    double floor_threshold = 5e+3;
     latter = 1;
     int skip = 1000;
     double epsilon = 1E-1;
     int threads = omp_get_max_threads();
-    std::cout << threads << "threads" << std::endl;
-
-    LongLaminar LL(nu, beta, f, ddt, t_0, t, latter, x_0, laminar_sample, epsilon, skip, 100, 10, threads);
     
-    int repetitions = 1;
-    int param_steps = 64;
-    double beta_begin = 0.41614;
-    double beta_end = 0.416165;
+    int param_steps = 32;
+    int repetitions = 5;
+    double beta_begin = 4.161615e-01;
+    double beta_end = 4.16165e-01;
     double nu_begin = 0.00018;
     double nu_end = 0.00018;
     auto betas = Eigen::VectorXd::LinSpaced(param_steps, beta_begin, beta_end);
     auto nus = Eigen::VectorXd::LinSpaced(param_steps, nu_begin, nu_end);
     bool line = true;
+    std::cout << threads << "threads" << std::endl;
+    LongLaminar LL(nu, beta, f, ddt, t_0, t, latter, x_0, laminar_sample, epsilon, skip, 100, 10, threads);
     std::ostringstream oss;
     Eigen::MatrixXd result;
 
@@ -96,7 +95,7 @@ int main(){
                 result.row(param_steps * i + j) << betas(i), nus(j), average_time / repetitions;
             }
         }
-        oss << std::defaultfloat << "../../average_time_para/average_laminar_time_beta" << beta_begin <<"to"<< beta_end << "_nu" << nu_begin <<"to" << nu_end <<"_"<< std::scientific << param_steps << "times_epsilon" << epsilon << "_" << t-t_0 << "period" << dump << "dump" << repetitions <<"repeat_laminar"<< beta_of_laminar << ".npy";  // 文字列を結合する
+        oss << std::defaultfloat << "../../average_time_para/average_laminar_time_beta" << beta_begin <<"to"<< beta_end << "_nu" << nu_begin <<"to" << nu_end <<"_"<< std::scientific << param_steps << "times_epsilon" << epsilon << "_" << t-t_0 << "period" << dump << "dump" << repetitions <<"repeat_floor"<< floor_threshold << "laminar"<< beta_of_laminar << ".npy";  // 文字列を結合する
     }
     else{
         // beta nuを同時に動かす O(n)の場合
@@ -127,7 +126,7 @@ int main(){
             #pragma omp critical
             result.row(i) << betas(i), nus(i), average_time / repetitions;
             }
-        oss << std::defaultfloat << "../../average_time_para/average_laminar_time(line)_beta" << beta_begin <<"to"<< beta_end << "_nu" << nu_begin <<"to" << nu_end <<"_" << param_steps << "times_epsilon" << epsilon << "_" << t-t_0 << "period" << dump << "dump" << repetitions <<"repeat_laminar"<< beta_of_laminar << ".npy";  // 文字列を結合する
+        oss << std::defaultfloat << "../../average_time_para/average_laminar_time(line)_beta" << beta_begin <<"to"<< beta_end << "_nu" << nu_begin <<"to" << nu_end <<"_" << param_steps << "times_epsilon" << epsilon << "_" << t-t_0 << "period" << dump << "dump" << repetitions <<"repeat_floor"<< floor_threshold <<"_laminar"<< beta_of_laminar << ".npy";  // 文字列を結合する
     }
     
 

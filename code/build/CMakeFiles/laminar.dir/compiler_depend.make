@@ -1096,7 +1096,7 @@ CMakeFiles/laminar.dir/ShellModel.cpp.o: ../ShellModel.cpp \
   /usr/include/c++/11/bits/stl_numeric.h \
   /usr/include/c++/11/pstl/glue_numeric_defs.h
 
-CMakeFiles/laminar.dir/dist_of_laminar_time.cpp.o: ../dist_of_laminar_time.cpp \
+CMakeFiles/laminar.dir/dist_of_average_laminar_time.cpp.o: ../dist_of_average_laminar_time.cpp \
   /usr/include/stdc-predef.h \
   /usr/include/c++/11/iostream \
   /usr/include/aarch64-linux-gnu/c++/11/bits/c++config.h \
@@ -1294,13 +1294,30 @@ CMakeFiles/laminar.dir/dist_of_laminar_time.cpp.o: ../dist_of_laminar_time.cpp \
   /usr/include/c++/11/bits/ostream.tcc \
   /usr/include/c++/11/istream \
   /usr/include/c++/11/bits/istream.tcc \
-  /usr/include/c++/11/fstream \
+  /usr/include/c++/11/iomanip \
+  /usr/include/c++/11/locale \
+  /usr/include/c++/11/bits/locale_facets_nonio.h \
+  /usr/include/c++/11/ctime \
+  /usr/include/aarch64-linux-gnu/c++/11/bits/time_members.h \
+  /usr/include/aarch64-linux-gnu/c++/11/bits/messages_members.h \
+  /usr/include/libintl.h \
   /usr/include/c++/11/bits/codecvt.h \
+  /usr/include/c++/11/bits/locale_facets_nonio.tcc \
+  /usr/include/c++/11/bits/locale_conv.h \
+  /usr/include/c++/11/bits/unique_ptr.h \
+  /usr/include/c++/11/utility \
+  /usr/include/c++/11/bits/stl_relops.h \
+  /usr/include/c++/11/tuple \
+  /usr/include/c++/11/array \
+  /usr/include/c++/11/bits/uses_allocator.h \
+  /usr/include/c++/11/bits/invoke.h \
+  /usr/include/c++/11/bits/quoted_string.h \
+  /usr/include/c++/11/sstream \
+  /usr/include/c++/11/bits/sstream.tcc \
+  /usr/include/c++/11/fstream \
   /usr/include/aarch64-linux-gnu/c++/11/bits/basic_file.h \
   /usr/include/aarch64-linux-gnu/c++/11/bits/c++io.h \
   /usr/include/c++/11/bits/fstream.tcc \
-  /usr/include/c++/11/sstream \
-  /usr/include/c++/11/bits/sstream.tcc \
   /usr/include/eigen3/Eigen/Dense \
   /usr/include/eigen3/Eigen/Core \
   /usr/include/eigen3/Eigen/src/Core/util/DisableStupidWarnings.h \
@@ -1341,12 +1358,6 @@ CMakeFiles/laminar.dir/dist_of_laminar_time.cpp.o: ../dist_of_laminar_time.cpp \
   /usr/include/c++/11/cassert \
   /usr/include/assert.h \
   /usr/include/c++/11/functional \
-  /usr/include/c++/11/tuple \
-  /usr/include/c++/11/utility \
-  /usr/include/c++/11/bits/stl_relops.h \
-  /usr/include/c++/11/array \
-  /usr/include/c++/11/bits/uses_allocator.h \
-  /usr/include/c++/11/bits/invoke.h \
   /usr/include/c++/11/bits/refwrap.h \
   /usr/include/c++/11/bits/std_function.h \
   /usr/include/c++/11/unordered_map \
@@ -1591,23 +1602,24 @@ CMakeFiles/laminar.dir/dist_of_laminar_time.cpp.o: ../dist_of_laminar_time.cpp \
   /usr/include/eigen3/Eigen/src/Eigenvalues/GeneralizedEigenSolver.h \
   /usr/include/eigen3/Eigen/src/Eigenvalues/RealQZ.h \
   /usr/include/eigen3/Eigen/src/Eigenvalues/MatrixBaseEigenvalues.h \
+  /usr/include/c++/11/chrono \
+  /usr/include/c++/11/ratio \
+  /usr/include/c++/11/bits/parse_numbers.h \
+  /usr/include/c++/11/random \
+  /usr/include/c++/11/bits/random.h \
+  /usr/include/aarch64-linux-gnu/c++/11/bits/opt_random.h \
+  /usr/include/c++/11/bits/random.tcc \
+  /usr/include/c++/11/numeric \
+  /usr/include/c++/11/bits/stl_numeric.h \
+  /usr/include/c++/11/bit \
+  /usr/include/c++/11/pstl/glue_numeric_defs.h \
   ../Runge_Kutta.hpp \
   /usr/include/c++/11/math.h \
   /usr/include/c++/11/regex \
   /usr/include/c++/11/bitset \
-  /usr/include/c++/11/locale \
-  /usr/include/c++/11/bits/locale_facets_nonio.h \
-  /usr/include/c++/11/ctime \
-  /usr/include/aarch64-linux-gnu/c++/11/bits/time_members.h \
-  /usr/include/aarch64-linux-gnu/c++/11/bits/messages_members.h \
-  /usr/include/libintl.h \
-  /usr/include/c++/11/bits/locale_facets_nonio.tcc \
-  /usr/include/c++/11/bits/locale_conv.h \
-  /usr/include/c++/11/bits/unique_ptr.h \
   /usr/include/c++/11/memory \
   /usr/include/c++/11/bits/stl_raw_storage_iter.h \
   /usr/include/c++/11/bits/align.h \
-  /usr/include/c++/11/bit \
   /usr/include/c++/11/bits/shared_ptr.h \
   /usr/include/c++/11/bits/shared_ptr_base.h \
   /usr/include/c++/11/bits/allocated_ptr.h \
@@ -1638,19 +1650,6 @@ CMakeFiles/laminar.dir/dist_of_laminar_time.cpp.o: ../dist_of_laminar_time.cpp \
   /usr/include/c++/11/bits/regex.tcc \
   /usr/include/c++/11/bits/regex_executor.h \
   /usr/include/c++/11/bits/regex_executor.tcc \
-  /usr/include/c++/11/random \
-  /usr/include/c++/11/bits/random.h \
-  /usr/include/aarch64-linux-gnu/c++/11/bits/opt_random.h \
-  /usr/include/c++/11/bits/random.tcc \
-  /usr/include/c++/11/numeric \
-  /usr/include/c++/11/bits/stl_numeric.h \
-  /usr/include/c++/11/pstl/glue_numeric_defs.h \
-  /usr/include/c++/11/chrono \
-  /usr/include/c++/11/ratio \
-  /usr/include/c++/11/bits/parse_numbers.h \
-  ../cnpy/cnpy.h \
-  /usr/include/zlib.h \
-  /usr/include/zconf.h \
   ../matplotlibcpp.h \
   /usr/include/python3.10/Python.h \
   /usr/include/python3.10/patchlevel.h \
@@ -1813,8 +1812,13 @@ CMakeFiles/laminar.dir/dist_of_laminar_time.cpp.o: ../dist_of_laminar_time.cpp \
   /usr/include/aarch64-linux-gnu/bits/ss_flags.h \
   /usr/include/aarch64-linux-gnu/bits/types/struct_sigstack.h \
   /usr/include/aarch64-linux-gnu/bits/sigthread.h \
-  /usr/include/aarch64-linux-gnu/bits/signal_ext.h
+  /usr/include/aarch64-linux-gnu/bits/signal_ext.h \
+  ../cnpy/cnpy.h \
+  /usr/include/zlib.h \
+  /usr/include/zconf.h
 
+
+/usr/include/zconf.h:
 
 /usr/include/aarch64-linux-gnu/bits/signal_ext.h:
 
@@ -1842,6 +1846,8 @@ CMakeFiles/laminar.dir/dist_of_laminar_time.cpp.o: ../dist_of_laminar_time.cpp \
 
 /usr/include/c++/11/bits/ios_base.h:
 
+/usr/include/c++/11/iomanip:
+
 /usr/include/eigen3/Eigen/src/Core/arch/NEON/MathFunctions.h:
 
 /usr/include/eigen3/Eigen/src/Core/GenericPacketMath.h:
@@ -1858,6 +1864,8 @@ CMakeFiles/laminar.dir/dist_of_laminar_time.cpp.o: ../dist_of_laminar_time.cpp \
 
 /usr/include/eigen3/Eigen/src/Core/util/SymbolicIndex.h:
 
+../dist_of_average_laminar_time.cpp:
+
 /usr/include/eigen3/Eigen/src/Core/util/IntegralConstant.h:
 
 /usr/include/eigen3/Eigen/src/Core/products/SelfadjointRank2Update.h:
@@ -1865,6 +1873,8 @@ CMakeFiles/laminar.dir/dist_of_laminar_time.cpp.o: ../dist_of_laminar_time.cpp \
 /usr/include/eigen3/Eigen/src/Core/util/Memory.h:
 
 /usr/include/eigen3/Eigen/LU:
+
+/usr/include/c++/11/bits/quoted_string.h:
 
 /usr/include/locale.h:
 
@@ -2824,8 +2834,6 @@ CMakeFiles/laminar.dir/dist_of_laminar_time.cpp.o: ../dist_of_laminar_time.cpp \
 
 /usr/include/eigen3/Eigen/Cholesky:
 
-/usr/include/zconf.h:
-
 /usr/include/linux/stddef.h:
 
 /usr/include/python3.10/numpy/npy_interrupt.h:
@@ -3072,12 +3080,6 @@ CMakeFiles/laminar.dir/dist_of_laminar_time.cpp.o: ../dist_of_laminar_time.cpp \
 
 /usr/include/python3.10/pymem.h:
 
-/usr/include/aarch64-linux-gnu/bits/sigstksz.h:
-
-/usr/include/eigen3/Eigen/src/Core/IndexedView.h:
-
-/usr/include/python3.10/bytearrayobject.h:
-
 /usr/include/python3.10/cpython/unicodeobject.h:
 
 /usr/include/python3.10/boolobject.h:
@@ -3166,8 +3168,6 @@ CMakeFiles/laminar.dir/dist_of_laminar_time.cpp.o: ../dist_of_laminar_time.cpp \
 
 /usr/include/alloca.h:
 
-../dist_of_laminar_time.cpp:
-
 /usr/include/python3.10/modsupport.h:
 
 /usr/include/python3.10/pythonrun.h:
@@ -3241,3 +3241,9 @@ CMakeFiles/laminar.dir/dist_of_laminar_time.cpp.o: ../dist_of_laminar_time.cpp \
 /usr/include/aarch64-linux-gnu/bits/procfs-id.h:
 
 /usr/include/aarch64-linux-gnu/bits/procfs-extra.h:
+
+/usr/include/eigen3/Eigen/src/Core/IndexedView.h:
+
+/usr/include/python3.10/bytearrayobject.h:
+
+/usr/include/aarch64-linux-gnu/bits/sigstksz.h:

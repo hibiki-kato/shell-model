@@ -141,7 +141,11 @@ std::vector<double> LongLaminar::laminar_duration_(const Eigen::MatrixXcd& traje
                     counter = -1;
                 }
             }
+            if(i % 100000000 == 0){
+                std::cout << "\r 現在" << i/100 << "時間" << std::flush;
+            }
         }
+
         // 途切れた場合は最後の点までの時間を記録 (暫定的処理)
         if (counter > 0){
             durations.push_back(counter * LongLaminar::get_ddt_() * skip);
