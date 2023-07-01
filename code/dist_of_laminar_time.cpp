@@ -41,12 +41,12 @@ int main(){
         laminar_sample.col(i) = laminar.col(colIdx);
     }
 
-    beta = 4.168e-01;
+    beta = 4.16159e-01;
     std::cout << "beta = " << beta << std::endl;
     nu = 0.00018;
     latter = 1;
     double dump = 1e+4;
-    t = 1e+8;
+    t = 1e+9;
     t_0 = 0;
     x_0 = npy2EigenVec("../../initials/beta0.418_nu0.00018_4000period.npy");
 

@@ -125,7 +125,7 @@ std::vector<double> LongLaminar::laminar_duration_(const Eigen::MatrixXcd& traje
     if (trajectory.rows() == 0){
 
         Eigen::VectorXcd x = LongLaminar::get_x_0_();
-        for (int i = 0; i < LongLaminar::get_steps_(); i++) {
+        for (long i = 0; i < LongLaminar::get_steps_(); i++) {
             x = LongLaminar::rk4_(x);
             
             if (i % skip == 0) {
@@ -140,9 +140,6 @@ std::vector<double> LongLaminar::laminar_duration_(const Eigen::MatrixXcd& traje
                     // カウンターをリセット
                     counter = -1;
                 }
-            }
-            if(i % 100000000 == 0){
-                std::cout << "\r 現在" << i/100 << "時間" << std::flush;
             }
         }
 
@@ -160,7 +157,7 @@ std::vector<double> LongLaminar::laminar_duration_(const Eigen::MatrixXcd& traje
     // 軌道が与えられている場合
     else{
         int check_times = trajectory.cols()/skip + 1;
-        for(int i =0; i < check_times; i++){
+        for(long i =0; i < check_times; i++){
             if (LongLaminar::isLaminarPoint_(trajectory.col(i*skip))){
                 counter++;
             }
