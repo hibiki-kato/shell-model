@@ -214,29 +214,29 @@ cnpy/cnpy.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/cnpy.dir/build.make CMakeFiles/cnpy.dir/cnpy/cnpy.cpp.s
 .PHONY : cnpy/cnpy.cpp.s
 
-dist_of_laminar_time.o: dist_of_laminar_time.cpp.o
-.PHONY : dist_of_laminar_time.o
+poincare_section.o: poincare_section.cpp.o
+.PHONY : poincare_section.o
 
 # target to build an object file
-dist_of_laminar_time.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/laminar.dir/build.make CMakeFiles/laminar.dir/dist_of_laminar_time.cpp.o
-.PHONY : dist_of_laminar_time.cpp.o
+poincare_section.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/laminar.dir/build.make CMakeFiles/laminar.dir/poincare_section.cpp.o
+.PHONY : poincare_section.cpp.o
 
-dist_of_laminar_time.i: dist_of_laminar_time.cpp.i
-.PHONY : dist_of_laminar_time.i
+poincare_section.i: poincare_section.cpp.i
+.PHONY : poincare_section.i
 
 # target to preprocess a source file
-dist_of_laminar_time.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/laminar.dir/build.make CMakeFiles/laminar.dir/dist_of_laminar_time.cpp.i
-.PHONY : dist_of_laminar_time.cpp.i
+poincare_section.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/laminar.dir/build.make CMakeFiles/laminar.dir/poincare_section.cpp.i
+.PHONY : poincare_section.cpp.i
 
-dist_of_laminar_time.s: dist_of_laminar_time.cpp.s
-.PHONY : dist_of_laminar_time.s
+poincare_section.s: poincare_section.cpp.s
+.PHONY : poincare_section.s
 
 # target to generate assembly for a file
-dist_of_laminar_time.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/laminar.dir/build.make CMakeFiles/laminar.dir/dist_of_laminar_time.cpp.s
-.PHONY : dist_of_laminar_time.cpp.s
+poincare_section.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/laminar.dir/build.make CMakeFiles/laminar.dir/poincare_section.cpp.s
+.PHONY : poincare_section.cpp.s
 
 # Help Target
 help:
@@ -257,9 +257,9 @@ help:
 	@echo "... cnpy/cnpy.o"
 	@echo "... cnpy/cnpy.i"
 	@echo "... cnpy/cnpy.s"
-	@echo "... dist_of_laminar_time.o"
-	@echo "... dist_of_laminar_time.i"
-	@echo "... dist_of_laminar_time.s"
+	@echo "... poincare_section.o"
+	@echo "... poincare_section.i"
+	@echo "... poincare_section.s"
 .PHONY : help
 
 

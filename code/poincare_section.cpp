@@ -19,27 +19,29 @@ std::vector<int> extractCommonColumns(const std::vector<Eigen::MatrixXd>& matric
 
 int main(){
     auto start = std::chrono::system_clock::now(); // timer start
-    double nu = 0.000173;
-    double beta = 0.418;
+    double nu = 0.00018;
+    double beta = 0.41616;
     std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
     double ddt = 0.01;
     double t_0 = 0;
     double t = 100000;
-    double latter = 1;
-    Eigen::VectorXcd x_0 = npy2EigenVec("../initials/beta0.416_nu0.00017520319481270297_step0.01_10000.0period_laminar.npy");
+    double latter = 2;
+    Eigen::VectorXcd x_0 = npy2EigenVec("../../initials/beta0.418_nu0.00018_4000period.npy");
     std::vector<Eigen::MatrixXd> matrices; //ポアンカレ写像の結果を格納するベクトル
 
     ShellModel SM(nu, beta, f, ddt, t_0, t, latter, x_0);
-    // Eigen::MatrixXcd trajectory = SM.get_trajectory_();
-    Eigen::MatrixXcd trajectory = npy2EigenMat("../generated_laminar_beta_0.418nu_0.000173_20000period1500check400progresseps0.1.npy");
+    // 計算する場合は以下のコメントアウトを外す
+    Eigen::MatrixXcd trajectory = SM.get_trajectory_();
+    // 計算済みの場合は以下のコメントアウトを外す
+    // Eigen::MatrixXcd trajectory = npy2EigenMat("../generated_laminar_beta_0.418nu_0.000173_20000period1500check400progresseps0.1.npy");
     Eigen::MatrixXd traj_abs = trajectory.cwiseAbs();
     
-    Eigen::MatrixXd loc_max_4 = loc_max(traj_abs, 4);
-    matrices.push_back(loc_max_4);
+    // Eigen::MatrixXd loc_max_4 = loc_max(traj_abs, 4);
+    // matrices.push_back(loc_max_4);
     // Eigen::MatrixXd PoincareSection6 = poincare_section(traj_abs, 6, 0.1);
     // matrices.push_back(PoincareSection6);
-    // Eigen::MatrixXd PoincareSection9 = poincare_section(traj_abs, 9, 0.055);
-    // matrices.push_back(PoincareSection9);
+    Eigen::MatrixXd PoincareSection9 = poincare_section(traj_abs, 9, 0.055);
+    matrices.push_back(PoincareSection9);
 
     // // 共通している列を求める
     std::vector<int> commonColumns = extractCommonColumns(matrices);
@@ -53,8 +55,8 @@ int main(){
     std::vector<double> x(commonColumns.size()),y(commonColumns.size());
     int ite = 0;
     for (const auto& index :commonColumns) {
-            x[ite] = loc_max_4(plot_dim1-1, index);
-            y[ite] = loc_max_4(plot_dim2-1, index);
+            x[ite] = PoincareSection9(plot_dim1-1, index);
+            y[ite] = PoincareSection9(plot_dim2-1, index);
             ite++;
     }
     plt::scatter(x,y);
@@ -65,7 +67,7 @@ int main(){
     oss <<"Shell"<< plot_dim2;
     plt::ylabel(oss.str());
     oss.str("");
-    oss << "../beta_" << beta << "nu_" << nu <<"_"<< t-t_0 << "loc_max_4_trajectory(not laminar)" <<"period.png";  // 文字列を結合する
+    oss << "../../poincare/beta_" << beta << "nu_" << nu <<"_"<< t-t_0 << "poincare_section_9_laminar"<< t / latter <<"period.png";  // 文字列を結合する
     std::string plotfname = oss.str(); // 文字列を取得する
     std::cout << "Saving result to " << plotfname << std::endl;
     plt::save(plotfname);
