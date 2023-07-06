@@ -20,9 +20,9 @@ int main(){
     std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
     double ddt = 0.01;
     double t_0 = 0;
-    double t = 3E+5;
-    double latter = 2;
-    Eigen::VectorXcd x_0 = npy2EigenVec("../../initials/beta0.418_nu0.00018_4000period.npy");
+    double t = 2E+3;
+    double latter = 1;
+    Eigen::VectorXcd x_0 = npy2EigenVec("../../initials/beta0.416_nu0.00018_20000period.npy");
     ShellModel solver(nu, beta, f, ddt, t_0, t, latter, x_0);
     Eigen::MatrixXcd trajectory = solver.get_trajectory_(); 
     // Set the size of output image = 1200x780 pixels

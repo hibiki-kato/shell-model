@@ -26,6 +26,8 @@ public:
     void set_steps_(long input_steps);
     void set_x_0_(Eigen::VectorXcd input_x_0);
 
+    double get_beta_();
+    double get_nu_();
     double get_ddt_();
     double get_t_0_();
     double get_t_();
@@ -62,6 +64,7 @@ public:
     Eigen::MatrixXcd stagger_and_step_();
     bool isLaminarTrajectory_(Eigen::MatrixXcd trajectory);
     std::vector<double> laminar_duration_(const Eigen::MatrixXcd& trajectory = Eigen::MatrixXcd());
+    std::vector<double> laminar_duration_logged_(const Eigen::MatrixXcd& trajectory = Eigen::MatrixXcd());
     double laminar_persistent_(Eigen::MatrixXcd trajectory);
     Eigen::VectorXcd perturbator_(Eigen::VectorXcd state, int s_min = -3, int s_max = -10);
     bool isLaminarPoint_(Eigen::VectorXcd state);
@@ -76,6 +79,7 @@ private:
     double begin_time_of_stag_and_step;
     double end_time_of_stag_and_step;
     int threads;
+    void EigenVecXcd2npy(Eigen::VectorXcd Vec, std::string fname);
 
 
     

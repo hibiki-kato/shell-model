@@ -9,6 +9,8 @@ CMakeCache.txt
 !initials/*
 !average_time_para/*
 !max_time_para/*
+!distribution/*
 initials/.DS_Store
 max_time_para/.DS_Store
 average_time_para/.DS_Store
+distribution/.DS_Store

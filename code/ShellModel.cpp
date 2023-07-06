@@ -112,6 +112,12 @@ void ShellModel::set_steps_(long input_steps){
 void ShellModel::set_x_0_(Eigen::VectorXcd input_x_0){
     x_0 = input_x_0;
 }
+double ShellModel::get_beta_(){
+    return beta;
+}
+double ShellModel::get_nu_(){
+    return nu;
+}
 
 double ShellModel::get_ddt_(){
     return ddt;

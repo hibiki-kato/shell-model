@@ -5,9 +5,11 @@
 #include <math.h>
 #include <chrono>
 #include <iostream>
-#include <regex>
+#include <sstream>
+#include <string>
 #include <random>
 #include <omp.h>
+#include "cnpy/cnpy.h"
 
 LongLaminar::LongLaminar(double input_nu, double input_beta, std::complex<double> input_f, double input_ddt, double input_t_0, double input_t, double input_latter, Eigen::VectorXcd input_x_0, Eigen::MatrixXcd input_laminar, double input_epsilon, int input_skip, double input_check_sec, double input_progress_sec, int input_threads = omp_get_max_threads()) : ShellModel(input_nu, input_beta, input_f, input_ddt, input_t_0, input_t, input_latter, input_x_0){
     laminar = input_laminar;
@@ -202,4 +204,64 @@ Eigen::MatrixXcd LongLaminar::extractor(const Eigen::MatrixXcd& trajectory, int 
         throw std::runtime_error("Forward time is out of range.");
     }
     return trajectory.middleCols(backIndex, forwardIndex - backIndex + 1);
+}
+
+std::vector<double> LongLaminar::laminar_duration_logged_(const Eigen::MatrixXcd& trajectory){
+    int counter = -1;
+    std::vector<double> durations;
+    // 軌道が与えられていない場合
+    if (trajectory.rows() == 0){
+
+        Eigen::VectorXcd x = LongLaminar::get_x_0_();
+        std::ostringstream oss;
+        for (long i = 0; i < LongLaminar::get_steps_(); i++) {
+            x = LongLaminar::rk4_(x);
+            
+            if (i % skip == 0) {
+                if (LongLaminar::isLaminarPoint_(x) == 1) {
+                    counter++;
+                    if (counter == 1){
+                        oss << "../../initials/beta" << LongLaminar::get_beta_() << "nu" << LongLaminar::get_nu_() << "_" << (counter-1) * LongLaminar::get_ddt_() * skip << "period.npy";
+                        LongLaminar::EigenVecXcd2npy(x, oss.str());
+                    }
+                } else {
+                    // カウンターが1以上の時のみ記録
+                    if (counter > 0) {
+                        durations.push_back(counter * LongLaminar::get_ddt_() * skip);
+                        std::string oldName = oss.str();
+                        oss.str("");
+                        oss << "../../initials/beta" << LongLaminar::get_beta_() << "nu" << LongLaminar::get_nu_() << "_" << (counter-1) * LongLaminar::get_ddt_() * skip << "period.npy";
+                        std::string newName = oss.str();
+                        int result = std::rename(oldName.c_str(), newName.c_str());
+
+                        if (result != 0) {
+                            std::cerr << "ファイル名の変更に失敗しました。" << std::endl;
+                        }
+                        oss.str("");
+                        counter = -1;
+                    }
+                    // カウンターをリセット
+                    counter = -1;
+                }
+            }
+        }
+
+        // 途切れた場合は最後の点までの時間を記録 (暫定的処理)
+        if (counter > 0){
+            durations.push_back(counter * LongLaminar::get_ddt_() * skip);
+        }
+        // 一度もラミナーに入らなかった場合は0を入れる
+        if (durations.size() == 0){
+            durations.push_back(0);
+        }
+    }
+    return durations;
+}
+
+void LongLaminar::EigenVecXcd2npy(Eigen::VectorXcd Vec, std::string fname){
+    std::vector<std::complex<double>> x(Vec.size());
+    for(int i=0;i<Vec.size();i++){
+        x[i]=Vec(i);
+    }
+    cnpy::npy_save(fname, &x[0], {(size_t)Vec.size()}, "w");
 }

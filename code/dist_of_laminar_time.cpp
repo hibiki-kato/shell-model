@@ -27,7 +27,7 @@ int main(){
     Eigen::VectorXcd x_0 = npy2EigenVec("../../initials/beta0.416_nu0.00017520319481270297_step0.01_10000.0period_laminar.npy");
 
     double epsilon=1E-1;
-    int skip = 10000;
+    int skip = 1000;
     double check_sec = 2000;
     double progress_sec = 400;
     int threads = omp_get_max_threads();
@@ -46,7 +46,7 @@ int main(){
     nu = 0.00018;
     latter = 1;
     double dump = 1e+5;
-    t = 1e+9;
+    t = 1e+7;
     t_0 = 0;
     x_0 = npy2EigenVec("../../initials/beta0.418_nu0.00018_4000period.npy");
 
@@ -57,7 +57,7 @@ int main(){
     LL_for_dump.set_t_(dump);
     LL_for_dump.set_x_0_(LL_for_dump.perturbator_(LL_for_dump.get_x_0_()));
     LL.set_x_0_(LL_for_dump.get_trajectory_().topRightCorner(14, 1));
-    std::vector<double> durations = LL.laminar_duration_();
+    std::vector<double> durations = LL.laminar_duration_logged_();
 
     Eigen::VectorXd durations_vec = Eigen::Map<Eigen::VectorXd>(&durations[0], durations.size());
     std::ostringstream oss;
