@@ -10,7 +10,7 @@ set(CMAKE_DEPENDS_LANGUAGES
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
   "/workspaces/cpp/code/LongLaminar.cpp" "CMakeFiles/laminar.dir/LongLaminar.cpp.o" "gcc" "CMakeFiles/laminar.dir/LongLaminar.cpp.o.d"
   "/workspaces/cpp/code/ShellModel.cpp" "CMakeFiles/laminar.dir/ShellModel.cpp.o" "gcc" "CMakeFiles/laminar.dir/ShellModel.cpp.o.d"
-  "/workspaces/cpp/code/dist_of_laminar_time.cpp" "CMakeFiles/laminar.dir/dist_of_laminar_time.cpp.o" "gcc" "CMakeFiles/laminar.dir/dist_of_laminar_time.cpp.o.d"
+  "/workspaces/cpp/code/lyapunov_lorenz.cpp" "CMakeFiles/laminar.dir/lyapunov_lorenz.cpp.o" "gcc" "CMakeFiles/laminar.dir/lyapunov_lorenz.cpp.o.d"
   )
 
 # Targets to which this target links.

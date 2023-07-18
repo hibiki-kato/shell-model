@@ -214,29 +214,29 @@ cnpy/cnpy.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/cnpy.dir/build.make CMakeFiles/cnpy.dir/cnpy/cnpy.cpp.s
 .PHONY : cnpy/cnpy.cpp.s
 
-dist_of_laminar_time.o: dist_of_laminar_time.cpp.o
-.PHONY : dist_of_laminar_time.o
+lyapunov_lorenz.o: lyapunov_lorenz.cpp.o
+.PHONY : lyapunov_lorenz.o
 
 # target to build an object file
-dist_of_laminar_time.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/laminar.dir/build.make CMakeFiles/laminar.dir/dist_of_laminar_time.cpp.o
-.PHONY : dist_of_laminar_time.cpp.o
+lyapunov_lorenz.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/laminar.dir/build.make CMakeFiles/laminar.dir/lyapunov_lorenz.cpp.o
+.PHONY : lyapunov_lorenz.cpp.o
 
-dist_of_laminar_time.i: dist_of_laminar_time.cpp.i
-.PHONY : dist_of_laminar_time.i
+lyapunov_lorenz.i: lyapunov_lorenz.cpp.i
+.PHONY : lyapunov_lorenz.i
 
 # target to preprocess a source file
-dist_of_laminar_time.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/laminar.dir/build.make CMakeFiles/laminar.dir/dist_of_laminar_time.cpp.i
-.PHONY : dist_of_laminar_time.cpp.i
+lyapunov_lorenz.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/laminar.dir/build.make CMakeFiles/laminar.dir/lyapunov_lorenz.cpp.i
+.PHONY : lyapunov_lorenz.cpp.i
 
-dist_of_laminar_time.s: dist_of_laminar_time.cpp.s
-.PHONY : dist_of_laminar_time.s
+lyapunov_lorenz.s: lyapunov_lorenz.cpp.s
+.PHONY : lyapunov_lorenz.s
 
 # target to generate assembly for a file
-dist_of_laminar_time.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/laminar.dir/build.make CMakeFiles/laminar.dir/dist_of_laminar_time.cpp.s
-.PHONY : dist_of_laminar_time.cpp.s
+lyapunov_lorenz.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/laminar.dir/build.make CMakeFiles/laminar.dir/lyapunov_lorenz.cpp.s
+.PHONY : lyapunov_lorenz.cpp.s
 
 # Help Target
 help:
@@ -257,9 +257,9 @@ help:
 	@echo "... cnpy/cnpy.o"
 	@echo "... cnpy/cnpy.i"
 	@echo "... cnpy/cnpy.s"
-	@echo "... dist_of_laminar_time.o"
-	@echo "... dist_of_laminar_time.i"
-	@echo "... dist_of_laminar_time.s"
+	@echo "... lyapunov_lorenz.o"
+	@echo "... lyapunov_lorenz.i"
+	@echo "... lyapunov_lorenz.s"
 .PHONY : help
 
 
