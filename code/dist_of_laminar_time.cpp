@@ -45,7 +45,7 @@ int main(){
     std::cout << "beta = " << beta << std::endl;
     nu = 0.00018;
     latter = 1;
-    double dump = 1e+5;
+    double dump = 1e+1;
     t = 1e+9;
     t_0 = 0;
     x_0 = npy2EigenVec("../../initials/beta0.418_nu0.00018_4000period.npy");
@@ -55,7 +55,7 @@ int main(){
     LongLaminar LL(nu, beta, f, ddt, t_0, t, latter, x_0, laminar_sample, epsilon, skip, check_sec, progress_sec, threads);
     LongLaminar LL_for_dump = LL;
     LL_for_dump.set_t_(dump);
-    LL_for_dump.set_x_0_(LL_for_dump.perturbator_(LL_for_dump.get_x_0_()));
+    LL_for_dump.set_x_0_(LL_for_dump.perturbation_(LL_for_dump.get_x_0_()));
     LL.set_x_0_(LL_for_dump.get_trajectory_().topRightCorner(14, 1));
     std::vector<double> durations = LL.laminar_duration_logged_();
 

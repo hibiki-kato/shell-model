@@ -75,15 +75,15 @@ int main(){
             LongLaminar LL_for_dump = local_LL;
             local_LL.set_beta_(betas(i));
             for(int j = 0; j < param_steps; j++){
-                Eigen::VectorXcd perturbated_x_0 = local_LL.perturbator_(local_LL.get_x_0_());
-                local_LL.set_x_0_(perturbated_x_0);
+                Eigen::VectorXcd perturbed_x_0 = local_LL.perturbation_(local_LL.get_x_0_());
+                local_LL.set_x_0_(perturbed_x_0);
                 local_LL.set_nu_(nus(j));
                 LL_for_dump = local_LL;
                 LL_for_dump.set_t_(dump);
                 double average_time = 0;
                 // 指定回数同じパラメータで計算して平均を取る
                 for(int k = 0; k < repetitions; k++){
-                    LL_for_dump.set_x_0_(LL_for_dump.perturbator_(LL_for_dump.get_x_0_()));
+                    LL_for_dump.set_x_0_(LL_for_dump.perturbation_(LL_for_dump.get_x_0_()));
                     local_LL.set_x_0_(LL_for_dump.get_trajectory_().topRightCorner(14, 1));
                     std::vector<double> durations = local_LL.laminar_duration_();
                     std::vector<double> filtered;
@@ -107,8 +107,8 @@ int main(){
             }
             LongLaminar local_LL = LL;
             LongLaminar LL_for_dump = local_LL;
-            Eigen::VectorXcd perturbated_x_0 = local_LL.perturbator_(local_LL.get_x_0_());
-            local_LL.set_x_0_(perturbated_x_0);
+            Eigen::VectorXcd perturbed_x_0 = local_LL.perturbation_(local_LL.get_x_0_());
+            local_LL.set_x_0_(perturbed_x_0);
             local_LL.set_beta_(betas(i));
             local_LL.set_nu_(nus(i));
             LL_for_dump = local_LL;
@@ -116,7 +116,7 @@ int main(){
             double average_time = 0;
             // 指定回数同じパラメータで計算して平均を取る
             for(int k = 0; k < repetitions; k++){
-                LL_for_dump.set_x_0_(LL_for_dump.perturbator_(LL_for_dump.get_x_0_()));
+                LL_for_dump.set_x_0_(LL_for_dump.perturbation_(LL_for_dump.get_x_0_()));
                 local_LL.set_x_0_(LL_for_dump.get_trajectory_().topRightCorner(14, 1));
                 std::vector<double> durations = local_LL.laminar_duration_();
                 std::vector<double> filtered;

@@ -55,7 +55,7 @@ Eigen::MatrixXcd LongLaminar::stagger_and_step_(){
                 int thread_id = omp_get_thread_num();
                 while (true) {
                     local_counter++;
-                    ShellModel::set_x_0_(LongLaminar::perturbator_(ShellModel::get_x_0_()));
+                    ShellModel::set_x_0_(LongLaminar::perturbation_(ShellModel::get_x_0_()));
                     Eigen::MatrixXcd checked_traj = ShellModel::get_trajectory_();
                     if (LongLaminar::isLaminarTrajectory_(checked_traj)) {
                         #pragma omp single 
@@ -102,7 +102,7 @@ bool LongLaminar::isLaminarTrajectory_(Eigen::MatrixXcd trajectory){
     }
     return true;
 }
-Eigen::VectorXcd LongLaminar::perturbator_(Eigen::VectorXcd state, int s_min, int s_max){   
+Eigen::VectorXcd LongLaminar::perturbation_(Eigen::VectorXcd state, int s_min, int s_max){   
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_real_distribution<double> s(-1, 1);

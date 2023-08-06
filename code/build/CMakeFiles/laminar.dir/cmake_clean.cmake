@@ -3,8 +3,8 @@ file(REMOVE_RECURSE
   "CMakeFiles/laminar.dir/LongLaminar.cpp.o.d"
   "CMakeFiles/laminar.dir/ShellModel.cpp.o"
   "CMakeFiles/laminar.dir/ShellModel.cpp.o.d"
-  "CMakeFiles/laminar.dir/lyapunov_lorenz.cpp.o"
-  "CMakeFiles/laminar.dir/lyapunov_lorenz.cpp.o.d"
+  "CMakeFiles/laminar.dir/search_laminar_around_turbulence.cpp.o"
+  "CMakeFiles/laminar.dir/search_laminar_around_turbulence.cpp.o.d"
   "laminar"
   "laminar.pdb"
 )

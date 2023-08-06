@@ -73,18 +73,18 @@ int main() {
 MatrixXd computeJacobian(const VectorXd& state, double sigma, double rho, double beta, double dt){
     int dim = state.rows();
     MatrixXd jacobian(dim, dim);
-    for (int i = 0; i < dim; ++i) {
-        VectorXd perturbedState = state; // 毎回初期化
-        perturbedState(i) += 1e-8;  // 無限小の微小変化をi変数のみに加える
+    // for (int i = 0; i < dim; ++i) {
+    //     VectorXd perturbedState = state; // 毎回初期化
+    //     perturbedState(i) += 1e-7;  // 無限小の微小変化をi変数のみに加える
 
-        // 微分方程式での時間発展(1ステップ)
-        Vector3d ddt_u_perturbed;
-        ddt_u_perturbed = rungeKuttaStep(perturbedState, sigma, rho, beta, dt);
-        jacobian.col(i) = (ddt_u_perturbed - perturbedState) / 1e-8;
-    }
-    // jacobian.row(0) = Vector3d(-sigma, sigma, 0.0);
-    // jacobian.row(1) = Vector3d(rho - state(2), -1.0, -state(0));
-    // jacobian.row(2) = Vector3d(state(1), state(0), -beta);
+    //     // 微分方程式での時間発展(1ステップ)
+    //     Vector3d ddt_u_perturbed;
+    //     ddt_u_perturbed = rungeKuttaStep(perturbedState, sigma, rho, beta, dt);
+    //     jacobian.col(i) = (ddt_u_perturbed - perturbedState) / 1e-7;
+    // }
+    jacobian.row(0) = Vector3d(-sigma, sigma, 0.0);
+    jacobian.row(1) = Vector3d(rho - state(2), -1.0, -state(0));
+    jacobian.row(2) = Vector3d(state(1), state(0), -beta);
 
     return jacobian;
 }
@@ -93,7 +93,7 @@ MatrixXd computeJacobian(const VectorXd& state, double sigma, double rho, double
 VectorXd rungeKuttaJacobian(const VectorXd& state, const MatrixXd& jacobian, double dt){
     VectorXd k1, k2, k3, k4;
     VectorXd nextState;
-
+    
     k1 = dt * computeDerivativeJacobian(state, jacobian);
     k2 = dt * computeDerivativeJacobian(state + 0.5 * k1, jacobian);
     k3 = dt * computeDerivativeJacobian(state + 0.5 * k2, jacobian);

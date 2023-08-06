@@ -4,6 +4,7 @@
 #include <eigen3/Eigen/Dense>
 #include <complex>
 #include <cmath>
+#include <random>
 #include "Runge_Kutta.hpp"
 #include <chrono>
 #include <omp.h>
@@ -13,7 +14,7 @@ namespace plt = matplotlibcpp;
 Eigen::MatrixXd loc_max(const Eigen::MatrixXd& traj_abs, int obs_dim);
 Eigen::VectorXcd npy2EigenVec(const char* fname);
 Eigen::MatrixXd poincare_section(const Eigen::MatrixXd& traj_abs, int cut_dim, double cut_value);
-
+Eigen::VectorXcd perturbation(Eigen::VectorXcd state, int s_min = -3, int s_max= -10);
 
 int main(){
     auto start = std::chrono::system_clock::now(); // timer start
@@ -22,13 +23,13 @@ int main(){
     std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
     double ddt = 0.01;
     double t_0 = 0;
-    double t = 20000;
+    double t = 100000;
     double latter = 10;
-    Eigen::VectorXcd x_0 = npy2EigenVec("../initials/beta0.416_nu0.00017520319481270297_step0.01_10000.0period_laminar.npy");
+    Eigen::VectorXcd x_0 = npy2EigenVec("../../initials/beta0.416_nu0.00017520319481270297_step0.01_10000.0period_laminar.npy");
     int threads = omp_get_max_threads();
     std::cout << threads << "threads" << std::endl;
 
-    int param_steps = 200;
+    int param_steps = 300;
     double beta_begin = 0.416;
     double beta_end = 0.4165;
     double nu_begin = 0.00018;
@@ -41,7 +42,7 @@ int main(){
     Eigen::VectorXd nus = Eigen::VectorXd::LinSpaced(param_steps, nu_begin, nu_end);
 
     std::ostringstream oss;
-    oss << "../bif_data/bif_" << beta_begin <<"to"<< beta_end << "_nu" << nu_begin <<"to" << nu_end << "_" << param_steps << "steps_period" << t-t_0 << "_latter_"<< std::setprecision(2) << 1 / latter << ".txt";  // 文字列を結合する
+    oss << "../../bif_data/bif_" << beta_begin <<"to"<< beta_end << "_nu" << nu_begin <<"to" << nu_end << "_" << param_steps << "steps_period" << t-t_0 << "_latter_"<< std::setprecision(2) << 1 / latter << ".txt";  // 文字列を結合する
     std::string fname = oss.str();
     std::ofstream file(fname);
     if (!file) {
@@ -57,6 +58,7 @@ int main(){
         ShellModel local_SM = SM;
         local_SM.set_beta_(betas(i));
         local_SM.set_nu_(nus(i));
+        local_SM.set_x_0_(perturbation(local_SM.get_x_0_()));
         Eigen::MatrixXcd trajectory = local_SM.get_trajectory_();
         auto poincare_section = loc_max(trajectory.cwiseAbs(), loc_max_dim);
         #pragma omp critical
@@ -153,4 +155,21 @@ Eigen::MatrixXd poincare_section(const Eigen::MatrixXd& traj_abs, int cut_dim, d
         }
     }
     return PoincareSection;
+}
+
+Eigen::VectorXcd perturbation(Eigen::VectorXcd state, int s_min, int s_max){   
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<double> s(-1, 1);
+    std::uniform_real_distribution<double> dis(s_min, s_max);
+
+    Eigen::VectorXd unit = Eigen::VectorXd::Ones(state.rows());
+    for(int i = 0; i < state.rows(); i++){
+        unit(i) = s(gen);
+    }
+
+    Eigen::VectorXcd u = state.cwiseProduct(unit);
+    u /= u.norm();
+
+    return (u.array() * std::pow(10, dis(gen)) + state.array()).matrix();
 }

@@ -5,6 +5,8 @@
 CMakeCache.txt
 *.DS_Store
 .ipynb_checkpoints
+turbulent_laminar_search/*
+
 
 !initials/*
 !average_time_para/*

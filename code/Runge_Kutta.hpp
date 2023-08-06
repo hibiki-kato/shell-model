@@ -4,7 +4,6 @@
 #include <cmath>
 #include <math.h>
 #include <iostream>
-#include <regex>
 #include <random>
 #include <omp.h>
 
@@ -66,7 +65,7 @@ public:
     std::vector<double> laminar_duration_(const Eigen::MatrixXcd& trajectory = Eigen::MatrixXcd());
     std::vector<double> laminar_duration_logged_(const Eigen::MatrixXcd& trajectory = Eigen::MatrixXcd());
     double laminar_persistent_(Eigen::MatrixXcd trajectory);
-    Eigen::VectorXcd perturbator_(Eigen::VectorXcd state, int s_min = -3, int s_max = -10);
+    Eigen::VectorXcd perturbation_(Eigen::VectorXcd state, int s_min = -10, int s_max = -3);
     bool isLaminarPoint_(Eigen::VectorXcd state);
     Eigen::MatrixXcd extractor(const Eigen::MatrixXcd& trajectory, int index, double back, double forward);
 

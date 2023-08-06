@@ -57,7 +57,7 @@ int main(){
         std::cout << "現在"  << i+1 << "回" <<std::endl;
         initials.col(0) = LL.get_x_0_();
         for(int j = 1; j < num_of_candidates - 1; j++){
-            initials.col(j) = LL.perturbator_(LL.get_x_0_(), -10, -1);
+            initials.col(j) = LL.perturbation_(LL.get_x_0_(), -10, -1);
         }
         Eigen::VectorXd durations(num_of_candidates);
         #pragma omp parallel for num_threads(threads)

@@ -2,7 +2,7 @@
 cmake_minimum_required(VERSION 3.14)
 # プロジェクト名と使用する言語を設定
 project(ShellModel CXX)
-add_executable(laminar lyapunov_lorenz.cpp LongLaminar.cpp ShellModel.cpp)
+add_executable(laminar search_laminar_around_turbulence.cpp LongLaminar.cpp ShellModel.cpp)
 
 #includeパス
 target_include_directories(laminar PUBLIC $/usr/include/python3.10)
