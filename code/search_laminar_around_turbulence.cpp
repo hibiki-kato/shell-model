@@ -25,7 +25,7 @@ int main(){
     std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
     double ddt = 0.01;
     double t_0 = 0;
-    double t = 10000;
+    double t = 20000;
     double latter = 4;
     Eigen::VectorXcd x_0 = npy2EigenVec("../../initials/beta0.416_nu0.00017520319481270297_step0.01_10000.0period_laminar.npy");
     ShellModel SM(nu, beta, f, ddt, t_0, t, latter, x_0);
@@ -34,7 +34,6 @@ int main(){
     int threads = omp_get_max_threads();
     
     int param_steps = 100;
-    int repetitions = 1;
     double beta_begin = 4.8e-01;
     double beta_end = 5.2e-01;
     double nu_begin = -3;
@@ -71,17 +70,17 @@ int main(){
 
                 std::vector<double> Shell4(shell4.data(), shell4.data() + shell4.size());
                 std::vector<double> Shell5(shell5.data(), shell5.data() + shell5.size());
-                plt::figure_size(1000, 1000);
-                plt::xlabel("U4");
-                plt::ylabel("U5");
-                plt::plot(Shell4, Shell5);
                 std::ostringstream oss;
                 oss << "../../turbulent_laminar_search/beta_" << local_SM.get_beta_() << "nu_" << local_SM.get_nu_()  << ".png";  // 文字列を結合する
                 std::string plotfname = oss.str(); // 文字列を取得する
                 #pragma omp critical
                 {
-                plt::save(plotfname);
-                plt::close();
+                    plt::figure_size(1000, 1000);
+                    plt::xlabel("U4");
+                    plt::ylabel("U5");
+                    plt::plot(Shell4, Shell5);
+                    plt::save(plotfname);
+                    plt::close();
                 }
             }
         }
