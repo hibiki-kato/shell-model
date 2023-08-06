@@ -18,14 +18,14 @@ void EigenVec2npy(Eigen::VectorXcd Vec, std::string fname);
 int main(){
     auto start = std::chrono::system_clock::now(); // 計測開始時間
     
-    double nu = 1e-5;
-    double beta = 0.5;
+    double nu = 0.00233572;
+    double beta = 0.511579;
     std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
     double ddt = 0.001;
     double t_0 = 0;
-    double t = 10000;
+    double t = 30000;
     double latter = 1;
-    int dim = 15;
+    int dim = 14;
 
     Eigen::VectorXcd x_0 = npy2EigenVec("../../initials/beta0.416_nu0.00017520319481270297_step0.01_10000.0period_laminar.npy");
     std::vector<std::complex<double>> x_0_vec(x_0.data(), x_0.data() + x_0.size());

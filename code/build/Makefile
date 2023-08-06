@@ -214,29 +214,29 @@ cnpy/cnpy.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/cnpy.dir/build.make CMakeFiles/cnpy.dir/cnpy/cnpy.cpp.s
 .PHONY : cnpy/cnpy.cpp.s
 
-search_laminar_around_turbulence.o: search_laminar_around_turbulence.cpp.o
-.PHONY : search_laminar_around_turbulence.o
+dist_of_max_laminar_time.o: dist_of_max_laminar_time.cpp.o
+.PHONY : dist_of_max_laminar_time.o
 
 # target to build an object file
-search_laminar_around_turbulence.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/laminar.dir/build.make CMakeFiles/laminar.dir/search_laminar_around_turbulence.cpp.o
-.PHONY : search_laminar_around_turbulence.cpp.o
+dist_of_max_laminar_time.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/laminar.dir/build.make CMakeFiles/laminar.dir/dist_of_max_laminar_time.cpp.o
+.PHONY : dist_of_max_laminar_time.cpp.o
 
-search_laminar_around_turbulence.i: search_laminar_around_turbulence.cpp.i
-.PHONY : search_laminar_around_turbulence.i
+dist_of_max_laminar_time.i: dist_of_max_laminar_time.cpp.i
+.PHONY : dist_of_max_laminar_time.i
 
 # target to preprocess a source file
-search_laminar_around_turbulence.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/laminar.dir/build.make CMakeFiles/laminar.dir/search_laminar_around_turbulence.cpp.i
-.PHONY : search_laminar_around_turbulence.cpp.i
+dist_of_max_laminar_time.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/laminar.dir/build.make CMakeFiles/laminar.dir/dist_of_max_laminar_time.cpp.i
+.PHONY : dist_of_max_laminar_time.cpp.i
 
-search_laminar_around_turbulence.s: search_laminar_around_turbulence.cpp.s
-.PHONY : search_laminar_around_turbulence.s
+dist_of_max_laminar_time.s: dist_of_max_laminar_time.cpp.s
+.PHONY : dist_of_max_laminar_time.s
 
 # target to generate assembly for a file
-search_laminar_around_turbulence.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/laminar.dir/build.make CMakeFiles/laminar.dir/search_laminar_around_turbulence.cpp.s
-.PHONY : search_laminar_around_turbulence.cpp.s
+dist_of_max_laminar_time.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/laminar.dir/build.make CMakeFiles/laminar.dir/dist_of_max_laminar_time.cpp.s
+.PHONY : dist_of_max_laminar_time.cpp.s
 
 # Help Target
 help:
@@ -257,9 +257,9 @@ help:
 	@echo "... cnpy/cnpy.o"
 	@echo "... cnpy/cnpy.i"
 	@echo "... cnpy/cnpy.s"
-	@echo "... search_laminar_around_turbulence.o"
-	@echo "... search_laminar_around_turbulence.i"
-	@echo "... search_laminar_around_turbulence.s"
+	@echo "... dist_of_max_laminar_time.o"
+	@echo "... dist_of_max_laminar_time.i"
+	@echo "... dist_of_max_laminar_time.s"
 .PHONY : help
 
 

@@ -23,7 +23,7 @@ int main(){
     double nu = 0.00001;
     double beta = 0.5;
     std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
-    double ddt = 0.01;
+    double ddt = 0.001;
     double t_0 = 0;
     double t = 20000;
     double latter = 4;
@@ -33,11 +33,11 @@ int main(){
     // set up for search
     int threads = omp_get_max_threads();
     
-    int param_steps = 100;
+    int param_steps = 20;
     double beta_begin = 4.8e-01;
     double beta_end = 5.2e-01;
-    double nu_begin = -3;
-    double nu_end = -8;
+    double nu_begin = -2;
+    double nu_end = -4;
     auto betas = Eigen::VectorXd::LinSpaced(param_steps, beta_begin, beta_end);
     Eigen::MatrixXd nus = Eigen::VectorXd::LinSpaced(param_steps, nu_begin, nu_end);
     nus = nus.unaryExpr([](double x){return std::pow(10, x);});
