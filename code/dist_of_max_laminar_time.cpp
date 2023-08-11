@@ -20,8 +20,8 @@ int main(){
     auto start = std::chrono::system_clock::now(); // 計測開始時間
     
     // generating laminar sample
-    double nu = 0.00233572;
-    double beta = 0.511579;
+    double nu = 0.0021392;
+    double beta = 0.5;
     std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
     double ddt = 0.001;
     double t_0 = 0;
@@ -30,19 +30,19 @@ int main(){
     Eigen::VectorXcd x_0 = npy2EigenVec("../../initials/beta0.511579_nu0.00233572_14dim_period.npy");
     ShellModel SM(nu, beta, f, ddt, t_0, t, latter, x_0);
     Eigen::MatrixXcd laminar = SM.get_trajectory_();
-    int numRows = laminar.cols() / 10;
+    int numRows = laminar.cols() / 1000;
     Eigen::MatrixXcd laminar_sample(laminar.rows(), numRows);
     for (int i = 0; i < numRows; i++){
-        int colIdx = 10 * i;
+        int colIdx = 1000 * i;
         laminar_sample.col(i) = laminar.col(colIdx);
     }
     double beta_of_laminar = beta;
 
     // set up for search
-    double dump = 1e+3;
-    t=100;
+    double dump = 0;
+    t=1e+5;
     latter = 1;
-    int skip = 1000;
+    int skip = 100000;
     double epsilon = 1E-1;
     int threads = omp_get_max_threads();
     std::cout << threads << "threads" << std::endl;
@@ -50,14 +50,14 @@ int main(){
     LongLaminar LL(nu, beta, f, ddt, t_0, t, latter, x_0, laminar_sample, epsilon, skip, 100, 10, threads);
     
     int repetitions = 1;
-    int param_steps = 2;
-    double beta_begin = 0.49;
-    double beta_end = 0.52;
-    double nu_begin = 0.0018;
-    double nu_end = 0.003;
+    int param_steps = 96;
+    double beta_begin = 0.5;
+    double beta_end = 0.5;
+    double nu_begin = 0.0019;
+    double nu_end = 0.0026;
     auto betas = Eigen::VectorXd::LinSpaced(param_steps, beta_begin, beta_end);
     auto nus = Eigen::VectorXd::LinSpaced(param_steps, nu_begin, nu_end);
-    bool line = false;
+    bool line = true;
     std::ostringstream oss;
     Eigen::MatrixXd result;
 

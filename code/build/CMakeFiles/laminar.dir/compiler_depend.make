@@ -1195,7 +1195,7 @@ CMakeFiles/laminar.dir/ShellModel.cpp.o: ../ShellModel.cpp \
   /usr/include/c++/11/bit \
   /usr/include/c++/11/pstl/glue_numeric_defs.h
 
-CMakeFiles/laminar.dir/dist_of_max_laminar_time.cpp.o: ../dist_of_max_laminar_time.cpp \
+CMakeFiles/laminar.dir/dist_of_average_laminar_time.cpp.o: ../dist_of_average_laminar_time.cpp \
   /usr/include/stdc-predef.h \
   /usr/include/c++/11/iostream \
   /usr/include/x86_64-linux-gnu/c++/11/bits/c++config.h \
@@ -1785,8 +1785,9 @@ CMakeFiles/laminar.dir/dist_of_max_laminar_time.cpp.o: ../dist_of_max_laminar_ti
   /usr/include/eigen3/Eigen/src/Eigenvalues/GeneralizedEigenSolver.h \
   /usr/include/eigen3/Eigen/src/Eigenvalues/RealQZ.h \
   /usr/include/eigen3/Eigen/src/Eigenvalues/MatrixBaseEigenvalues.h \
-  ../Runge_Kutta.hpp \
-  /usr/include/c++/11/math.h \
+  /usr/include/c++/11/chrono \
+  /usr/include/c++/11/ratio \
+  /usr/include/c++/11/bits/parse_numbers.h \
   /usr/include/c++/11/random \
   /usr/include/c++/11/bits/random.h \
   /usr/include/x86_64-linux-gnu/c++/11/bits/opt_random.h \
@@ -1795,9 +1796,8 @@ CMakeFiles/laminar.dir/dist_of_max_laminar_time.cpp.o: ../dist_of_max_laminar_ti
   /usr/include/c++/11/bits/stl_numeric.h \
   /usr/include/c++/11/bit \
   /usr/include/c++/11/pstl/glue_numeric_defs.h \
-  /usr/include/c++/11/chrono \
-  /usr/include/c++/11/ratio \
-  /usr/include/c++/11/bits/parse_numbers.h \
+  ../Runge_Kutta.hpp \
+  /usr/include/c++/11/math.h \
   ../matplotlibcpp.h \
   /usr/include/python3.10/Python.h \
   /usr/include/python3.10/patchlevel.h \
@@ -2526,8 +2526,6 @@ CMakeFiles/laminar.dir/dist_of_max_laminar_time.cpp.o: ../dist_of_max_laminar_ti
 
 /usr/include/c++/11/cstdint:
 
-../dist_of_max_laminar_time.cpp:
-
 /usr/lib/gcc/x86_64-linux-gnu/11/include/cldemoteintrin.h:
 
 /usr/include/c++/11/ext/numeric_traits.h:
@@ -2551,6 +2549,8 @@ CMakeFiles/laminar.dir/dist_of_max_laminar_time.cpp.o: ../dist_of_max_laminar_ti
 /usr/include/c++/11/bits/cpp_type_traits.h:
 
 /usr/lib/gcc/x86_64-linux-gnu/11/include/smmintrin.h:
+
+../dist_of_average_laminar_time.cpp:
 
 /usr/include/eigen3/Eigen/src/Core/arch/SSE/TypeCasting.h:
 

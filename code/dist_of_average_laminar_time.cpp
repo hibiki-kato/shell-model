@@ -21,40 +21,40 @@ int main(){
     auto start = std::chrono::system_clock::now(); // 計測開始時間
     
     // generating laminar sample
-    double nu = 0.00017520319481270297;
-    double beta = 0.416;
+    double nu = 0.00021392;
+    double beta = 0.5;
     std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
-    double ddt = 0.01;
+    double ddt = 0.001;
     double t_0 = 0;
     double t = 10000;
     double latter = 20;
     Eigen::VectorXcd x_0 = npy2EigenVec("../../initials/beta0.416_nu0.00017520319481270297_step0.01_10000.0period_laminar.npy");
     ShellModel SM(nu, beta, f, ddt, t_0, t, latter, x_0);
     Eigen::MatrixXcd laminar = SM.get_trajectory_();
-    int numRows = laminar.cols() / 10;
+    int numRows = laminar.cols() / 100;
     Eigen::MatrixXcd laminar_sample(laminar.rows(), numRows);
     for (int i = 0; i < numRows; i++){
-        int colIdx = 10 * i;
+        int colIdx = 100 * i;
         laminar_sample.col(i) = laminar.col(colIdx);
     }
     // preserve beta of laminar
     auto beta_of_laminar = beta;
 
     // set up for search
-    t=1E+9;
-    double dump = 1e+4;
-    double floor_threshold = 5e+3;
+    t=1E+5;
+    double dump = 1e+3;
+    double floor_threshold = 0;
     latter = 1;
-    int skip = 1000;
+    int skip = 10000;
     double epsilon = 1E-1;
     int threads = omp_get_max_threads();
     
-    int param_steps = 30;
+    int param_steps = 96;
     int repetitions = 1;
-    double beta_begin = 4.16159e-01;
-    double beta_end = 4.161615e-01;
-    double nu_begin = 0.00018;
-    double nu_end = 0.00018;
+    double beta_begin = 0.5;
+    double beta_end = 0.5;
+    double nu_begin = 0.0019;
+    double nu_end = 0.0025;
     auto betas = Eigen::VectorXd::LinSpaced(param_steps, beta_begin, beta_end);
     auto nus = Eigen::VectorXd::LinSpaced(param_steps, nu_begin, nu_end);
     bool line = true;

@@ -1197,8 +1197,8 @@ CMakeFiles/laminar.dir/ShellModel.cpp.o
  /usr/include/c++/11/bit
  /usr/include/c++/11/pstl/glue_numeric_defs.h
 
-CMakeFiles/laminar.dir/dist_of_max_laminar_time.cpp.o
- /workspaces/cpp/code/dist_of_max_laminar_time.cpp
+CMakeFiles/laminar.dir/dist_of_average_laminar_time.cpp.o
+ /workspaces/cpp/code/dist_of_average_laminar_time.cpp
  /usr/include/stdc-predef.h
  /usr/include/c++/11/iostream
  /usr/include/x86_64-linux-gnu/c++/11/bits/c++config.h
@@ -1788,8 +1788,9 @@ CMakeFiles/laminar.dir/dist_of_max_laminar_time.cpp.o
  /usr/include/eigen3/Eigen/src/Eigenvalues/GeneralizedEigenSolver.h
  /usr/include/eigen3/Eigen/src/Eigenvalues/RealQZ.h
  /usr/include/eigen3/Eigen/src/Eigenvalues/MatrixBaseEigenvalues.h
- /workspaces/cpp/code/Runge_Kutta.hpp
- /usr/include/c++/11/math.h
+ /usr/include/c++/11/chrono
+ /usr/include/c++/11/ratio
+ /usr/include/c++/11/bits/parse_numbers.h
  /usr/include/c++/11/random
  /usr/include/c++/11/bits/random.h
  /usr/include/x86_64-linux-gnu/c++/11/bits/opt_random.h
@@ -1798,9 +1799,8 @@ CMakeFiles/laminar.dir/dist_of_max_laminar_time.cpp.o
  /usr/include/c++/11/bits/stl_numeric.h
  /usr/include/c++/11/bit
  /usr/include/c++/11/pstl/glue_numeric_defs.h
- /usr/include/c++/11/chrono
- /usr/include/c++/11/ratio
- /usr/include/c++/11/bits/parse_numbers.h
+ /workspaces/cpp/code/Runge_Kutta.hpp
+ /usr/include/c++/11/math.h
  /workspaces/cpp/code/matplotlibcpp.h
  /usr/include/python3.10/Python.h
  /usr/include/python3.10/patchlevel.h

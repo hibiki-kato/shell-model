@@ -134,7 +134,7 @@
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "dist_of_max_laminar_time.cpp",
+			"path" : "dist_of_average_laminar_time.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{

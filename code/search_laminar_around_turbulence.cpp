@@ -33,38 +33,82 @@ int main(){
     // set up for search
     int threads = omp_get_max_threads();
     
-    int param_steps = 20;
-    double beta_begin = 4.8e-01;
-    double beta_end = 5.2e-01;
-    double nu_begin = -2;
-    double nu_end = -4;
+    int param_steps = 200;
+    double beta_begin = 0.5;
+    double beta_end = 0.5;
+    double nu_begin = 0.0018;
+    double nu_end = 0.0027;
     auto betas = Eigen::VectorXd::LinSpaced(param_steps, beta_begin, beta_end);
     Eigen::MatrixXd nus = Eigen::VectorXd::LinSpaced(param_steps, nu_begin, nu_end);
-    nus = nus.unaryExpr([](double x){return std::pow(10, x);});
+    // nus = nus.unaryExpr([](double x){return std::pow(10, x);});
     std::cout << threads << "threads" << std::endl;
+    bool line = true;
+    if (line != true){
+        #pragma omp parallel num_threads(threads)
+        {
+            int counter = 0;
+            #pragma omp for
+            for(int i = 0; i < param_steps; i++){
+                ShellModel local_SM = SM;
+                if (omp_get_thread_num() ==0){
+                    std::cout << "\r 現在" << counter * threads << "/" << param_steps << std::flush;
+                    counter++;
+                }
+                local_SM.set_beta_(betas(i));
+                int j;
+                for(j = 0; j < param_steps; j++){
+                    local_SM.set_nu_(nus(j));
+                    auto trajectory = local_SM.get_trajectory_();
+                    int numRows = trajectory.cols() / 100;
+                    Eigen::MatrixXcd traj(trajectory.rows(), numRows);
+                    int k;
+                    for (k = 0; k < numRows; i++){
+                        int colIdx = 10 * k;
+                        traj.col(k) = trajectory.col(colIdx);
+                    }
+                    Eigen::VectorXd shell4 = traj.cwiseAbs().row(3);
+                    Eigen::VectorXd shell5 = traj.cwiseAbs().row(4);
 
-    #pragma omp parallel num_threads(threads)
-    {
-        
-        int counter = 0;
-        #pragma omp for
-        for(int i = 0; i < param_steps; i++){
-            ShellModel local_SM = SM;
-            if (omp_get_thread_num() ==0){
-                std::cout << "\r 現在" << counter * threads << "/" << param_steps << std::flush;
-                counter++;
+                    std::vector<double> Shell4(shell4.data(), shell4.data() + shell4.size());
+                    std::vector<double> Shell5(shell5.data(), shell5.data() + shell5.size());
+                    std::ostringstream oss;
+                    oss << "../../turbulent_laminar_search/beta_" << local_SM.get_beta_() << "nu_" << local_SM.get_nu_()  << ".png";  // 文字列を結合する
+                    std::string plotfname = oss.str(); // 文字列を取得する
+                    #pragma omp critical
+                    {
+                        plt::figure_size(1000, 1000);
+                        plt::xlabel("U4");
+                        plt::ylabel("U5");
+                        plt::plot(Shell4, Shell5);
+                        plt::save(plotfname);
+                        plt::close();
+                    }
+                }
             }
-            local_SM.set_beta_(betas(i));
-            int j;
-            for(j = 0; j < param_steps; j++){
-                local_SM.set_nu_(nus(j));
+        }
+    }
+
+    else{
+        #pragma omp parallel num_threads(threads)
+        {
+            int counter = 0;
+            #pragma omp for
+            for(int i = 0; i < param_steps; i++){
+                ShellModel local_SM = SM;
+                if (omp_get_thread_num() ==0){
+                    std::cout << "\r 現在" << counter * threads << "/" << param_steps << std::flush;
+                    counter++;
+                }
+                local_SM.set_beta_(betas(i));
+                local_SM.set_nu_(nus(i));
                 auto trajectory = local_SM.get_trajectory_();
                 int numRows = trajectory.cols() / 100;
                 Eigen::MatrixXcd traj(trajectory.rows(), numRows);
-                for (int i = 0; i < numRows; i++){
-                    int colIdx = 10 * i;
-                    traj.col(i) = trajectory.col(colIdx);
-    }
+                int j;
+                for (j = 0; j < numRows; j++){
+                    int colIdx = 10 * j;
+                    traj.col(j) = trajectory.col(colIdx);
+                }
                 Eigen::VectorXd shell4 = traj.cwiseAbs().row(3);
                 Eigen::VectorXd shell5 = traj.cwiseAbs().row(4);
 
@@ -78,6 +122,8 @@ int main(){
                     plt::figure_size(1000, 1000);
                     plt::xlabel("U4");
                     plt::ylabel("U5");
+                    plt::xlim(0.0,0.35);
+                    plt::ylim(0.0,0.5);
                     plt::plot(Shell4, Shell5);
                     plt::save(plotfname);
                     plt::close();
@@ -85,7 +131,6 @@ int main(){
             }
         }
     }
-
     auto end = std::chrono::system_clock::now();  // 計測終了時間
     int hours = std::chrono::duration_cast<std::chrono::hours>(end-start).count(); //処理に要した時間を変換
     int minutes = std::chrono::duration_cast<std::chrono::minutes>(end-start).count(); //処理に要した時間を変換
