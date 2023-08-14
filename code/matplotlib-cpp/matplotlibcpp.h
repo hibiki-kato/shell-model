@@ -2248,15 +2248,16 @@ inline void tick_params(const std::map<std::string, std::string>& keywords, cons
   Py_DECREF(res);
 }
 
+
 inline void subplot(long nrows, long ncols, long plot_number)
 {
     detail::_interpreter::get();
 
     // construct positional args
     PyObject* args = PyTuple_New(3);
-    PyTuple_SetItem(args, 0, PyFloat_FromDouble(nrows));
-    PyTuple_SetItem(args, 1, PyFloat_FromDouble(ncols));
-    PyTuple_SetItem(args, 2, PyFloat_FromDouble(plot_number));
+    PyTuple_SetItem(args, 0, PyLong_FromDouble(nrows));
+    PyTuple_SetItem(args, 1, PyLong_FromDouble(ncols));
+    PyTuple_SetItem(args, 2, PyLong_FromDouble(plot_number));
 
     PyObject* res = PyObject_CallObject(detail::_interpreter::get().s_python_function_subplot, args);
     if(!res) throw std::runtime_error("Call to subplot() failed.");
@@ -2264,6 +2265,7 @@ inline void subplot(long nrows, long ncols, long plot_number)
     Py_DECREF(args);
     Py_DECREF(res);
 }
+
 
 inline void subplot2grid(long nrows, long ncols, long rowid=0, long colid=0, long rowspan=1, long colspan=1)
 {

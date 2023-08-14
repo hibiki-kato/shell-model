@@ -10,6 +10,7 @@
 #include "cnpy/cnpy.h"
 #include "matplotlibcpp.h"
 namespace plt = matplotlibcpp;
+
 void EigenVec2npy(Eigen::VectorXd Vec, std::string fname);
 Eigen::VectorXcd npy2EigenVec(const char* fname);
 Eigen::VectorXcd perturbation(Eigen::VectorXcd state,  std::vector<int> dim, int s_min = -1, int s_max = -1);
@@ -28,15 +29,21 @@ int main(){
     ShellModel SM(nu, beta, f, ddt, t_0, t, latter, x_0);
     std::vector<int> perturbed_dim = {13};
     int threads = omp_get_max_threads();
-    int repetitions = 2000;
+    int repetitions = 10000;
     std::cout << threads << "threads" << std::endl;
     std::ostringstream oss;
     
-    plt::figure_size(1000, 1000);
+    // plot settings
+    std::map<std::string, std::string> plotSettings;
+    plotSettings["font.family"] = "Times New Roman";
+    plotSettings["font.size"] = "10";
+    plt::rcparams(plotSettings);
+    plt::figure_size(1000, 3000);
     plt::xscale("log");
     int counter = 0; // just for progress bar
-    Eigen::VectorXd average_errors(SM.get_steps_()+1);
-
+    Eigen::VectorXd time;
+    Eigen::MatrixXd errors(x_0.size(), SM.get_steps_() + 1);
+    Eigen::VectorXd total;
     #pragma omp parallel for num_threads(threads)
     for(int i = 0; i < repetitions; i++){
         if(omp_get_thread_num() == 0)
@@ -48,25 +55,51 @@ int main(){
         //1からx_0.size()のベクトルの作成
         std::vector<int> range(x_0.size());
         std::iota(range.begin(), range.end(), 1); // iota: 連番を作成する
-        SM_origin.set_x_0_(perturbation(SM_origin.get_x_0_(), range, -2, 0)); // 初期値をランダムに与える
+        SM_origin.set_x_0_(perturbation(SM_origin.get_x_0_(), range, -1, 0)); // 初期値をランダムに与える
         ShellModel SM_another = SM;
         Eigen::VectorXcd perturbed_x_0 = perturbation(SM_origin.get_x_0_(), perturbed_dim, -4, -4); // create perturbed init value
         SM_another.set_x_0_(perturbed_x_0); // set above
         
         Eigen::MatrixXcd origin = SM_origin.get_trajectory_();
         Eigen::MatrixXcd another = SM_another.get_trajectory_();
-        Eigen::VectorXd errors = (origin.topRows(origin.rows() - 1) - another.topRows(another.rows() - 1)).cwiseAbs2().colwise().sum();
+        
         #pragma omp critical
-        average_errors += errors / repetitions;
+        errors += (origin.topRows(origin.rows() - 1) - another.topRows(another.rows() - 1)).cwiseAbs2() / repetitions;
+        if (i == 0) {
+            time = origin.bottomRows(1).cwiseAbs().row(0);
+        }
     }
-
-    Eigen::VectorXd average_error_growth_rates = (average_errors.tail(average_errors.size() - 2).array().log() - average_errors.head(average_errors.size() - 2).array().log()) / SM.get_ddt_()*2;;
-    Eigen::VectorXd average_errors_resized = average_errors.segment(1, average_errors.size() - 2);
-
-    std::vector<double> errors_(average_errors_resized.data(), average_errors_resized.data() + average_errors_resized.size());
-    std::vector<double> error_growth_rates_(average_error_growth_rates.data(), average_error_growth_rates.data() + average_error_growth_rates.size());
-    plt::scatter(errors_, error_growth_rates_);
-    oss << "../../error_growth/beta_" << beta << "nu_" << nu << "error"<< t / latter <<"period" << repetitions << "repeat.png";  // 文字列を結合する
+    total = errors.colwise().sum();
+    // calculate error ratio of each shell
+    for (int i = 0; i < errors.cols(); i++) {
+        errors.col(i) /= total(i);
+    }
+    
+    std::vector<double> time_vec(time.data(), time.data() + time.size());
+    for(int i=0; i<errors.rows(); i++){
+        Eigen::VectorXd ith_shell = errors.row(i);
+        std::vector<double> error_vec(ith_shell.data(), ith_shell.data() + ith_shell.size());
+        plt::subplot(15, 1, i+1);
+        plt::ylim(0, 1);
+        plt::plot(time_vec, error_vec, "r-");
+        plt::xlabel("time");
+        // plt::xscale("log");
+        std::stringstream ss;
+        ss << i+1;
+        if (i+1 == 1) {
+            ss << "st";
+        } else if (i+1 == 2) {
+            ss << "nd";
+        } else if (i+1 == 3) {
+            ss << "rd";
+        } else {
+            ss << "th";
+        }
+        ss << " Shell";
+        plt::ylabel(ss.str());
+        error_vec.clear();
+    }
+    oss << "../../error_dominant_shell/beta_" << beta << "nu_" << nu << "error"<< t / latter <<"period" << repetitions << "repeat_ratio.png";  // 文字列を結合する
     std::string plotfname = oss.str(); // 文字列を取得する
     std::cout << "Saving result to " << plotfname << std::endl;
     plt::save(plotfname);

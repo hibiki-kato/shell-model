@@ -11,8 +11,8 @@ set(CMAKE_DEPENDS_DEPENDENCY_FILES
   "/workspaces/cpp/code/cnpy/cnpy.cpp" "CMakeFiles/cnpy.dir/cnpy/cnpy.cpp.o" "gcc" "CMakeFiles/cnpy.dir/cnpy/cnpy.cpp.o.d"
   )
 
-# Targets to which this target links.
-set(CMAKE_TARGET_LINKED_INFO_FILES
+# Targets to which this target links which contain Fortran sources.
+set(CMAKE_Fortran_TARGET_LINKED_INFO_FILES
   )
 
 # Fortran module output directory.

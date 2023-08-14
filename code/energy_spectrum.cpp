@@ -11,14 +11,14 @@
 namespace plt = matplotlibcpp;
 
 int main(){
-    double nu = 0.00017256;
-    double beta = 0.418;
-    std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
+    double nu = 0.00004;
+    double beta = 0.5;
+    std::complex<double> f = std::complex<double>(1.0,0) * 5.0 * 0.001;
     double ddt = 0.01;
     double t_0 = 0;
     double t = 10000;
     double latter = 10;
-    Eigen::VectorXcd x_0(14);
+    Eigen::VectorXcd x_0(15);
     x_0(0) = std::complex<double>(0.4350E+00 , 0.5008E+00);
     x_0(1) = std::complex<double>(0.1259E+00 , 0.2437E+00);
     x_0(2) = std::complex<double>(-0.8312E-01 , -0.4802E-01);
@@ -33,6 +33,8 @@ int main(){
     x_0(11) = std::complex<double>(-0.5238E-07 , 0.1467E-06);
     x_0(12) = std::complex<double>(0.1E-07 ,0.1E-06);
     x_0(13) = std::complex<double>(0.1E-07 ,0.1E-06);
+    x_0(14) = std::complex<double>(0.1E-07 ,0.1E-06);
+
 
     std::chrono::system_clock::time_point  start, end; // 型は auto で可
     start = std::chrono::system_clock::now(); // 計測開始時間
@@ -44,19 +46,26 @@ int main(){
     double elapsed = std::chrono::duration_cast<std::chrono::seconds>(end-start).count(); //処理に要した時間をミリ秒に変換
     std::cout << elapsed << std::endl;
 
+    // plot settings
+    std::map<std::string, std::string> plotSettings;
+    plotSettings["font.family"] = "Times New Roman";
+    plotSettings["font.size"] = "20";
+    plt::rcparams(plotSettings);
     plt::figure_size(1000, 1000);
     Eigen::VectorXd k_n_ = solver.get_k_n_();
     std::vector<double> k_n(x_0.size());
     for (int i = 0; i < x_0.size(); i++) {
-        k_n[i] = log10(k_n_(i));
+        k_n[i] = k_n_(i);
     }
 
     std::vector<double> sum(sum_.size());
     for (int i = 0; i < sum_.size(); i++) {
-        sum[i] = log10(sum_(i));
+        sum[i] = sum_(i);
     }
     plt::scatter(k_n, sum, 10);
-    // plt::xscale("log");
-    // plt::yscale("log");
-    plt::save("energy.png");
+    plt::xlabel("$k_n$");
+    plt::ylabel("$E(k_n)$");
+    plt::xscale("log");
+    plt::yscale("log");
+    plt::save("../../energy.png");
 }

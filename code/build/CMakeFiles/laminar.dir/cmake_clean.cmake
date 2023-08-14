@@ -3,8 +3,8 @@ file(REMOVE_RECURSE
   "CMakeFiles/laminar.dir/LongLaminar.cpp.o.d"
   "CMakeFiles/laminar.dir/ShellModel.cpp.o"
   "CMakeFiles/laminar.dir/ShellModel.cpp.o.d"
-  "CMakeFiles/laminar.dir/dist_of_average_laminar_time.cpp.o"
-  "CMakeFiles/laminar.dir/dist_of_average_laminar_time.cpp.o.d"
+  "CMakeFiles/laminar.dir/error_dominant_shell.cpp.o"
+  "CMakeFiles/laminar.dir/error_dominant_shell.cpp.o.d"
   "laminar"
   "laminar.pdb"
 )

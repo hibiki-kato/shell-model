@@ -1,32 +1,28 @@
 FROM mcr.microsoft.com/devcontainers/cpp:0-ubuntu-22.04
-ARG REINSTALL_CMAKE_VERSION_FROM_SOURCE="3.22.2"
+ARG REINSTALL_CMAKE_VERSION_FROM_SOURCE="3.27.2"
 
 # Optionally install the cmake for vcpkg
 COPY ./reinstall-cmake.sh /tmp/
+
+RUN echo "ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true" | debconf-set-selections
 
 RUN if [ "${REINSTALL_CMAKE_VERSION_FROM_SOURCE}" != "none" ]; then \
         chmod +x /tmp/reinstall-cmake.sh && /tmp/reinstall-cmake.sh ${REINSTALL_CMAKE_VERSION_FROM_SOURCE}; \
     fi \
     && rm -f /tmp/reinstall-cmake.sh \
     && apt update \
+    && apt-get update \
     && export DEBIAN_FRONTEND=noninteractive \
     && apt install -y \
+    build-essential \
     libeigen3-dev \
     libpython3-all-dev \
     python3-numpy \
-    python3-matplotlib
-    # libboost-all-dev \
-    # build-essential \
-    # gnuplot \
-    # libpython2.7-dev \
+    python3-matplotlib \
+    msttcorefonts 
 
-    # language-pack-ja-base \
-    # language-pack-ja \
-    # locales \
-    # && locale-gen ja-JP.UTF-8
-
-# #言語を日本語に設定
-# ENV LANG ja_JP.UTF-8∏
+    # refresh matplotlib cache
+    # && rm -r ~/.cache/matplotlib
 
 
 # [Optional] Uncomment this section to install additional vcpkg ports.
