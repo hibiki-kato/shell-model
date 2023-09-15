@@ -12,6 +12,7 @@
 namespace plt = matplotlibcpp;
 void EigenMt2npy(Eigen::MatrixXcd Mat, std::string fname);
 Eigen::VectorXcd npy2EigenVec(const char* fname);
+Eigen::MatrixXcd npy2EigenMat(const char* fname);
 
 int main(){
     auto start = std::chrono::system_clock::now(); // 計測開始時間
@@ -24,13 +25,8 @@ int main(){
     double latter = 2;
     Eigen::VectorXcd x_0 = npy2EigenVec("../../initials/beta0.41616nu0.00018_1.00923e+06period.npy");
     ShellModel solver(nu, beta, f, ddt, t_0, t, latter, x_0);
-    Eigen::MatrixXcd trajectory = solver.get_trajectory_(); 
-    int numCols = trajectory.cols() / 500;
-    Eigen::MatrixXcd laminar_sample(trajectory.rows(), numCols);
-    for (int i = 0; i < numCols; i++){
-        int colIdx = 500 * i;
-        laminar_sample.col(i) = trajectory.col(colIdx);
-    }
+    // Eigen::MatrixXcd trajectory = solver.get_trajectory_(); 
+    Eigen::MatrixXcd trajectory = npy2EigenMat("../../generated_lam/generated_laminar_beta_0.419nu_0.00018_200000period1500check500progresseps0.1.npy");
     // plot settings
     std::map<std::string, std::string> plotSettings;
     plotSettings["font.family"] = "Times New Roman";
@@ -39,14 +35,35 @@ int main(){
     // Set the size of output image = 1200x780 pixels
     plt::figure_size(1200, 1200);
     // Add graph title
-    std::vector<double> x(laminar_sample.cols()),y(laminar_sample.cols());
-    
+    std::vector<double> x(trajectory.cols()),y(trajectory.cols());
+
+    for(int i=0; i < trajectory.rows()-1; i++){
+        for(int j=0; j < trajectory.cols(); j+=100){
+            x[j]=trajectory(i, j).real();
+            y[j]=trajectory(i, j).imag();
+        }
+        plt::subplot(4,4, i+1);
+        plt::plot(x,y);
+        plt::xlabel("Real($U_{" + std::to_string(i+1) + "}$)");
+        plt::ylabel("Imag($U_{" + std::to_string(i+1) + "}$)");
+    }
+    std::map<std::string, double> keywords;
+    keywords.insert(std::make_pair("hspace", 0.5)); // also right, top, bottom
+    keywords.insert(std::make_pair("wspace", 0.5)); // also hspace
+    plt::subplots_adjust(keywords);
+
+    std::ostringstream oss;
+    oss << "../../traj_images/real-imag_beta_" << beta << "nu_" << nu <<"_"<< t-t_0 << "period.png";  // 文字列を結合する
+    std::string plotfname = oss.str(); // 文字列を取得する
+    std::cout << "Saving result to " << plotfname << std::endl;
+    plt::save(plotfname);
+
     oss.str("");
      // 文字列を取得する
     oss << "../../beta" << beta << "_nu" << nu <<"_"<< t-t_0 << "period.npy";  // 文字列を結合する
     std::string npyfname = oss.str();
     // std::cout << "Saving result to " << npyfname << std::endl;
-    // EigenMt2npy(laminar_sample, npyfname);
+    // EigenMt2npy(trajectory, npyfname);
 
     auto end = std::chrono::system_clock::now();  // 計測終了時間
     int hours = std::chrono::duration_cast<std::chrono::hours>(end-start).count(); //処理に要した時間を変換
@@ -75,29 +92,12 @@ void EigenMt2npy(Eigen::MatrixXcd Mat, std::string fname){
     cnpy::npy_save(fname, MOut.data(), {(size_t)transposed.cols(), (size_t)transposed.rows()}, "w");
 }
 
-int isLaminar(Eigen::VectorXcd x){
-    if (x.rows() != 14){
-        throw std::runtime_error("x is not 14 dimentional");
+Eigen::MatrixXcd npy2EigenMat(const char* fname){
+    std::string fname_str(fname);
+    cnpy::NpyArray arr = cnpy::npy_load(fname_str);
+    if (arr.word_size != sizeof(std::complex<double>)) {
+        throw std::runtime_error("Unsupported data type in the npy file.");
     }
-    if((0.2 > x(0).real() | x(0).real() > 0.6)
-        | (0.4 > x(0).imag() | x(0).imag() > 0.75)
-
-        | (x(1).cwiseAbs() > 0.5)
-    
-        | (x(2).cwiseAbs() > 0.6)
-    
-        | (-0.1 > x(3).real() | x(3).real() > 0.3)
-        | (0 > x(3).imag() | x(3).imag() > 0.3)
-    
-        | (x(4).cwiseAbs() > 0.3)
-    
-        | (x(5).cwiseAbs() > 0.25)
-    
-        | (-0.15 > x(6).real() | x(6).real() > 0.25)
-        | (0 > x(6).imag() | x(6).imag() > 0.25)){
-    
-        return false;
-    }
-    x(0)
+    Eigen::Map<const Eigen::MatrixXcd> MatT(arr.data<std::complex<double>>(), arr.shape[1], arr.shape[0]);
+    return MatT.transpose();
 }
-

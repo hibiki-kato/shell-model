@@ -29,7 +29,7 @@ int main(){
     ShellModel SM(nu, beta, f, ddt, t_0, t, latter, x_0);
     std::vector<int> perturbed_dim = {13};
     int threads = omp_get_max_threads();
-    int repetitions = 10000;
+    int repetitions = 1000;
     std::cout << threads << "threads" << std::endl;
     std::ostringstream oss;
     
@@ -57,7 +57,7 @@ int main(){
         std::iota(range.begin(), range.end(), 1); // iota: 連番を作成する
         SM_origin.set_x_0_(perturbation(SM_origin.get_x_0_(), range, -1, 0)); // 初期値をランダムに与える
         ShellModel SM_another = SM;
-        Eigen::VectorXcd perturbed_x_0 = perturbation(SM_origin.get_x_0_(), perturbed_dim, -4, -4); // create perturbed init value
+        Eigen::VectorXcd perturbed_x_0 = perturbation(SM_origin.get_x_0_(), perturbed_dim, -3, -3); // create perturbed init value
         SM_another.set_x_0_(perturbed_x_0); // set above
         
         Eigen::MatrixXcd origin = SM_origin.get_trajectory_();
@@ -71,19 +71,19 @@ int main(){
     }
     total = errors.colwise().sum();
     // calculate error ratio of each shell
-    for (int i = 0; i < errors.cols(); i++) {
-        errors.col(i) /= total(i);
-    }
+    // for (int i = 0; i < errors.cols(); i++) {
+    //     errors.col(i) /= total(i);
+    // }
     
     std::vector<double> time_vec(time.data(), time.data() + time.size());
-    for(int i=0; i<errors.rows(); i++){
+    for(int i=0; i<errors.rows(); i+=4){
         Eigen::VectorXd ith_shell = errors.row(i);
         std::vector<double> error_vec(ith_shell.data(), ith_shell.data() + ith_shell.size());
         plt::subplot(15, 1, i+1);
-        plt::ylim(0, 1);
-        plt::plot(time_vec, error_vec, "r-");
+        // plt::ylim(0, 1);
+        plt::scatter(time_vec, error_vec);
         plt::xlabel("time");
-        // plt::xscale("log");
+        plt::yscale("log");
         std::stringstream ss;
         ss << i+1;
         if (i+1 == 1) {
@@ -99,7 +99,8 @@ int main(){
         plt::ylabel(ss.str());
         error_vec.clear();
     }
-    oss << "../../error_dominant_shell/beta_" << beta << "nu_" << nu << "error"<< t / latter <<"period" << repetitions << "repeat_ratio.png";  // 文字列を結合する
+
+    oss << "../../error_dominant_shell/beta_" << beta << "nu_" << nu << "error"<< t / latter <<"period" << repetitions << "repeat_ratio_log.png";  // 文字列を結合する
     std::string plotfname = oss.str(); // 文字列を取得する
     std::cout << "Saving result to " << plotfname << std::endl;
     plt::save(plotfname);

@@ -30,19 +30,20 @@ VectorXd rungeKuttaJacobian(const VectorXd& state, const MatrixXd& jacobian, dou
 int main() {
     auto start = std::chrono::system_clock::now(); // 計測開始時間
     double nu = 0.00018;
-    double beta = 0.419;
+    double beta = 0.42;
     std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
     double dt = 0.01;
     double t_0 = 0;
-    double t = 2e+5;
+    double t = 1e+2;
     double latter = 1;
-    Eigen::VectorXcd x_0 = npy2EigenVec("../../initials/beta0.41616nu0.00018_1.00923e+06period.npy");
+    int threads = omp_get_max_threads();
+    Eigen::VectorXcd x_0 = Eigen::Zeros(15);
+    x_0(12) += std::complex<double>(1E-5, 1E-5);
     ShellModel SM(nu, beta, f, dt, t_0, t, latter, x_0);
     // データの読み込みをここに記述
-    // Eigen::MatrixXcd rawData = npy2EigenMat("../../generated_lam/generated_laminar_beta_0.419nu_0.00018_200000period1500check500progresseps0.1.npy");
-    
-    std::cout << "calculating trajectory" << std::endl;
+    //Eigen::MatrixXcd rawData = npy2EigenMat("../generated_laminar_beta_0.419nu_0.00018_200000period1500check500progresseps0.1.npy");
     Eigen::MatrixXcd rawData = SM.get_trajectory_();
+    std::cout << "trajectory has been calculated" << std::endl;
     // パラメータの設定（例）
     int dim = rawData.rows() - 1;
     // データの整形(実関数化)
@@ -54,67 +55,79 @@ int main() {
 
     int numTimeSteps = Data.cols();
     int numVariables = Data.rows();
-    //任意の直行行列を用意する
-    MatrixXd Base = Eigen::MatrixXd::Random(numVariables, numVariables);
-    HouseholderQR<MatrixXd> qr_1(Base);
-    Base = qr_1.householderQ();
-    // 総和の初期化
-    VectorXd sum = Eigen::VectorXd::Zero(numVariables);
-    // 次のステップ(QR分解されるもの)
-    MatrixXd next(numVariables, numVariables);
+    //後で使う用の確保
+    MatrixXcd traj(dim+1, numTimeSteps);
+    traj.col(0) = rawData.col(0);
 
+    Eigen::MatrixXd average_jacobian(dim*2, dim*2);
+    // 平均ヤコビ行列の計算
+    #pragma omp parallel for num_threads(threads)
     for (int i = 0; i < numTimeSteps; ++i) {
-        std::cout << "\r processing..." << i << "/" << numTimeSteps << std::flush;
         VectorXd state = Data.col(i);
         // ヤコビアンの計算
-        Eigen::MatrixXd jacobian = computeJacobian(state, SM.get_k_n_(), SM.get_beta_(), SM.get_nu_());
-        // ヤコビアンとBase(直行行列)の積を計算する
-        for (int j = 0; j < numVariables; ++j) {
-            next.col(j) = rungeKuttaJacobian(Base.col(j), jacobian, dt);
-        }
-
-        // QR分解を行う
-        HouseholderQR<MatrixXd> qr(next);
-        // 直交行列QでBaseを更新
-        Base = qr.householderQ();
-        // Rの対角成分を総和に加える
-        Eigen::MatrixXd R = qr.matrixQR().triangularView<Eigen::Upper>();
-        // Rの対角成分の絶対値のlogをsumにたす
-        Eigen::VectorXd diag = R.diagonal().cwiseAbs().array().log();
-        sum += diag;
+        auto jacobian = computeJacobian(state, SM.get_k_n_(), SM.get_beta_(), SM.get_nu_());
+        #pragma omp critical
+        average_jacobian += jacobian / numTimeSteps;
     }
+    
+    std::cout << "jacobian matrix was " << std::endl << average_jacobian << std::endl;
 
-    VectorXd lyapunovExponents = sum.array() / numTimeSteps / dt;
-
+    
+    // ヤコビアンを作用させる用の実ベクトル
+    VectorXd state = Data.col(0);
+    double now = 0;
+    // ヤコビ行列による時間発展
+    for (int i = 1; i < numTimeSteps; i++){
+        std::cout << "\r processing..." << i << "/" << numTimeSteps << std::flush;
+        now += dt;
+        state = rungeKuttaJacobian(state, average_jacobian, dt);
+        for (int j = 0; j < dim; j++){
+            std::complex<double> tmp(state(2*j), state(2*j+1));
+            traj(j, i) = tmp;
+        }
+        traj(dim, i) = now;
+    }
     // 結果の表示
-    std::cout << lyapunovExponents.rows() << std::endl;
-    std::cout << "Lyapunov Exponents:" << std::endl;
-    std::cout << lyapunovExponents << std::endl;
-
     // plot settings
     std::map<std::string, std::string> plotSettings;
     plotSettings["font.family"] = "Times New Roman";
-    plotSettings["font.size"] = "18";
+    plotSettings["font.size"] = "10";
     plt::rcparams(plotSettings);
-    plt::figure_size(1200, 780);
-    // 2からlyapunovExponents.rows()まで等差２の数列
-
-    std::vector<int> xticks(lyapunovExponents.rows());
-    std::iota(begin(xticks), end(xticks), 1);
-    plt::xticks(xticks);
+    // Set the size of output image = 1200x780 pixels
+    plt::figure_size(400, 2000);
     // Add graph title
-    std::vector<double> x(lyapunovExponents.data(), lyapunovExponents.data() + lyapunovExponents.size());
+    std::vector<double> x(traj.cols()),y(traj.cols());
+    for(int i=0;i<traj.cols();i+=100){
+        x[i]=traj.cwiseAbs()(traj.rows()-1, i);
+    }
+    for(int i=0; i < dim; i++){
+        for(int j=0; j < traj.cols(); j+=100){
+            y[j]=traj.cwiseAbs()(i, j);
+        }
+        plt::subplot(dim,1, i+1);
+        plt::scatter(x,y);
+        plt::xlabel("Time");
+        plt::ylabel("$U_{" + std::to_string(i+1) + "}$");
+    }
+    std::map<std::string, double> keywords;
+    keywords.insert(std::make_pair("hspace", 0.5)); // also right, top, bottom
+    keywords.insert(std::make_pair("wspace", 0.5)); // also hspace
+    plt::subplots_adjust(keywords);
 
-    plt::plot(xticks, x, "*-");
-    plt::ylim(-1, 1);
-    plt::axhline(0, 0, lyapunovExponents.rows(), {{"color", "black"}, {"linestyle", "--"}});
-    plt::xlabel("wavenumber");
-    plt::ylabel("Lyapunov Exponents");
     std::ostringstream oss;
-    oss << "../../lyapunov_exponents/beta_" << beta << "nu_" << nu <<"_"<< static_cast<int>(rawData.cwiseAbs().bottomRightCorner(1, 1)(0, 0)) << "period.png";  // 文字列を結合する
+    oss << "../../traj_images/jacobian_beta_" << beta << "nu_" << nu <<"_"<< t-t_0 << "period.png";  // 文字列を結合する
     std::string plotfname = oss.str(); // 文字列を取得する
     std::cout << "Saving result to " << plotfname << std::endl;
     plt::save(plotfname);
+
+    oss.str("");
+     // 文字列を取得する
+    oss << "../../beta" << beta << "_nu" << nu <<"_"<< t-t_0 << "period.npy";  // 文字列を結合する
+    std::string npyfname = oss.str();
+    // std::cout << "Saving result to " << npyfname << std::endl;
+    // EigenMt2npy(traj, npyfname);
+
+    
 
     auto end = std::chrono::system_clock::now();  // 計測終了時間
     int hours = std::chrono::duration_cast<std::chrono::hours>(end-start).count(); //処理に要した時間を変換
@@ -198,52 +211,6 @@ VectorXd computeDerivativeJacobian(const VectorXd& state, const MatrixXd& jacobi
     derivative = jacobian * state;
     return derivative;
 }
-
-// // ルンゲクッタ法を用いた時間発展
-// VectorXd rungeKuttaStep(const VectorXd& state, double dt, Eigen::VectorXd c_n_1, Eigen::VectorXd c_n_2, Eigen::VectorXd c_n_3, Eigen::VectorXd k_n, double nu, std::complex<double> f){
-//     VectorXd k1, k2, k3, k4;
-//     VectorXd nextState;
-
-//     k1 = dt * goy_shell_model(state, c_n_1, c_n_2, c_n_3, k_n, nu, f);
-//     k2 = dt * goy_shell_model(state + 0.5 * k1, c_n_1, c_n_2, c_n_3, k_n, nu, f);
-//     k3 = dt * goy_shell_model(state + 0.5 * k2, c_n_1, c_n_2, c_n_3, k_n, nu, f);
-//     k4 = dt * goy_shell_model(state + k3, c_n_1, c_n_2, c_n_3, k_n, nu, f);
-
-//     nextState = state + (k1 + 2.0 * k2 + 2.0 * k3 + k4) / 6.0;
-
-//     return nextState;
-// }
-
-// Eigen::VectorXcd goy_shell_model(Eigen::VectorXd state, Eigen::VectorXd c_n_1, Eigen::VectorXd c_n_2, Eigen::VectorXd c_n_3, Eigen::VectorXd k_n, double nu, std::complex<double> f){
-//     //convert real to complex
-//     int dim = state.rows()/2;
-//     Eigen::VectorXcd u = Eigen::VectorXcd::Zero(dim+4);
-//     Eigen::VectorXd state_real(dim);
-//     Eigen::VectorXd state_imag(dim);
-//     for(int i = 0; i < dim; i++){
-//         state_real(i) = state(2*i);
-//         state_imag(i) = state(2*i+1);
-//     }
-//     u.middleRows(2, dim).real() = state_real;
-//     u.middleRows(2, dim).imag() = state_imag;
-
-//     // compute complex
-//     Eigen::VectorXcd ddt_u_complex = (c_n_1.array() * u.middleRows(3,dim).conjugate().array() * u.bottomRows(dim).conjugate().array()
-//                             + c_n_2.array() * u.middleRows(1,dim).conjugate().array() * u.middleRows(3,dim).conjugate().array()
-//                             + c_n_3.array() * u.middleRows(1,dim).conjugate().array() * u.topRows(dim).conjugate().array()) * std::complex<double>(0, 1.0)
-//                             - nu * u.middleRows(2,dim).array() * k_n.array().square();
-//     ddt_u_complex(0) += f;
-
-//     // convert complex to real
-//     Eigen::VectorXd ddt_u_real(dim*2);
-//     for(int i = 0; i < dim; i++){
-//         ddt_u_real(2*dim) = ddt_u_complex(i).real();
-//         ddt_u_real(2*i+1) = ddt_u_complex(i).imag();
-//     }
-
-
-//     return ddt_u_real;
-// }
 
 Eigen::MatrixXcd npy2EigenMat(const char* fname){
     std::string fname_str(fname);

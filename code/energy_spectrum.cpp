@@ -8,7 +8,10 @@
 #include <random>
 #include <iomanip>
 #include "matplotlibcpp.h"
+#include "cnpy/cnpy.h"
+
 namespace plt = matplotlibcpp;
+Eigen::VectorXcd npy2EigenVec(const char* fname);
 
 int main(){
     double nu = 0.00004;
@@ -18,22 +21,7 @@ int main(){
     double t_0 = 0;
     double t = 10000;
     double latter = 10;
-    Eigen::VectorXcd x_0(15);
-    x_0(0) = std::complex<double>(0.4350E+00 , 0.5008E+00);
-    x_0(1) = std::complex<double>(0.1259E+00 , 0.2437E+00);
-    x_0(2) = std::complex<double>(-0.8312E-01 , -0.4802E-01);
-    x_0(3) = std::complex<double>(0.5164E-01 , -0.1599E+00);
-    x_0(4) = std::complex<double>(-0.1899E+00 , -0.3602E-01);
-    x_0(5) = std::complex<double>(0.4093E-03 , 0.8506E-01);
-    x_0(6) = std::complex<double>(0.9539E-01 , 0.3215E-01);
-    x_0(7) = std::complex<double>(-0.5834E-01 , 0.4433E-01);
-    x_0(8) = std::complex<double>(-0.8790E-02 , 0.2502E-01);
-    x_0(9) = std::complex<double>(0.3385E-02 , 0.1148E-02);
-    x_0(10) = std::complex<double>(-0.7072E-04 , 0.5598E-04);
-    x_0(11) = std::complex<double>(-0.5238E-07 , 0.1467E-06);
-    x_0(12) = std::complex<double>(0.1E-07 ,0.1E-06);
-    x_0(13) = std::complex<double>(0.1E-07 ,0.1E-06);
-    x_0(14) = std::complex<double>(0.1E-07 ,0.1E-06);
+    Eigen::VectorXcd x_0 = npy2EigenVec("../../initials/beta0.5_nu1e-05_15dim_period.npy");
 
 
     std::chrono::system_clock::time_point  start, end; // 型は auto で可
@@ -68,4 +56,15 @@ int main(){
     plt::xscale("log");
     plt::yscale("log");
     plt::save("../../energy.png");
+}
+
+Eigen::VectorXcd npy2EigenVec(const char* fname){
+    std::string fname_str(fname);
+    cnpy::NpyArray arr = cnpy::npy_load(fname_str);
+    if (arr.word_size != sizeof(std::complex<double>)) {
+        throw std::runtime_error("Unsupported data type in the npy file.");
+    }
+    std::complex<double>* data = arr.data<std::complex<double>>();
+    Eigen::Map<Eigen::VectorXcd> vec(data, arr.shape[0]);
+    return vec;
 }

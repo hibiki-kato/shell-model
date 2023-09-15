@@ -31,8 +31,8 @@ int main(){
 
     double epsilon=8E-2;
     int skip = 1000;
-    double check_sec = 2000;
-    double progress_sec = 400;
+    double check_sec = 1300;
+    double progress_sec = 200;
     int threads = omp_get_max_threads();
     std::cout << threads << "threads" << std::endl;
 
@@ -45,14 +45,15 @@ int main(){
         laminar_sample.col(i) = laminar.col(colIdx);
     }
 
-    beta = 0.418;
-    nu = 0.00017256;
+    beta = 0.421;
+    nu = 0.00018;
     latter = 1;
     t = 200000;
-    t_0 = 0;
-    // Eigen::MatrixXcd loaded = npy2EigenMat("../../generated_lam/generated_laminar_beta_0.42nu_0.00018_126400period1400check400progresseps0.1.npy");
-    // x_0 = loaded.block(0, 125000*100, 14, 1);
-    x_0 = npy2EigenVec("../../initials/beta0.418_nu0.00017256_5000period.npy");
+    t_0 = 44600;
+    Eigen::MatrixXcd loaded = npy2EigenMat("../../generated_lam/generated_laminar_beta_0.421nu_0.00018_44600period1300check200progresseps0.1.npy");
+    std::cout << loaded.cols() << std::endl;
+    x_0 = loaded.block(0, 44600*100 - 1, 14, 1);
+    // x_0 = npy2EigenVec("../initials/beta0.423_nu0.00018_2000period.npy");
 
     LongLaminar LL(nu, beta, f, ddt, t_0, t, latter, x_0, laminar_sample, epsilon, skip, check_sec, progress_sec, threads);
     Eigen::MatrixXcd calced_laminar = LL.stagger_and_step_();

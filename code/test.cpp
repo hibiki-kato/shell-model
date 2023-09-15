@@ -9,10 +9,11 @@
 #include "cnpy/cnpy.h"
 namespace plt = matplotlibcpp;
 Eigen::MatrixXcd npy2EigenMat(const char* fname);
+Eigen::MatrixXd computeJacobian(const Eigen::VectorXd& state, Eigen::VectorXd k_n, double beta, double nu);
 
 int main(){
-    double nu = 0.0001732;
-    double beta = 0.417;
+    double nu = 0.00001;
+    double beta = 0.5;
     std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
     double ddt = 0.01;
     double t_0 = 0;
@@ -34,24 +35,17 @@ int main(){
     x_0(12) = std::complex<double>(0.1E-07 ,0.1E-06);
     x_0(13) = std::complex<double>(0.1E-07 ,0.1E-06);
 
-    Eigen::MatrixXcd trajectory = npy2EigenMat("../beta0.46711_nu0.000118716_100000period.npy"); 
-    // Set the size of output image = 1200x780 pixels
-    plt::figure_size(1200, 780);
-    // Add graph title
-    plt::title("Sample figure");
-    std::vector<double> x(trajectory.cols()),y(trajectory.cols());
-
-    for(int i=0;i<trajectory.cols();i++){
-        x[i]=trajectory.cwiseAbs()(14, i);
-        y[i]=trajectory.cwiseAbs()(0, i);
+    Eigen::VectorXd k_n(14);
+    for (int i = 0; i < 14; ++i) {
+        k_n(i) = pow(2, i-3);
+        x_0(i) = std::complex<double>(1, 1);
     }
-
-    plt::plot(x,y);
-    std::ostringstream oss;
-    oss << "../beta_" << beta << "nu_" << nu <<"_"<< t-t_0 << "period.png";  // 文字列を結合する
-    std::string plotfname = oss.str(); // 文字列を取得する
-    std::cout << "Saving result to " << plotfname << std::endl;
-    plt::save(plotfname);
+    Eigen::VectorXd state(28);
+    for (int i = 0; i < 14; ++i) {
+        state(2*i) = x_0(i).real();
+        state(2*i+1) = x_0(i).imag();
+    }
+    computeJacobian(state, k_n, beta, nu);
 }
 
 Eigen::MatrixXcd npy2EigenMat(const char* fname){
@@ -62,4 +56,64 @@ Eigen::MatrixXcd npy2EigenMat(const char* fname){
     }
     Eigen::Map<const Eigen::MatrixXcd> MatT(arr.data<std::complex<double>>(), arr.shape[1], arr.shape[0]);
     return MatT.transpose();
+}
+
+Eigen::MatrixXd computeJacobian(const Eigen::VectorXd& state, Eigen::VectorXd k_n, double beta, double nu){
+    int dim = state.rows();
+    Eigen::MatrixXd jacobian = Eigen::MatrixXd::Zero(dim, dim);
+    
+    // A
+    for (int i = 0; i < dim/2 - 2; ++i) {
+        jacobian(2*i, 2*i + 2) += k_n(i) * state((i+2)*2 + 1);
+        jacobian(2*i, 2*i+1 + 2) += k_n(i) * state((i+2)*2);
+        jacobian(2*i+1, 2*i + 2) += k_n(i) * state((i+2)*2);
+        jacobian(2*i+1, 2*i+1 + 2) += -k_n(i) * state((i+2)*2 + 1);
+
+        jacobian(2*i, 2*i + 4) +=  k_n(i) * state((i+1)*2 + 1);
+        jacobian(2*i, 2*i+1 + 4) += k_n(i) * state((i+1)*2);
+        jacobian(2*i+1, 2*i + 4) +=  k_n(i) * state((i+1)*2);
+        jacobian(2*i+1, 2*i+1 + 4) += -k_n(i) * state((i+1)*2 + 1);
+    }
+    // std::cout << jacobian << std::endl;
+    jacobian = Eigen::MatrixXd::Zero(dim, dim);
+    // B
+    for (int i = 1; i < dim/2 - 1; ++i) {
+        jacobian(2*i, 2*i - 2) +=  -beta * k_n(i-1) * state((i+1)*2 + 1);
+        jacobian(2*i, 2*i+1 - 2) += -beta * k_n(i-1) * state((i+1)*2);
+        jacobian(2*i+1, 2*i - 2) += -beta * k_n(i-1) * state((i+1)*2);
+        jacobian(2*i+1, 2*i+1 - 2) += beta * k_n(i-1) * state((i+1)*2 + 1);
+
+        jacobian(2*i, 2*i + 2) +=  -beta * k_n(i-1) * state((i-1)*2 + 1);
+        jacobian(2*i, 2*i+1 + 2) += -beta * k_n(i-1) * state((i-1)*2);
+        jacobian(2*i+1, 2*i + 2) +=  -beta * k_n(i-1) * state((i-1)*2);
+        jacobian(2*i+1, 2*i+1 + 2) += beta * k_n(i-1) * state((i-1)*2 + 1);
+    }
+    // std::cout << jacobian << std::endl;
+    jacobian = Eigen::MatrixXd::Zero(dim, dim);
+
+    // Gamma
+    for (int i = 2; i < dim/2; ++i) {
+        jacobian(2*i, 2*i - 4) +=  (beta-1) * k_n(i-2) * state((i-1)*2 + 1);
+        jacobian(2*i, 2*i+1 - 4) += (beta-1) * k_n(i-2) * state((i-1)*2);
+        jacobian(2*i+1, 2*i - 4) += (beta-1) * k_n(i-2) * state((i-1)*2);
+        jacobian(2*i+1, 2*i+1 - 4) += (1-beta) * k_n(i-2) * state((i-1)*2 + 1);
+
+        jacobian(2*i, 2*i - 2) +=  (beta-1) * k_n(i-2) * state((i-2)*2 + 1);
+        jacobian(2*i, 2*i+1 - 2) += (beta-1) * k_n(i-2) * state((i-2)*2);
+        jacobian(2*i+1, 2*i - 2) +=  (beta-1) * k_n(i-2) * state((i-2)*2);
+        jacobian(2*i+1, 2*i+1 - 2) += (1-beta) * k_n(i-2) * state((i-2)*2 + 1);
+    }
+    
+    // std::cout << jacobian << std::endl;
+    jacobian = Eigen::MatrixXd::Zero(dim, dim);
+
+    // N
+    for (int i = 0; i < dim/2; ++i) {
+        jacobian(2*i, 2*i) = -nu*k_n(i)*k_n(i);
+        jacobian(2*i+1, 2*i+1) = -nu*k_n(i)*k_n(i);
+    }
+
+    std::cout << jacobian << std::endl;
+
+    return jacobian;
 }
