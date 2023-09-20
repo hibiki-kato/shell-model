@@ -1,3 +1,14 @@
+/**
+ * @file average_jacobian.cpp
+ * @author hibiki kato
+ * @brief calculate average jacobian matrix and calc trajectory by using it. The aim is to see the mechanism of error growth by jacobian.
+ * @version 0.1
+ * @date 2023-08-15
+ * 
+ * @copyright Copyright (c) 2023
+ * 
+ */
+
 #include <iostream>
 #include <vector>
 #include <complex>
@@ -22,28 +33,23 @@ using namespace Eigen;
 MatrixXd computeJacobian(const VectorXd& state, Eigen::VectorXd k_n, double beta, double nu);
 VectorXd computeDerivativeJacobian(const VectorXd& state, const MatrixXd& jacobian);
 VectorXd rungeKuttaJacobian(const VectorXd& state, const MatrixXd& jacobian, double dt);
-// VectorXd rungeKuttaStep(const VectorXd& state, double dt, Eigen::VectorXd c_n_1, Eigen::VectorXd c_n_2, Eigen::VectorXd c_n_3, Eigen::VectorXd k_n, double nu, std::complex<double> f);
-// Eigen::VectorXcd goy_shell_model(Eigen::VectorXd state, Eigen::VectorXd c_n_1, Eigen::VectorXd c_n_2, Eigen::VectorXd c_n_3, Eigen::VectorXd k_n, double nu, std::complex<double> f);
-
 
 // メイン関数
 int main() {
     auto start = std::chrono::system_clock::now(); // 計測開始時間
-    double nu = 0.00018;
-    double beta = 0.42;
+    double nu = 0.00001;
+    double beta = 0.5;
     std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
     double dt = 0.01;
     double t_0 = 0;
-    double t = 1e+2;
+    double t = 4e+2;
     double latter = 1;
     int threads = omp_get_max_threads();
-    Eigen::VectorXcd x_0 = Eigen::Zeros(15);
+    Eigen::VectorXcd x_0 = Eigen::VectorXd::Zero(16);
     x_0(12) += std::complex<double>(1E-5, 1E-5);
     ShellModel SM(nu, beta, f, dt, t_0, t, latter, x_0);
-    // データの読み込みをここに記述
-    //Eigen::MatrixXcd rawData = npy2EigenMat("../generated_laminar_beta_0.419nu_0.00018_200000period1500check500progresseps0.1.npy");
-    Eigen::MatrixXcd rawData = SM.get_trajectory_();
-    std::cout << "trajectory has been calculated" << std::endl;
+    // データは読み込み必須
+    Eigen::MatrixXcd rawData = npy2EigenMat("../../beta0.5_nu1e-05_100000period.npy");
     // パラメータの設定（例）
     int dim = rawData.rows() - 1;
     // データの整形(実関数化)
@@ -52,21 +58,20 @@ int main() {
         Data.row(2*i) = rawData.row(i).real();
         Data.row(2*i+1) = rawData.row(i).imag();
     }
-
+    
     int numTimeSteps = Data.cols();
     int numVariables = Data.rows();
     //後で使う用の確保
-    MatrixXcd traj(dim+1, numTimeSteps);
-    traj.col(0) = rawData.col(0);
-
+    MatrixXcd traj(dim+1, SM.get_steps_() + 1);
+    traj.col(0) = x_0;
     Eigen::MatrixXd average_jacobian(dim*2, dim*2);
     // 平均ヤコビ行列の計算
-    #pragma omp parallel for num_threads(threads)
+    // #pragma omp parallel for num_threads(threads)
     for (int i = 0; i < numTimeSteps; ++i) {
         VectorXd state = Data.col(i);
         // ヤコビアンの計算
         auto jacobian = computeJacobian(state, SM.get_k_n_(), SM.get_beta_(), SM.get_nu_());
-        #pragma omp critical
+        // #pragma omp critical
         average_jacobian += jacobian / numTimeSteps;
     }
     
@@ -77,8 +82,8 @@ int main() {
     VectorXd state = Data.col(0);
     double now = 0;
     // ヤコビ行列による時間発展
-    for (int i = 1; i < numTimeSteps; i++){
-        std::cout << "\r processing..." << i << "/" << numTimeSteps << std::flush;
+    for (int i = 1; i < traj.cols(); i++){
+        std::cout << "\r processing..." << i << "/" << traj.cols() << std::flush;
         now += dt;
         state = rungeKuttaJacobian(state, average_jacobian, dt);
         for (int j = 0; j < dim; j++){
@@ -87,6 +92,7 @@ int main() {
         }
         traj(dim, i) = now;
     }
+    std::cout <<"here"<< std::endl;
     // 結果の表示
     // plot settings
     std::map<std::string, std::string> plotSettings;
@@ -94,14 +100,15 @@ int main() {
     plotSettings["font.size"] = "10";
     plt::rcparams(plotSettings);
     // Set the size of output image = 1200x780 pixels
-    plt::figure_size(400, 2000);
+    plt::figure_size(800, 3000);
+    int skip = 1;
     // Add graph title
     std::vector<double> x(traj.cols()),y(traj.cols());
-    for(int i=0;i<traj.cols();i+=100){
+    for(int i=0;i<traj.cols();i+=skip){
         x[i]=traj.cwiseAbs()(traj.rows()-1, i);
     }
     for(int i=0; i < dim; i++){
-        for(int j=0; j < traj.cols(); j+=100){
+        for(int j=0; j < traj.cols(); j+=skip){
             y[j]=traj.cwiseAbs()(i, j);
         }
         plt::subplot(dim,1, i+1);

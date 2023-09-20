@@ -214,29 +214,29 @@ cnpy/cnpy.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/cnpy.dir/build.make CMakeFiles/cnpy.dir/cnpy/cnpy.cpp.s
 .PHONY : cnpy/cnpy.cpp.s
 
-phase.o: phase.cpp.o
-.PHONY : phase.o
+phase_diff.o: phase_diff.cpp.o
+.PHONY : phase_diff.o
 
 # target to build an object file
-phase.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/laminar.dir/build.make CMakeFiles/laminar.dir/phase.cpp.o
-.PHONY : phase.cpp.o
+phase_diff.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/laminar.dir/build.make CMakeFiles/laminar.dir/phase_diff.cpp.o
+.PHONY : phase_diff.cpp.o
 
-phase.i: phase.cpp.i
-.PHONY : phase.i
+phase_diff.i: phase_diff.cpp.i
+.PHONY : phase_diff.i
 
 # target to preprocess a source file
-phase.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/laminar.dir/build.make CMakeFiles/laminar.dir/phase.cpp.i
-.PHONY : phase.cpp.i
+phase_diff.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/laminar.dir/build.make CMakeFiles/laminar.dir/phase_diff.cpp.i
+.PHONY : phase_diff.cpp.i
 
-phase.s: phase.cpp.s
-.PHONY : phase.s
+phase_diff.s: phase_diff.cpp.s
+.PHONY : phase_diff.s
 
 # target to generate assembly for a file
-phase.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/laminar.dir/build.make CMakeFiles/laminar.dir/phase.cpp.s
-.PHONY : phase.cpp.s
+phase_diff.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/laminar.dir/build.make CMakeFiles/laminar.dir/phase_diff.cpp.s
+.PHONY : phase_diff.cpp.s
 
 # Help Target
 help:
@@ -257,9 +257,9 @@ help:
 	@echo "... cnpy/cnpy.o"
 	@echo "... cnpy/cnpy.i"
 	@echo "... cnpy/cnpy.s"
-	@echo "... phase.o"
-	@echo "... phase.i"
-	@echo "... phase.s"
+	@echo "... phase_diff.o"
+	@echo "... phase_diff.i"
+	@echo "... phase_diff.s"
 .PHONY : help
 
 

@@ -1,3 +1,13 @@
+/**
+ * @file error_dominant_shell.cpp
+ * @author Hibiki Kato
+ * @brief add perturbation to 13th shell initially and calculate error ratio of each shell
+ * @version 0.1
+ * @date 2023-09-1
+ * 
+ * @copyright Copyright (c) 2023
+ * 
+ */
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -18,34 +28,28 @@ Eigen::VectorXcd perturbation(Eigen::VectorXcd state,  std::vector<int> dim, int
 int main(){
     auto start = std::chrono::system_clock::now(); // 計測開始時間
     
-    double nu = 0.00004;
+    double nu = 0.00001;
     double beta = 0.5;
-    std::complex<double> f = std::complex<double>(1.0,0) * 5.0 * 0.001;
+    std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
     double ddt = 0.01;
     double t_0 = 0;
     double t = 400;
     double latter = 1;
     Eigen::VectorXcd x_0 = npy2EigenVec("../../initials/beta0.5_nu1e-05_15dim_period.npy");
     ShellModel SM(nu, beta, f, ddt, t_0, t, latter, x_0);
-    std::vector<int> perturbed_dim = {13};
+    std::vector<int> perturbed_dim = {13}; // perturbed shell(number begins from 1)
     int threads = omp_get_max_threads();
-    int repetitions = 1000;
+    int repetitions = 10000;
     std::cout << threads << "threads" << std::endl;
     std::ostringstream oss;
     
-    // plot settings
-    std::map<std::string, std::string> plotSettings;
-    plotSettings["font.family"] = "Times New Roman";
-    plotSettings["font.size"] = "10";
-    plt::rcparams(plotSettings);
-    plt::figure_size(1000, 3000);
-    plt::xscale("log");
     int counter = 0; // just for progress bar
     Eigen::VectorXd time;
     Eigen::MatrixXd errors(x_0.size(), SM.get_steps_() + 1);
     Eigen::VectorXd total;
     #pragma omp parallel for num_threads(threads)
     for(int i = 0; i < repetitions; i++){
+        // progress bar
         if(omp_get_thread_num() == 0)
         {
         std::cout << "\r processing..." << counter * threads << "/" << repetitions << std::flush;
@@ -71,19 +75,38 @@ int main(){
     }
     total = errors.colwise().sum();
     // calculate error ratio of each shell
-    // for (int i = 0; i < errors.cols(); i++) {
-    //     errors.col(i) /= total(i);
-    // }
+    for (int i = 0; i < errors.cols(); i++) {
+        errors.col(i) /= total(i);
+    }
     
+    /*
+                █              
+        █████   █          █   
+        █    █  █          █   
+        █    █  █   ████  ████ 
+        █   ██  █  ██  ██  █   
+        █████   █  █    █  █   
+        █       █  █    █  █   
+        █       █  █    █  █   
+        █       █  ██  ██  █   
+        █       █   ████    ██ 
+    */
+    // plot settings
+    std::map<std::string, std::string> plotSettings;
+    plotSettings["font.family"] = "Times New Roman";
+    plotSettings["font.size"] = "10";
+    plt::rcparams(plotSettings);
+    plt::figure_size(800, 3000);
+    // plt::xscale("log");
     std::vector<double> time_vec(time.data(), time.data() + time.size());
-    for(int i=0; i<errors.rows(); i+=4){
+    for(int i=0; i<errors.rows(); i+=1){
         Eigen::VectorXd ith_shell = errors.row(i);
         std::vector<double> error_vec(ith_shell.data(), ith_shell.data() + ith_shell.size());
         plt::subplot(15, 1, i+1);
         // plt::ylim(0, 1);
         plt::scatter(time_vec, error_vec);
         plt::xlabel("time");
-        plt::yscale("log");
+        // plt::yscale("log");
         std::stringstream ss;
         ss << i+1;
         if (i+1 == 1) {
@@ -100,7 +123,7 @@ int main(){
         error_vec.clear();
     }
 
-    oss << "../../error_dominant_shell/beta_" << beta << "nu_" << nu << "error"<< t / latter <<"period" << repetitions << "repeat_ratio_log.png";  // 文字列を結合する
+    oss << "../../error_dominant_shell/beta_" << beta << "nu_" << nu << "error"<< t / latter <<"period" << repetitions << "repeat_ratio.png";  // 文字列を結合する
     std::string plotfname = oss.str(); // 文字列を取得する
     std::cout << "Saving result to " << plotfname << std::endl;
     plt::save(plotfname);
@@ -139,9 +162,12 @@ Eigen::VectorXcd perturbation(Eigen::VectorXcd state, std::vector<int> dim, int 
     std::uniform_real_distribution<double> s(-1, 1);
     std::uniform_real_distribution<double> dis(s_min, s_max);
 
-    Eigen::VectorXd unit = Eigen::VectorXd::Ones(state.rows());
     for(int shell : dim){
-        perturbed(shell-1) += state(shell-1) * s(gen) * std::pow(10, dis(gen)); //元の値 * (-1, 1)の一様分布 * 10^(指定の範囲から一様分布に従い選ぶ)　を雪道として与える
+        std::complex<double> complex_perturbation = state(shell-1) * s(gen) * std::pow(10, dis(gen)); //元の値 * (-1, 1)の一様分布 * 10^(指定の範囲から一様分布に従い選ぶ)を摂動として与える
+        if (dim.size() < state.size()){
+            std::cout << "perturbation to" << shell << "shell is " << complex_perturbation << std::endl;
+        }
+        perturbed(shell-1) += complex_perturbation;
     }
 
     return perturbed;
