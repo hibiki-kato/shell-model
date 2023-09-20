@@ -19,14 +19,14 @@ int main(){
     auto start = std::chrono::system_clock::now(); // 計測開始時間
     
     // generating laminar sample !DO NOT CHANGE!
-    double nu = 0.511579;
-    double beta = 0.00233572;
+    double nu = 0.00018;
+    double beta = 0.41616;
     std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
     double ddt = 0.001;
     double t_0 = 0;
     double t = 1000;
     double latter = 4;
-    Eigen::VectorXcd x_0 = npy2EigenVec("../../initials/beta0.511579_nu0.00233572_14dim_period.npy");
+    Eigen::VectorXcd x_0 = npy2EigenVec("../../initials/beta0.41616nu0.00018_1.05286e+07period.npy");
     ShellModel SM(nu, beta, f, ddt, t_0, t, latter, x_0);
     Eigen::MatrixXcd laminar = SM.get_trajectory_();
     int numRows = laminar.cols() / 10;
@@ -39,12 +39,12 @@ int main(){
     // set up for search
     t=3000;
     latter = 1;
-    nu = 0.0022;
-    beta = 0.5;
-    x_0 = npy2EigenVec("../../initials/beta0.511579_nu0.00233572_14dim_period.npy");
+    nu = 0.00018;
+    beta = 0.417;
+    x_0 = npy2EigenVec("../../initials/beta0.417_nu0.00018_2000period.npy");
     int num_of_candidates = 32;
     int skip = 100;
-    double epsilon = 8E-2;
+    double epsilon = 2E-2;
     int threads = omp_get_max_threads();
     std::cout << threads << "threads" << std::endl;
 

@@ -1,3 +1,13 @@
+/**
+ * @file stagger_and_step.cpp
+ * @author Hibiki Kato
+ * @brief using stagger and step method to detect chaotic saddle
+ * @version 0.1
+ * @date 2023-06-01
+ * 
+ * @copyright Copyright (c) 2023
+ * 
+ */
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -20,16 +30,16 @@ int main(){
     auto start = std::chrono::system_clock::now(); // 計測開始時間
     // generating laminar sample for detection
     // !DO NOT CHANGE!
-    double nu = 0.00017520319481270297;
-    double beta = 0.416;
+    double nu = 0.00018;
+    double beta = 0.41616;
     std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
     double ddt = 0.01;
     double t_0 = 0;
     double t = 50000;
     double latter = 200;
-    Eigen::VectorXcd x_0 = npy2EigenVec("../../initials/beta0.416_nu0.00017520319481270297_step0.01_10000.0period_laminar.npy");
+    Eigen::VectorXcd x_0 = npy2EigenVec("../../initials/beta0.41616nu0.00018_1.05286e+07period.npy");
 
-    double epsilon=8E-2;
+    double epsilon=5E-2;
     int skip = 1000;
     double check_sec = 1300;
     double progress_sec = 200;
@@ -45,15 +55,15 @@ int main(){
         laminar_sample.col(i) = laminar.col(colIdx);
     }
 
-    beta = 0.421;
+    beta = 0.417;
     nu = 0.00018;
     latter = 1;
-    t = 200000;
-    t_0 = 44600;
-    Eigen::MatrixXcd loaded = npy2EigenMat("../../generated_lam/generated_laminar_beta_0.421nu_0.00018_44600period1300check200progresseps0.1.npy");
-    std::cout << loaded.cols() << std::endl;
-    x_0 = loaded.block(0, 44600*100 - 1, 14, 1);
-    // x_0 = npy2EigenVec("../initials/beta0.423_nu0.00018_2000period.npy");
+    t = 50000;
+    t_0 = 0;
+    // Eigen::MatrixXcd loaded = npy2EigenMat("../../generated_lam/generated_laminar_beta_0.421nu_0.00018_44600period1300check200progresseps0.1.npy");
+    // std::cout << loaded.cols() << std::endl;
+    // x_0 = loaded.block(0, 44600*100 - 1, 14, 1);
+    x_0 = npy2EigenVec("../../initials/beta0.417_nu0.00018_2000period.npy");
 
     LongLaminar LL(nu, beta, f, ddt, t_0, t, latter, x_0, laminar_sample, epsilon, skip, check_sec, progress_sec, threads);
     Eigen::MatrixXcd calced_laminar = LL.stagger_and_step_();

@@ -214,29 +214,29 @@ cnpy/cnpy.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/cnpy.dir/build.make CMakeFiles/cnpy.dir/cnpy/cnpy.cpp.s
 .PHONY : cnpy/cnpy.cpp.s
 
-phase_diff.o: phase_diff.cpp.o
-.PHONY : phase_diff.o
+good_initialvalue.o: good_initialvalue.cpp.o
+.PHONY : good_initialvalue.o
 
 # target to build an object file
-phase_diff.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/laminar.dir/build.make CMakeFiles/laminar.dir/phase_diff.cpp.o
-.PHONY : phase_diff.cpp.o
+good_initialvalue.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/laminar.dir/build.make CMakeFiles/laminar.dir/good_initialvalue.cpp.o
+.PHONY : good_initialvalue.cpp.o
 
-phase_diff.i: phase_diff.cpp.i
-.PHONY : phase_diff.i
+good_initialvalue.i: good_initialvalue.cpp.i
+.PHONY : good_initialvalue.i
 
 # target to preprocess a source file
-phase_diff.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/laminar.dir/build.make CMakeFiles/laminar.dir/phase_diff.cpp.i
-.PHONY : phase_diff.cpp.i
+good_initialvalue.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/laminar.dir/build.make CMakeFiles/laminar.dir/good_initialvalue.cpp.i
+.PHONY : good_initialvalue.cpp.i
 
-phase_diff.s: phase_diff.cpp.s
-.PHONY : phase_diff.s
+good_initialvalue.s: good_initialvalue.cpp.s
+.PHONY : good_initialvalue.s
 
 # target to generate assembly for a file
-phase_diff.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/laminar.dir/build.make CMakeFiles/laminar.dir/phase_diff.cpp.s
-.PHONY : phase_diff.cpp.s
+good_initialvalue.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/laminar.dir/build.make CMakeFiles/laminar.dir/good_initialvalue.cpp.s
+.PHONY : good_initialvalue.cpp.s
 
 # Help Target
 help:
@@ -257,9 +257,9 @@ help:
 	@echo "... cnpy/cnpy.o"
 	@echo "... cnpy/cnpy.i"
 	@echo "... cnpy/cnpy.s"
-	@echo "... phase_diff.o"
-	@echo "... phase_diff.i"
-	@echo "... phase_diff.s"
+	@echo "... good_initialvalue.o"
+	@echo "... good_initialvalue.i"
+	@echo "... good_initialvalue.s"
 .PHONY : help
 
 
