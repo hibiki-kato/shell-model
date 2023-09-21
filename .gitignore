@@ -1,11 +1,11 @@
 *.o
 *.out
 *.npy
-*.npz
+*.vscode
 CMakeCache.txt
 *.DS_Store
 *.ipynb_checkpoints
-turbulent_laminar_search/*
+turbulent_laminar_search/
 build/
 
 
