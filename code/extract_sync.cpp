@@ -35,7 +35,7 @@ int main(){
     double t = 1e+5;
     double latter = 1;
     int numthreads = omp_get_max_threads();
-    double epsilon = 0.35;
+    double epsilon = 0.3;
 
     //make pairs of shells to observe phase difference(num begins from 1)
     std::vector<std::pair<int, int>> sync_pairs;

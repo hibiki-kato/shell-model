@@ -4,9 +4,9 @@
 *.npz
 CMakeCache.txt
 *.DS_Store
-.ipynb_checkpoints
+*.ipynb_checkpoints
 turbulent_laminar_search/*
-code/build
+build/
 
 
 !initials/*
