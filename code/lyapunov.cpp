@@ -37,7 +37,7 @@ int main() {
     double t = 3000;
     double latter = 1;
     int threads = omp_get_max_threads();
-    // Eigen::VectorXcd x_0 = npy2EigenVec("../../initials/beta0.5_nu1e-08_24dim_period.npy");
+    Eigen::VectorXcd x_0 = npy2EigenVec("../../initials/beta0.5_nu1e-08_24dim_period.npy");
     
     ShellModel SM(nu, beta, f, dt, t_0, t, latter, x_0);
     // データの読み込みをここに記述
