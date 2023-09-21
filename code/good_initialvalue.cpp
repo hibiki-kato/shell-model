@@ -22,7 +22,7 @@ int main(){
     double nu = 0.00018;
     double beta = 0.41616;
     std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
-    double ddt = 0.001;
+    double ddt = 0.01;
     double t_0 = 0;
     double t = 1000;
     double latter = 4;
@@ -40,11 +40,11 @@ int main(){
     t=3000;
     latter = 1;
     nu = 0.00018;
-    beta = 0.417;
-    x_0 = npy2EigenVec("../../initials/beta0.417_nu0.00018_2000period.npy");
+    beta = 0.42;
+    x_0 = npy2EigenVec("../../initials/beta0.419_nu0.00018_3000period.npy");
     int num_of_candidates = 32;
     int skip = 100;
-    double epsilon = 2E-2;
+    double epsilon = 4E-2;
     int threads = omp_get_max_threads();
     std::cout << threads << "threads" << std::endl;
 

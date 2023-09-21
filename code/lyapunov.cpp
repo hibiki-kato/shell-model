@@ -29,17 +29,19 @@ VectorXd rungeKuttaJacobian(const VectorXd& state, const MatrixXd& jacobian, dou
 // メイン関数
 int main() {
     auto start = std::chrono::system_clock::now(); // 計測開始時間
-    double nu = 0.00018;
-    double beta = 0.419;
+    double nu = 1E-8;
+    double beta = 0.5;
     std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
-    double dt = 0.01;
+    double dt = 0.0001;
     double t_0 = 0;
-    double t = 2e+5;
+    double t = 3000;
     double latter = 1;
-    Eigen::VectorXcd x_0 = npy2EigenVec("../../initials/beta0.41616nu0.00018_1.00923e+06period.npy");
+    int threads = omp_get_max_threads();
+    // Eigen::VectorXcd x_0 = npy2EigenVec("../../initials/beta0.5_nu1e-08_24dim_period.npy");
+    
     ShellModel SM(nu, beta, f, dt, t_0, t, latter, x_0);
     // データの読み込みをここに記述
-    // Eigen::MatrixXcd rawData = npy2EigenMat("../../generated_lam/generated_laminar_beta_0.419nu_0.00018_200000period1500check500progresseps0.1.npy");
+    // Eigen::MatrixXcd rawData = npy2EigenMat("../../generated_lam/generated_laminar_beta_0.417nu_0.00018_50000period1300check200progresseps0.05.npy");
     
     std::cout << "calculating trajectory" << std::endl;
     Eigen::MatrixXcd rawData = SM.get_trajectory_();
@@ -69,6 +71,7 @@ int main() {
         // ヤコビアンの計算
         Eigen::MatrixXd jacobian = computeJacobian(state, SM.get_k_n_(), SM.get_beta_(), SM.get_nu_());
         // ヤコビアンとBase(直行行列)の積を計算する
+        #pragma omp paralell for num_threads(threads)
         for (int j = 0; j < numVariables; ++j) {
             next.col(j) = rungeKuttaJacobian(Base.col(j), jacobian, dt);
         }
@@ -82,6 +85,10 @@ int main() {
         // Rの対角成分の絶対値のlogをsumにたす
         Eigen::VectorXd diag = R.diagonal().cwiseAbs().array().log();
         sum += diag;
+        if (i % 10000 == 0){
+            std::cout << sum.array() / (i+1) / dt << std::endl;
+        }
+
     }
 
     VectorXd lyapunovExponents = sum.array() / numTimeSteps / dt;

@@ -42,12 +42,14 @@ int main() {
     std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
     double dt = 0.01;
     double t_0 = 0;
-    double t = 4e+2;
+    double t = 100;
     double latter = 1;
     int threads = omp_get_max_threads();
-    Eigen::VectorXcd x_0 = Eigen::VectorXd::Zero(16);
-    x_0(12) += std::complex<double>(1E-5, 1E-5);
-    ShellModel SM(nu, beta, f, dt, t_0, t, latter, x_0);
+    Eigen::VectorXcd dummy = Eigen::VectorXd::Zero(15);
+    
+    double repetitions = 1;
+    double r = 1E-5;
+    ShellModel SM(nu, beta, f, dt, t_0, t, latter, dummy);
     // データは読み込み必須
     Eigen::MatrixXcd rawData = npy2EigenMat("../../beta0.5_nu1e-05_100000period.npy");
     // パラメータの設定（例）
@@ -61,12 +63,9 @@ int main() {
     
     int numTimeSteps = Data.cols();
     int numVariables = Data.rows();
-    //後で使う用の確保
-    MatrixXcd traj(dim+1, SM.get_steps_() + 1);
-    traj.col(0) = x_0;
     Eigen::MatrixXd average_jacobian(dim*2, dim*2);
     // 平均ヤコビ行列の計算
-    // #pragma omp parallel for num_threads(threads)
+    #pragma omp parallel for num_threads(threads)
     for (int i = 0; i < numTimeSteps; ++i) {
         VectorXd state = Data.col(i);
         // ヤコビアンの計算
@@ -77,23 +76,51 @@ int main() {
     
     std::cout << "jacobian matrix was " << std::endl << average_jacobian << std::endl;
 
-    
-    // ヤコビアンを作用させる用の実ベクトル
-    VectorXd state = Data.col(0);
-    double now = 0;
-    // ヤコビ行列による時間発展
-    for (int i = 1; i < traj.cols(); i++){
-        std::cout << "\r processing..." << i << "/" << traj.cols() << std::flush;
-        now += dt;
-        state = rungeKuttaJacobian(state, average_jacobian, dt);
-        for (int j = 0; j < dim; j++){
-            std::complex<double> tmp(state(2*j), state(2*j+1));
-            traj(j, i) = tmp;
+    Eigen::MatrixXd average(dim+1, SM.get_steps_() + 1);
+
+    #pragma omp paralell for num_threads(threads)
+    for (int h; h<repetitions; h++){
+        if(omp_get_thread_num == 0){
+            std::cout << "processing..." << h*threads << "/" << repetitions << std::flush;
         }
-        traj(dim, i) = now;
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        std::uniform_real_distribution<double> s(-M_PI, M_PI);
+
+        Eigen::VectorXcd x_0 = Eigen::VectorXd::Zero(16);
+        double theta = s(gen);
+        
+        x_0(12) += std::complex<double>(r*std::cos(theta), r*std::sin(theta));
+
+        MatrixXcd traj(dim+1, SM.get_steps_() + 1);
+        traj.col(0) = x_0;
+        
+        // ヤコビアンを作用させる用の実ベクトル
+        VectorXd state = VectorXd::Zero(dim*2);
+        for (int i = 0; i < dim; ++i) {
+            state(2*i) = x_0(i).real();
+            state(2*i+1) = x_0(i).imag();
+        }
+        double now = 0;
+        // ヤコビ行列による時間発展
+        for (int i = 1; i < traj.cols(); i++){
+            now += dt;
+            state = rungeKuttaJacobian(state, average_jacobian, dt);
+            for (int j = 0; j < dim; j++){
+                std::complex<double> tmp(state(2*j), state(2*j+1));
+                traj(j, i) = tmp;
+            }
+            traj(dim, i) = now;
+        }
+        #pragma omp critical
+        average += traj.cwiseAbs2() / repetitions;
+
     }
-    std::cout <<"here"<< std::endl;
+    
     // 結果の表示
+    std::cout << "plotting" << std::endl;
+    std::cout << average.rows() << std::endl;
+    std::cout << dim << std::endl;
     // plot settings
     std::map<std::string, std::string> plotSettings;
     plotSettings["font.family"] = "Times New Roman";
@@ -103,16 +130,17 @@ int main() {
     plt::figure_size(800, 3000);
     int skip = 1;
     // Add graph title
-    std::vector<double> x(traj.cols()),y(traj.cols());
-    for(int i=0;i<traj.cols();i+=skip){
-        x[i]=traj.cwiseAbs()(traj.rows()-1, i);
+    std::vector<double> x(average.cols()),y(average.cols());
+    for(int i=0;i<average.cols();i+=skip){
+        x[i]=average(average.rows()-1, i);
     }
     for(int i=0; i < dim; i++){
-        for(int j=0; j < traj.cols(); j+=skip){
-            y[j]=traj.cwiseAbs()(i, j);
+        for(int j=0; j < average.cols(); j+=skip){
+            y[j]=average(i, j);
         }
         plt::subplot(dim,1, i+1);
-        plt::scatter(x,y);
+        plt::yscale("log");
+        plt::plot(x,y);
         plt::xlabel("Time");
         plt::ylabel("$U_{" + std::to_string(i+1) + "}$");
     }
@@ -122,7 +150,7 @@ int main() {
     plt::subplots_adjust(keywords);
 
     std::ostringstream oss;
-    oss << "../../traj_images/jacobian_beta_" << beta << "nu_" << nu <<"_"<< t-t_0 << "period.png";  // 文字列を結合する
+    oss << "../../traj_images/jacobian_beta_" << beta << "nu_" << nu <<"_"<< t-t_0 << "period"<<repetitions << "repeat.png";  // 文字列を結合する
     std::string plotfname = oss.str(); // 文字列を取得する
     std::cout << "Saving result to " << plotfname << std::endl;
     plt::save(plotfname);

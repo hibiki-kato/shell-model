@@ -23,6 +23,7 @@ namespace plt = matplotlibcpp;
 void EigenMt2npy(Eigen::MatrixXcd Mat, std::string fname);
 Eigen::VectorXcd npy2EigenVec(const char* fname);
 double unwrap(double pre_angle, double angle);
+bool isSync(double a, double b, double epsilon);
 
 int main(){
     auto start = std::chrono::system_clock::now(); // 計測開始時間
@@ -31,15 +32,13 @@ int main(){
     std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
     double ddt = 0.01;
     double t_0 = 0;
-    double t = 1e+3;
+    double t = 1e+5;
     double latter = 1;
     int numthreads = omp_get_max_threads();
+    double epsilon = 0.35;
 
     //make pairs of shells to observe phase difference(num begins from 1)
     std::vector<std::pair<int, int>> sync_pairs;
-    sync_pairs.push_back(std::make_pair(1, 4));
-    sync_pairs.push_back(std::make_pair(4, 7));
-    sync_pairs.push_back(std::make_pair(7, 10));
     sync_pairs.push_back(std::make_pair(10, 13));
 
     Eigen::VectorXcd x_0 = npy2EigenVec("../../initials/beta0.41616nu0.00018_1.00923e+06period.npy");
@@ -59,21 +58,35 @@ int main(){
             angles(j, i) = unwrap(angles(j-1, i), angles(j, i));
         }
     }
-
-
-    /*
-            █                       █  █   ███ ███
-    █████   █          █            █      █   █  
-    ██  ██  █          █            █     ██  ██  
-    ██   █  █   ████  ████      █████  █ ████████ 
-    ██  ██  █  ██  ██  █       ██  ██  █  ██  ██  
-    █████   █  █    █  █       █    █  █  ██  ██  
-    ██      █  █    █  █       █    █  █  ██  ██  
-    ██      █  █    █  █       █    █  █  ██  ██  
-    ██      █  ██  ██  ██      ██  ██  █  ██  ██  
-    ██      █   ████    ██      ███ █  █  ██  ██  
-    */
-
+    std::cout << isSync(0, 1000, epsilon) << std::endl;
+    std::cout << "extracting sync" << std::endl;
+    std::vector<double> x, y;
+    int counter = 0;
+    // for(const auto& pair : sync_pairs){
+    //     for (int i = 0; i < angles.rows(); i++){
+    //         if(isSync(angles(i, pair.first-1), angles(i, pair.second-1), epsilon)){
+    //             counter++;
+    //             if (counter >= 100){
+    //                 for (int j = 0; j < 100; j++){
+    //                     x.push_back(std::abs(trajectory(trajectory.rows()-1, i + j - 100)));
+    //                     y.push_back(std::abs(trajectory(0, i + j - 100)));
+    //                 }
+    //                 counter = 0;
+    //             }
+    //         else{
+    //             counter = 0;    
+    //             }
+    //         }
+    //     }
+    // }
+    for(const auto& pair : sync_pairs){
+        for (int i = 0; i < angles.rows(); i++){
+            if(isSync(angles(i, pair.first-1), angles(i, pair.second-1), epsilon)){
+                        x.push_back(std::abs(trajectory(trajectory.rows()-1, i)));
+                        y.push_back(std::abs(angles(i, 0)));
+                    }
+        }
+    }
     std::cout << "plotting" << std::endl;
     // plot settings
     int skip = 100; // plot every skip points
@@ -82,35 +95,15 @@ int main(){
     plotSettings["font.size"] = "10";
     plt::rcparams(plotSettings);
     // Set the size of output image = 1200x780 pixels
-    plt::figure_size(800, 300*sync_pairs.size());
+    plt::figure_size(800, 300);
     
     std::map<std::string, double> keywords;
     keywords.insert(std::make_pair("hspace", 0.6)); // also right, top, bottom
     keywords.insert(std::make_pair("wspace", 0.4)); // also hspace
-    plt::subplots_adjust(keywords);
-
-    std::vector<double> x((trajectory.cols()-1)/skip),y((trajectory.cols()-1)/skip);
-
-    // times for x axis
-    for(int i=0;i<x.size();i++){
-        x[i]=trajectory.cwiseAbs()(trajectory.rows()-1, i*skip);
-    }
-    std::cout << "here" << std::endl;
-    int counter = 0;
-    for(const auto& pair : sync_pairs){
-        counter++;
-        Eigen::VectorXd diff = (angles.col(pair.first-1) - angles.col(pair.second-1)).cwiseAbs();
-        for (int i = 0; i < y.size(); i++){
-            y[i] = diff(i*skip);
-        }
-        plt::subplot(sync_pairs.size(), 1, counter);
-        plt::plot(x,y);
-        plt::xlabel("Time");
-        plt::ylabel("$|U_{" + std::to_string(pair.first) + "}-U_{" + std::to_string(pair.second) + "}|$");
-    }
+    plt::plot(x, y);
 
     std::ostringstream oss;
-    oss << "../../phase_diff/beta_" << beta << "nu_" << nu <<"_"<< t-t_0 << "period.png";  // 文字列を結合する
+    oss << "../../sync/beta_" << beta << "nu_" << nu <<"_"<< t-t_0 << "period.png";  // 文字列を結合する
     std::string plotfname = oss.str(); // 文字列を取得する
     std::cout << "Saving result to " << plotfname << std::endl;
     plt::save(plotfname);
@@ -154,4 +147,29 @@ double unwrap(double pre_angle, double angle){
         angle += 2 * M_PI;
     }
         return angle;
+}
+/**
+ * @brief given 2 angles, check if they are in sync
+ * 
+ * @param a : angle 1
+ * @param b  : angle 2
+ * @param epsilon : tolerance
+ * @return true : sync
+ * @return false : not sync
+ */
+bool isSync(double a, double b, double epsilon) {
+    int n = 0;
+    double lowerBound = 2 * n * M_PI - epsilon;
+    double upperBound = 2 * n * M_PI + epsilon;
+    
+    while (lowerBound <= std::abs(a - b)) {
+        if (lowerBound <= std::abs(a - b) && std::abs(a - b) <= upperBound) {
+            return true;
+        }
+        n++;
+        lowerBound = 2 * n * M_PI - epsilon;
+        upperBound = 2 * n * M_PI + epsilon;
+    }
+    
+    return false;
 }

@@ -6,7 +6,7 @@ CMakeCache.txt
 *.DS_Store
 .ipynb_checkpoints
 turbulent_laminar_search/*
-code/build/*
+code/build
 
 
 !initials/*

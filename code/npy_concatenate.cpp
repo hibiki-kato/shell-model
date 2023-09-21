@@ -1,3 +1,13 @@
+/**
+ * @file npy_concatenate.cpp
+ * @author Hibiki Kato
+ * @brief 2 npy files concatenation. This code basically used for concatenating generated laminar.
+ * @version 0.1
+ * @date 2023-06-01
+ * 
+ * @copyright Copyright (c) 2023
+ * 
+ */
 #include <eigen3/Eigen/Dense>
 #include <iostream>
 #include <complex>
@@ -9,10 +19,14 @@ void EigenMt2npy(Eigen::MatrixXcd Mat, std::string fname);
 Eigen::MatrixXcd npy2EigenMat(const char* fname);
 
 int main(){
-    Eigen::MatrixXcd a = npy2EigenMat("../generated_laminar_beta_0.421nu_0.00018_58400period1300check400progresseps0.1.npy");
-    Eigen::MatrixXcd b = npy2EigenMat("../generated_laminar_beta_0.421nu_0.00018_72400period1300check400progresseps0.1.npy");
-    
-    int check_point = 5600000;
+    std::string a_name = "../../generated_lam/generated_laminar_beta_0.417nu_0.00018_47000period1300check200progresseps0.05.npy";
+    std::string b_name = "../../generated_lam/generated_laminar_beta_0.417nu_0.00018_50000period1300check200progresseps0.05.npy";
+    int check_point = 45000; // the last time of a (not equal to time in the file name, usually a nice round number)
+
+    Eigen::MatrixXcd a = npy2EigenMat(a_name);
+    Eigen::MatrixXcd b = npy2EigenMat(b_name);
+
+    check_point *= 100;
     Eigen::MatrixXcd c(a.rows(), check_point + b.cols());
     c.leftCols(check_point) = a.leftCols(check_point);
     c.rightCols(b.cols()) = b;
@@ -26,9 +40,11 @@ int main(){
     }
 
     plt::plot(x,y);
-    plt::save("../test.png");
-
-    EigenMt2npy(c, "../generated_laminar_beta_0.421nu_0.00018_72400period1300check400progresseps0.1.npy");
+    plt::save("../../test_concatenate.png");
+    std::cout << "Succeed?" << std::endl;
+    char none;
+    std::cin >> none;
+    EigenMt2npy(c, b_name);
 
 }
 

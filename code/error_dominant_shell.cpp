@@ -75,9 +75,9 @@ int main(){
     }
     total = errors.colwise().sum();
     // calculate error ratio of each shell
-    for (int i = 0; i < errors.cols(); i++) {
-        errors.col(i) /= total(i);
-    }
+    // for (int i = 0; i < errors.cols(); i++) {
+    //     errors.col(i) /= total(i);
+    // }
     
     /*
                 █              
@@ -97,16 +97,16 @@ int main(){
     plotSettings["font.size"] = "10";
     plt::rcparams(plotSettings);
     plt::figure_size(800, 3000);
-    // plt::xscale("log");
     std::vector<double> time_vec(time.data(), time.data() + time.size());
     for(int i=0; i<errors.rows(); i+=1){
         Eigen::VectorXd ith_shell = errors.row(i);
         std::vector<double> error_vec(ith_shell.data(), ith_shell.data() + ith_shell.size());
         plt::subplot(15, 1, i+1);
+        plt::yscale("log");
         // plt::ylim(0, 1);
-        plt::scatter(time_vec, error_vec);
+        plt::plot(time_vec, error_vec);
         plt::xlabel("time");
-        // plt::yscale("log");
+        
         std::stringstream ss;
         ss << i+1;
         if (i+1 == 1) {
@@ -123,7 +123,7 @@ int main(){
         error_vec.clear();
     }
 
-    oss << "../../error_dominant_shell/beta_" << beta << "nu_" << nu << "error"<< t / latter <<"period" << repetitions << "repeat_ratio.png";  // 文字列を結合する
+    oss << "../../error_dominant_shell/beta_" << beta << "nu_" << nu << "error"<< t / latter <<"period" << repetitions << "repeat.png";  // 文字列を結合する
     std::string plotfname = oss.str(); // 文字列を取得する
     std::cout << "Saving result to " << plotfname << std::endl;
     plt::save(plotfname);
@@ -164,9 +164,9 @@ Eigen::VectorXcd perturbation(Eigen::VectorXcd state, std::vector<int> dim, int 
 
     for(int shell : dim){
         std::complex<double> complex_perturbation = state(shell-1) * s(gen) * std::pow(10, dis(gen)); //元の値 * (-1, 1)の一様分布 * 10^(指定の範囲から一様分布に従い選ぶ)を摂動として与える
-        if (dim.size() < state.size()){
-            std::cout << "perturbation to" << shell << "shell is " << complex_perturbation << std::endl;
-        }
+        // if (dim.size() < state.size()){
+        //     std::cout << "perturbation to" << shell << "shell is " << complex_perturbation << std::endl;
+        // }
         perturbed(shell-1) += complex_perturbation;
     }
 

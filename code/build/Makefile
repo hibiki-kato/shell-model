@@ -214,29 +214,29 @@ cnpy/cnpy.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/cnpy.dir/build.make CMakeFiles/cnpy.dir/cnpy/cnpy.cpp.s
 .PHONY : cnpy/cnpy.cpp.s
 
-good_initialvalue.o: good_initialvalue.cpp.o
-.PHONY : good_initialvalue.o
+test.o: test.cpp.o
+.PHONY : test.o
 
 # target to build an object file
-good_initialvalue.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/laminar.dir/build.make CMakeFiles/laminar.dir/good_initialvalue.cpp.o
-.PHONY : good_initialvalue.cpp.o
+test.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/laminar.dir/build.make CMakeFiles/laminar.dir/test.cpp.o
+.PHONY : test.cpp.o
 
-good_initialvalue.i: good_initialvalue.cpp.i
-.PHONY : good_initialvalue.i
+test.i: test.cpp.i
+.PHONY : test.i
 
 # target to preprocess a source file
-good_initialvalue.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/laminar.dir/build.make CMakeFiles/laminar.dir/good_initialvalue.cpp.i
-.PHONY : good_initialvalue.cpp.i
+test.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/laminar.dir/build.make CMakeFiles/laminar.dir/test.cpp.i
+.PHONY : test.cpp.i
 
-good_initialvalue.s: good_initialvalue.cpp.s
-.PHONY : good_initialvalue.s
+test.s: test.cpp.s
+.PHONY : test.s
 
 # target to generate assembly for a file
-good_initialvalue.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/laminar.dir/build.make CMakeFiles/laminar.dir/good_initialvalue.cpp.s
-.PHONY : good_initialvalue.cpp.s
+test.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/laminar.dir/build.make CMakeFiles/laminar.dir/test.cpp.s
+.PHONY : test.cpp.s
 
 # Help Target
 help:
@@ -257,9 +257,9 @@ help:
 	@echo "... cnpy/cnpy.o"
 	@echo "... cnpy/cnpy.i"
 	@echo "... cnpy/cnpy.s"
-	@echo "... good_initialvalue.o"
-	@echo "... good_initialvalue.i"
-	@echo "... good_initialvalue.s"
+	@echo "... test.o"
+	@echo "... test.i"
+	@echo "... test.s"
 .PHONY : help
 
 
