@@ -42,7 +42,7 @@ int main() {
     std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
     double dt = 0.01;
     double t_0 = 0;
-    double t = 100;
+    double t = 10000;
     double latter = 1;
     int threads = omp_get_max_threads();
     Eigen::VectorXcd dummy = Eigen::VectorXd::Zero(15);
@@ -123,7 +123,7 @@ int main() {
     plt::rcparams(plotSettings);
     // Set the size of output image = 1200x780 pixels
     plt::figure_size(3000, 3000);
-    int skip = 1000;
+    int skip = 100;
     // Set the size of output image = 1200x780 pixels
     plt::figure_size(2400, 3600);
     std::vector<double> x((numTimeSteps-1)/skip),y1((numTimeSteps-1)/skip), y2((numTimeSteps-1)/skip);
