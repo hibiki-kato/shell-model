@@ -46,7 +46,7 @@ int main() {
     double latter = 1;
     int threads = omp_get_max_threads();
     Eigen::VectorXcd dummy = Eigen::VectorXd::Zero(15);
-    const char* fname = "../../beta0.5_nu1e-05_40000period.npy";
+    const char* fname = "../../beta0.5_nu1e-05_400period.npy";
     
     double repetitions = 1;
     double r = 1E-5;
@@ -132,17 +132,17 @@ int main() {
     //     x[i]=time(i*skip);
     // }
 
-    // plot bar of each belt
+    // plot hist of each belt
     for(int i=0; i < dim*2-5; i++){
         for(int j=0; j < y1.size(); j++){
             y1[j]=upperBelt5(j*skip, i);
             y2[j]=lowerBelt5(j*skip, i);
         }
         plt::subplot(dim*2, dim*2, i*dim*2 + i + 5 + 1);
-        plt::bar(y1);
+        plt::hist(y1);
 
         plt::subplot(dim*2, dim*2, (i+5)*dim*2 + i + 1);
-        plt::bar(y2);
+        plt::hist(y2);
     }
     std::cout << "first done" << std::endl;
     for(int i=0; i < dim*2-4; i++){
@@ -151,10 +151,10 @@ int main() {
             y2[j]=lowerBelt4(j*skip, i);
         }
         plt::subplot(dim*2, dim*2, i*dim*2 + i + 4 + 1);
-        plt::bar(y1);
+        plt::hist(y1);
 
         plt::subplot(dim*2, dim*2, (i+4)*dim*2 + i + 1);
-        plt::bar(y2);
+        plt::hist(y2);
     }
     std::cout << "second done" << std::endl;
     for(int i=0; i < dim*2-3; i++){
@@ -163,10 +163,10 @@ int main() {
             y2[j]=lowerBelt3(j*skip, i);
         }
         plt::subplot(dim*2, dim*2, i*dim*2 + i + 3 + 1);
-        plt::bar(y1);
+        plt::hist(y1);
 
         plt::subplot(dim*2, dim*2, (i+3)*dim*2 + i + 1);
-        plt::bar(y2);
+        plt::hist(y2);
     }
     std::cout << "third done" << std::endl;
     for(int i=0; i < dim*2-2; i++){
@@ -175,10 +175,10 @@ int main() {
             y2[j]=lowerBelt2(j*skip, i);
         }
         plt::subplot(dim*2, dim*2, i*dim*2 + i + 2 + 1);
-        plt::bar(y1);
+        plt::hist(y1);
 
         plt::subplot(dim*2, dim*2, (i+2)*dim*2 + i + 1);
-        plt::bar(y2);
+        plt::hist(y2);
     }
 
     for(int i=0; i < dim*2-1; i++){
@@ -187,10 +187,10 @@ int main() {
             y2[j]=lowerBelt1(j*skip, i);
         }
         plt::subplot(dim*2, dim*2, i*dim*2 + i + 1 + 1);
-        plt::bar(y1);
+        plt::hist(y1);
 
         plt::subplot(dim*2, dim*2, (i+1)*dim*2 + i + 1);
-        plt::bar(y2);
+        plt::hist(y2);
     }
 
     for(int i=0; i < dim*2; i++){
@@ -198,12 +198,12 @@ int main() {
             y1[j]=diagonal(j*skip, i);
         }
         plt::subplot(dim*2, dim*2, i*dim*2 + i + 1);
-        plt::bar(y1);
+        plt::hist(y1);
     }
 
     std::map<std::string, double> keywords;
-    keywords.insert(std::make_pair("hspace", 0.5)); // also right, top, bottom
-    keywords.insert(std::make_pair("wspace", 0.5)); // also hspace
+    keywords.insert(std::make_pair("hspace", 1)); // also right, top, bottom
+    keywords.insert(std::make_pair("wspace", 1)); // also hspace
     plt::subplots_adjust(keywords);
 
     std::ostringstream oss;
