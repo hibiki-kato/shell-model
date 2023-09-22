@@ -157,6 +157,6 @@ Eigen::VectorXcd ShellModel::goy_shell_model_(Eigen::VectorXcd state){
                             + c_n_2.array() * u.middleRows(1,dim).conjugate().array() * u.middleRows(3,dim).conjugate().array()
                             + c_n_3.array() * u.middleRows(1,dim).conjugate().array() * u.topRows(dim).conjugate().array()) * std::complex<double>(0, 1.0)
                             - nu * u.middleRows(2,dim).array() * k_n.array().square();
-    ddt_u(3) += f;
+    ddt_u(0) += f;
     return ddt_u;
 }

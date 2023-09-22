@@ -60,7 +60,7 @@ int main(){
     */
     std::cout << "plotting" << std::endl;
     // plot settings
-    int skip = 1; // plot every skip points
+    int skip = 10; // plot every skip points
     std::map<std::string, std::string> plotSettings;
     plotSettings["font.family"] = "Times New Roman";
     plotSettings["font.size"] = "10";
@@ -69,12 +69,12 @@ int main(){
     plt::figure_size(2400, 3600);
     std::vector<double> x((trajectory.cols()-1)/skip),y((trajectory.cols()-1)/skip);
     // times for x axis
-    for(int i=0;i<trajectory.cols();i++){
+    for(int i=0;i<x.size();i++){
         x[i]=trajectory.cwiseAbs()(trajectory.rows()-1, i*skip);
     }
     // plot trajectory
     for(int i=0; i < trajectory.rows()-1; i++){
-        for(int j=0; j < trajectory.cols(); j++){
+        for(int j=0; j < y.size(); j++){
             y[j]=trajectory.cwiseAbs()(i, j*skip);
         }
         plt::subplot(trajectory.rows()-1, 2, i*2+1);
@@ -118,8 +118,8 @@ int main(){
     */
     std::cout << "plotting angles" << std::endl;
     for(int i=0; i < angles.cols(); i++){
-        for(int j=0; j < angles.rows(); j+=skip){
-            y[j]=angles.cwiseAbs()(j, i);
+        for(int j=0; j < y.size(); j++){
+            y[j]=angles.cwiseAbs()(j*skip, i);
         }
         plt::subplot(angles.cols(), 2, 2*i+2);
         plt::plot(x,y);

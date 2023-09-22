@@ -35,16 +35,17 @@ int main(){
     double t = 1e+5;
     double latter = 1;
     int numthreads = omp_get_max_threads();
-    double epsilon = 0.3;
+    int window = 100000;
 
     //make pairs of shells to observe phase difference(num begins from 1)
-    std::vector<std::pair<int, int>> sync_pairs;
-    sync_pairs.push_back(std::make_pair(10, 13));
+    std::vector<std::tuple<int, int, double>> sync_pairs;
+    sync_pairs.push_back(std::make_tuple(7, 10, 1.05));
+    sync_pairs.push_back(std::make_tuple(10, 13, 3.4E-2));
 
     Eigen::VectorXcd x_0 = npy2EigenVec("../../initials/beta0.41616nu0.00018_1.00923e+06period.npy");
     ShellModel solver(nu, beta, f, ddt, t_0, t, latter, x_0);
-    Eigen::MatrixXcd trajectory = solver.get_trajectory_(); //wide matrix
     std::cout << "calculating trajectory" << std::endl;
+    Eigen::MatrixXcd trajectory = solver.get_trajectory_(); //wide matrix
     Eigen::MatrixXd angles = trajectory.topRows(trajectory.rows()-1).cwiseArg().transpose(); //tall matrix
 
     std::cout << "unwrapping angles" << std::endl;
@@ -58,35 +59,45 @@ int main(){
             angles(j, i) = unwrap(angles(j-1, i), angles(j, i));
         }
     }
-    std::cout << isSync(0, 1000, epsilon) << std::endl;
+
     std::cout << "extracting sync" << std::endl;
     std::vector<double> x, y;
     int counter = 0;
-    // for(const auto& pair : sync_pairs){
-    //     for (int i = 0; i < angles.rows(); i++){
-    //         if(isSync(angles(i, pair.first-1), angles(i, pair.second-1), epsilon)){
-    //             counter++;
-    //             if (counter >= 100){
-    //                 for (int j = 0; j < 100; j++){
-    //                     x.push_back(std::abs(trajectory(trajectory.rows()-1, i + j - 100)));
-    //                     y.push_back(std::abs(trajectory(0, i + j - 100)));
-    //                 }
-    //                 counter = 0;
-    //             }
-    //         else{
-    //             counter = 0;    
-    //             }
-    //         }
-    //     }
-    // }
-    for(const auto& pair : sync_pairs){
-        for (int i = 0; i < angles.rows(); i++){
-            if(isSync(angles(i, pair.first-1), angles(i, pair.second-1), epsilon)){
-                        x.push_back(std::abs(trajectory(trajectory.rows()-1, i)));
-                        y.push_back(std::abs(angles(i, 0)));
-                    }
+    for (int i = 0; i < angles.rows(); i++){
+        bool allSync = true; // flag 
+        for (const auto& pair : sync_pairs){
+            // if any pair is not sync, allSync is false
+            if(! isSync(angles(i, std::get<0>(pair)-1), angles(i, std::get<1>(pair)-1), std::get<2>(pair))){
+                allSync = false;
+                break;
+            }
         }
+        if (allSync){
+            counter++;
+        }
+        else{
+            if (counter >= window){
+                for (int j = 0; j < counter - 1; j++){
+                    x.push_back(std::abs(trajectory(trajectory.rows()-1, i + j - counter + 1)));
+                    y.push_back(std::abs(trajectory(0, i + j - counter + 1)));
+                }
+            }
+            counter = 0;
+            }
     }
+    /*
+            █             
+    █████   █          █  
+    ██  ██  █          █  
+    ██   █  █   ████  ████
+    ██  ██  █  ██  ██  █  
+    █████   █  █    █  █  
+    ██      █  █    █  █  
+    ██      █  █    █  █  
+    ██      █  ██  ██  ██ 
+    ██      █   ████    ██
+    */
+    std::cout << x.size() << "/" << angles.rows() << " is synchronized" <<std::endl;
     std::cout << "plotting" << std::endl;
     // plot settings
     int skip = 100; // plot every skip points
@@ -100,10 +111,10 @@ int main(){
     std::map<std::string, double> keywords;
     keywords.insert(std::make_pair("hspace", 0.6)); // also right, top, bottom
     keywords.insert(std::make_pair("wspace", 0.4)); // also hspace
-    plt::plot(x, y);
+    plt::scatter(x, y);
 
     std::ostringstream oss;
-    oss << "../../sync/beta_" << beta << "nu_" << nu <<"_"<< t-t_0 << "period.png";  // 文字列を結合する
+    oss << "../../sync/beta_" << beta << "nu_" << nu <<"_"<< t-t_0 << "period" <<  window <<"window.png";  // 文字列を結合する
     std::string plotfname = oss.str(); // 文字列を取得する
     std::cout << "Saving result to " << plotfname << std::endl;
     plt::save(plotfname);
@@ -164,6 +175,7 @@ bool isSync(double a, double b, double epsilon) {
     
     while (lowerBound <= std::abs(a - b)) {
         if (lowerBound <= std::abs(a - b) && std::abs(a - b) <= upperBound) {
+            // std::cout << std::abs(a-b) << std::endl;
             return true;
         }
         n++;

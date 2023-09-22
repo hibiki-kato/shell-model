@@ -27,9 +27,9 @@ namespace plt = matplotlibcpp;
 
 Eigen::MatrixXcd npy2EigenMat(const char* fname);
 Eigen::VectorXcd npy2EigenVec(const char* fname);
+Eigen::MatrixXd npy2RealMat(const char* fname);
 using namespace Eigen;
 
-// 関数プロトタイプ
 MatrixXd computeJacobian(const VectorXd& state, Eigen::VectorXd k_n, double beta, double nu);
 VectorXd computeDerivativeJacobian(const VectorXd& state, const MatrixXd& jacobian);
 VectorXd rungeKuttaJacobian(const VectorXd& state, const MatrixXd& jacobian, double dt);
@@ -46,112 +46,168 @@ int main() {
     double latter = 1;
     int threads = omp_get_max_threads();
     Eigen::VectorXcd dummy = Eigen::VectorXd::Zero(15);
+    const char* fname = "../../beta0.5_nu1e-05_40000period.npy";
     
     double repetitions = 1;
     double r = 1E-5;
     ShellModel SM(nu, beta, f, dt, t_0, t, latter, dummy);
-    // データは読み込み必須
-    Eigen::MatrixXcd rawData = npy2EigenMat("../../beta0.5_nu1e-05_100000period.npy");
-    // パラメータの設定（例）
-    int dim = rawData.rows() - 1;
-    // データの整形(実関数化)
-    Eigen::MatrixXd Data(dim*2, rawData.cols());
-    for (int i = 0; i < dim; ++i) {
-        Data.row(2*i) = rawData.row(i).real();
-        Data.row(2*i+1) = rawData.row(i).imag();
-    }
     
+    std::cout << "loading trajectory" << std::endl;
+    Eigen::MatrixXd Data = npy2RealMat(fname);
     int numTimeSteps = Data.cols();
     int numVariables = Data.rows();
-    Eigen::MatrixXd average_jacobian(dim*2, dim*2);
-    // 平均ヤコビ行列の計算
+    int dim = numVariables / 2;
+    // Eigen::VectorXd time = npy2EigenMat(fname).col(dim).real();
+
+    // 斜めの要素9本ごとに統計を見る
+    Eigen::MatrixXd upperBelt5(numTimeSteps, dim*2-5);
+    Eigen::MatrixXd upperBelt4(numTimeSteps, dim*2-4);
+    Eigen::MatrixXd upperBelt3(numTimeSteps, dim*2-3);
+    Eigen::MatrixXd upperBelt2(numTimeSteps, dim*2-2);
+    Eigen::MatrixXd upperBelt1(numTimeSteps, dim*2-1);
+    Eigen::MatrixXd diagonal(numTimeSteps, dim*2);
+    Eigen::MatrixXd lowerBelt1(numTimeSteps, dim*2-1);
+    Eigen::MatrixXd lowerBelt2(numTimeSteps, dim*2-2);
+    Eigen::MatrixXd lowerBelt3(numTimeSteps, dim*2-3);
+    Eigen::MatrixXd lowerBelt4(numTimeSteps, dim*2-4);
+    Eigen::MatrixXd lowerBelt5(numTimeSteps, dim*2-5);
+
+    std::cout << "calculating jacobian" << std::endl;
+    // ヤコビ行列の計算
     #pragma omp parallel for num_threads(threads)
     for (int i = 0; i < numTimeSteps; ++i) {
         VectorXd state = Data.col(i);
         // ヤコビアンの計算
         auto jacobian = computeJacobian(state, SM.get_k_n_(), SM.get_beta_(), SM.get_nu_());
-        // #pragma omp critical
-        average_jacobian += jacobian / numTimeSteps;
+
+        //　ヤコビアンの斜め要素を行列に格納
+        for (int j = 0; j < dim*2-5; j++){
+            upperBelt5(i, j) = jacobian(j, j+5);
+            lowerBelt5(i, j) = jacobian(j+5, j);
+        }
+
+        for (int j = 0; j < dim*2-4; j++){
+            upperBelt4(i, j) = jacobian(j, j+4);
+            lowerBelt4(i, j) = jacobian(j+4, j);
+        }
+
+        for (int j = 0; j < dim*2-3; j++){
+            upperBelt3(i, j) = jacobian(j, j+3);
+            lowerBelt3(i, j) = jacobian(j+3, j);
+        }
+
+        for (int j = 0; j < dim*2-2; j++){
+            upperBelt2(i, j) = jacobian(j, j+2);
+            lowerBelt2(i, j) = jacobian(j+2, j);
+        }
+
+        for (int j = 0; j < dim*2-1; j++){
+            upperBelt1(i, j) = jacobian(j, j+1);
+            lowerBelt1(i, j) = jacobian(j+1, j);
+        }
+
+        for (int j = 0; j < dim*2; j++){
+            diagonal(i, j) = jacobian(j, j);
+        }
+
     }
     
-    std::cout << "jacobian matrix was " << std::endl << average_jacobian << std::endl;
 
-    Eigen::MatrixXd average(dim+1, SM.get_steps_() + 1);
-
-    #pragma omp paralell for num_threads(threads)
-    for (int h; h<repetitions; h++){
-        if(omp_get_thread_num == 0){
-            std::cout << "processing..." << h*threads << "/" << repetitions << std::flush;
-        }
-        std::random_device rd;
-        std::mt19937 gen(rd());
-        std::uniform_real_distribution<double> s(-M_PI, M_PI);
-
-        Eigen::VectorXcd x_0 = Eigen::VectorXd::Zero(16);
-        double theta = s(gen);
-        
-        x_0(12) += std::complex<double>(r*std::cos(theta), r*std::sin(theta));
-
-        MatrixXcd traj(dim+1, SM.get_steps_() + 1);
-        traj.col(0) = x_0;
-        
-        // ヤコビアンを作用させる用の実ベクトル
-        VectorXd state = VectorXd::Zero(dim*2);
-        for (int i = 0; i < dim; ++i) {
-            state(2*i) = x_0(i).real();
-            state(2*i+1) = x_0(i).imag();
-        }
-        double now = 0;
-        // ヤコビ行列による時間発展
-        for (int i = 1; i < traj.cols(); i++){
-            now += dt;
-            state = rungeKuttaJacobian(state, average_jacobian, dt);
-            for (int j = 0; j < dim; j++){
-                std::complex<double> tmp(state(2*j), state(2*j+1));
-                traj(j, i) = tmp;
-            }
-            traj(dim, i) = now;
-        }
-        #pragma omp critical
-        average += traj.cwiseAbs2() / repetitions;
-
-    }
     
     // 結果の表示
     std::cout << "plotting" << std::endl;
-    std::cout << average.rows() << std::endl;
-    std::cout << dim << std::endl;
     // plot settings
     std::map<std::string, std::string> plotSettings;
     plotSettings["font.family"] = "Times New Roman";
     plotSettings["font.size"] = "10";
     plt::rcparams(plotSettings);
     // Set the size of output image = 1200x780 pixels
-    plt::figure_size(800, 3000);
-    int skip = 1; // plot every skip points
-    std::vector<double> x((trajectory.cols()-1)/skip),y((trajectory.cols()-1)/skip);
-    //time
-    for(int i=0;i<x.size();i++){
-        x[i]=average(average.rows()-1, i*skip);
-    }
-    //plot
-    for(int i=0; i < dim; i++){
-        for(int j=0; j < y.size(); j++){
-            y[j]=average(i, j*skip);
+    plt::figure_size(3000, 3000);
+    int skip = 1000;
+    // Set the size of output image = 1200x780 pixels
+    plt::figure_size(2400, 3600);
+    std::vector<double> x((numTimeSteps-1)/skip),y1((numTimeSteps-1)/skip), y2((numTimeSteps-1)/skip);
+    // times for x axis
+    // for(int i=0;i<trajectory.cols();i++){
+    //     x[i]=time(i*skip);
+    // }
+
+    // plot bar of each belt
+    for(int i=0; i < dim*2-5; i++){
+        for(int j=0; j < y1.size(); j++){
+            y1[j]=upperBelt5(j*skip, i);
+            y2[j]=lowerBelt5(j*skip, i);
         }
-        plt::subplot(dim,1, i+1);
-        plt::yscale("log");
-        plt::plot(x,y);
-        plt::xlabel("Time");
-        plt::ylabel("$U_{" + std::to_string(i+1) + "}$");
+        plt::subplot(dim*2, dim*2, i*dim*2 + i + 5 + 1);
+        plt::bar(y1);
+
+        plt::subplot(dim*2, dim*2, (i+5)*dim*2 + i + 1);
+        plt::bar(y2);
     }
+    std::cout << "first done" << std::endl;
+    for(int i=0; i < dim*2-4; i++){
+        for(int j=0; j < y1.size(); j++){
+            y1[j]=upperBelt4(j*skip, i);
+            y2[j]=lowerBelt4(j*skip, i);
+        }
+        plt::subplot(dim*2, dim*2, i*dim*2 + i + 4 + 1);
+        plt::bar(y1);
+
+        plt::subplot(dim*2, dim*2, (i+4)*dim*2 + i + 1);
+        plt::bar(y2);
+    }
+    std::cout << "second done" << std::endl;
+    for(int i=0; i < dim*2-3; i++){
+        for(int j=0; j < y1.size(); j++){
+            y1[j]=upperBelt3(j*skip, i);
+            y2[j]=lowerBelt3(j*skip, i);
+        }
+        plt::subplot(dim*2, dim*2, i*dim*2 + i + 3 + 1);
+        plt::bar(y1);
+
+        plt::subplot(dim*2, dim*2, (i+3)*dim*2 + i + 1);
+        plt::bar(y2);
+    }
+    std::cout << "third done" << std::endl;
+    for(int i=0; i < dim*2-2; i++){
+        for(int j=0; j < y1.size(); j++){
+            y1[j]=upperBelt2(j*skip, i);
+            y2[j]=lowerBelt2(j*skip, i);
+        }
+        plt::subplot(dim*2, dim*2, i*dim*2 + i + 2 + 1);
+        plt::bar(y1);
+
+        plt::subplot(dim*2, dim*2, (i+2)*dim*2 + i + 1);
+        plt::bar(y2);
+    }
+
+    for(int i=0; i < dim*2-1; i++){
+        for(int j=0; j < y1.size(); j++){
+            y1[j]=upperBelt1(j*skip, i);
+            y2[j]=lowerBelt1(j*skip, i);
+        }
+        plt::subplot(dim*2, dim*2, i*dim*2 + i + 1 + 1);
+        plt::bar(y1);
+
+        plt::subplot(dim*2, dim*2, (i+1)*dim*2 + i + 1);
+        plt::bar(y2);
+    }
+
+    for(int i=0; i < dim*2; i++){
+        for(int j=0; j < y1.size(); j++){
+            y1[j]=diagonal(j*skip, i);
+        }
+        plt::subplot(dim*2, dim*2, i*dim*2 + i + 1);
+        plt::bar(y1);
+    }
+
     std::map<std::string, double> keywords;
     keywords.insert(std::make_pair("hspace", 0.5)); // also right, top, bottom
     keywords.insert(std::make_pair("wspace", 0.5)); // also hspace
     plt::subplots_adjust(keywords);
 
     std::ostringstream oss;
-    oss << "../../traj_images/jacobian_beta_" << beta << "nu_" << nu <<"_"<< t-t_0 << "period"<<repetitions << "repeat.png";  // 文字列を結合する
+    oss << "../../jacobian/dist_beta_" << beta << "nu_" << nu <<"_"<< t-t_0 << "period"<<repetitions << "repeat.png";  // 文字列を結合する
     std::string plotfname = oss.str(); // 文字列を取得する
     std::cout << "Saving result to " << plotfname << std::endl;
     plt::save(plotfname);
@@ -267,4 +323,18 @@ Eigen::VectorXcd npy2EigenVec(const char* fname){
     std::complex<double>* data = arr.data<std::complex<double>>();
     Eigen::Map<Eigen::VectorXcd> vec(data, arr.shape[0]);
     return vec;
+}
+
+Eigen::MatrixXd npy2RealMat(const char* fname){
+    // データは読み込み必須
+    Eigen::MatrixXcd rawData = npy2EigenMat(fname);
+    // パラメータの設定（例）
+    int dim = rawData.rows() - 1;
+    // データの整形(実関数化)
+    Eigen::MatrixXd Data(dim*2, rawData.cols());
+    for (int i = 0; i < dim; ++i) {
+        Data.row(2*i) = rawData.row(i).real();
+        Data.row(2*i+1) = rawData.row(i).imag();
+    }
+    return Data;
 }

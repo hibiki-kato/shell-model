@@ -1,7 +1,7 @@
 *.o
 *.out
 *.npy
-*.vscode
+.vscode/
 CMakeCache.txt
 *.DS_Store
 *.ipynb_checkpoints

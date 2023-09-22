@@ -31,7 +31,7 @@ int main(){
     std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
     double ddt = 0.01;
     double t_0 = 0;
-    double t = 1e+3;
+    double t = 4e+4;
     double latter = 1;
     int numthreads = omp_get_max_threads();
 
