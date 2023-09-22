@@ -46,7 +46,7 @@ int main() {
     double latter = 1;
     int threads = omp_get_max_threads();
     Eigen::VectorXcd dummy = Eigen::VectorXd::Zero(15);
-    const char* fname = "../../beta0.5_nu1e-05_400period.npy";
+    const char* fname = "../../beta0.5_nu1e-05_40000period.npy";
     
     double repetitions = 1;
     double r = 1E-5;
@@ -202,8 +202,8 @@ int main() {
     }
 
     std::map<std::string, double> keywords;
-    keywords.insert(std::make_pair("hspace", 1)); // also right, top, bottom
-    keywords.insert(std::make_pair("wspace", 1)); // also hspace
+    keywords.insert(std::make_pair("hspace", 0.5)); // also right, top, bottom
+    keywords.insert(std::make_pair("wspace", 0.5)); // also hspace
     plt::subplots_adjust(keywords);
 
     std::ostringstream oss;
