@@ -22,7 +22,7 @@
 namespace plt = matplotlibcpp;
 void EigenMt2npy(Eigen::MatrixXcd Mat, std::string fname);
 Eigen::VectorXcd npy2EigenVec(const char* fname);
-double unwrap(double pre_angle, double angle);
+int shift(double pre_theta, double theta, int rotation_number);
 bool isSync(double a, double b, double epsilon);
 
 int main(){
@@ -35,12 +35,13 @@ int main(){
     double t = 1e+5;
     double latter = 1;
     int numthreads = omp_get_max_threads();
-    int window = 100000;
+    int window = 50000;
 
     //make pairs of shells to observe phase difference(num begins from 1)
     std::vector<std::tuple<int, int, double>> sync_pairs;
     sync_pairs.push_back(std::make_tuple(7, 10, 1.05));
     sync_pairs.push_back(std::make_tuple(10, 13, 3.4E-2));
+    sync_pairs.push_back(std::make_tuple(11, 14, 8E-3));
 
     Eigen::VectorXcd x_0 = npy2EigenVec("../../initials/beta0.41616nu0.00018_1.00923e+06period.npy");
     ShellModel solver(nu, beta, f, ddt, t_0, t, latter, x_0);
@@ -49,15 +50,22 @@ int main(){
     Eigen::MatrixXd angles = trajectory.topRows(trajectory.rows()-1).cwiseArg().transpose(); //tall matrix
 
     std::cout << "unwrapping angles" << std::endl;
-    //unwrap
     #pragma omp parallel for num_threads(numthreads)
     for (int i = 0; i < angles.cols(); i++){
+        int rotation_number = 0;
         for (int j = 0; j < angles.rows(); j++){
             if (j == 0){
                 continue;
             }
-            angles(j, i) = unwrap(angles(j-1, i), angles(j, i));
+            //　unwrapされた角度と回転数を返す
+            int  n= shift(angles(j-1, i), angles(j, i), rotation_number);
+            // 一個前の角度に回転数を加える
+            angles(j-1, i) += rotation_number * 2 * M_PI;
+            // 回転数を更新
+            rotation_number = n;
         }
+        // 一番最後の角度に回転数を加える
+        angles(angles.rows()-1, i) += rotation_number * 2 * M_PI;
     }
 
     std::cout << "extracting sync" << std::endl;
@@ -69,6 +77,7 @@ int main(){
             // if any pair is not sync, allSync is false
             if(! isSync(angles(i, std::get<0>(pair)-1), angles(i, std::get<1>(pair)-1), std::get<2>(pair))){
                 allSync = false;
+                
                 break;
             }
         }
@@ -77,13 +86,19 @@ int main(){
         }
         else{
             if (counter >= window){
-                for (int j = 0; j < counter - 1; j++){
+                for (int j = 0 + counter/10; j < counter - 1 - counter/10; j++){
                     x.push_back(std::abs(trajectory(trajectory.rows()-1, i + j - counter + 1)));
                     y.push_back(std::abs(trajectory(0, i + j - counter + 1)));
                 }
             }
             counter = 0;
             }
+    }
+    if (counter >= window){
+        for (int j = 0 + counter/10; j < counter - 1 - counter/10; j++){
+            x.push_back(std::abs(trajectory(trajectory.rows()-1, angles.rows() - counter + j)));
+            y.push_back(std::abs(trajectory(0, angles.rows() - counter + j)));
+        }
     }
     /*
             █             
@@ -146,19 +161,19 @@ void EigenMt2npy(Eigen::MatrixXcd Mat, std::string fname){
     cnpy::npy_save(fname, MOut.data(), {(size_t)transposed.cols(), (size_t)transposed.rows()}, "w");
 }
 
-double unwrap(double pre_angle, double angle){
-    double diff = angle - pre_angle;
-    while (diff > M_PI) {
-        diff -= 2 * M_PI;
-        angle -= 2 * M_PI;
+int shift(double pre_theta, double theta, int rotation_number){
+    //forward
+    if ((theta - pre_theta) < -M_PI){
+        rotation_number += 1;
+    }
+    //backward
+    else if ((theta - pre_theta) > M_PI){
+        rotation_number -= 1;
+    }
 
-    }
-    while (diff < -M_PI) {
-        diff += 2 * M_PI;
-        angle += 2 * M_PI;
-    }
-        return angle;
+    return rotation_number;
 }
+
 /**
  * @brief given 2 angles, check if they are in sync
  * 

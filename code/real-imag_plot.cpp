@@ -1,6 +1,17 @@
+/**
+ * @file real-imag_plot.cpp
+ * @author Hibiki Kato
+ * @brief Plot each shell on complex plane and save as mp4 animation
+ * @version 0.1
+ * @date 2023-09-10
+ * 
+ * @copyright Copyright (c) 2023
+ * 
+ */
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <filesystem>
 #include <eigen3/Eigen/Dense>
 #include <complex>
 #include <cmath>
@@ -10,6 +21,8 @@
 #include "cnpy/cnpy.h"
 #include "matplotlibcpp.h"
 namespace plt = matplotlibcpp;
+namespace fs = std::filesystem;
+
 void EigenMt2npy(Eigen::MatrixXcd Mat, std::string fname);
 Eigen::VectorXcd npy2EigenVec(const char* fname);
 Eigen::MatrixXcd npy2EigenMat(const char* fname);
@@ -17,16 +30,29 @@ Eigen::MatrixXcd npy2EigenMat(const char* fname);
 int main(){
     auto start = std::chrono::system_clock::now(); // 計測開始時間
     double nu = 0.00018;
-    double beta = 0.419;
+    double beta = 0.41616;
     std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
     double ddt = 0.01;
     double t_0 = 0;
-    double t = 2e+4;
+    double t = 1e+4;
     double latter = 2;
+    int refresh = 100;
     Eigen::VectorXcd x_0 = npy2EigenVec("../../initials/beta0.41616nu0.00018_1.00923e+06period.npy");
     ShellModel solver(nu, beta, f, ddt, t_0, t, latter, x_0);
-    // Eigen::MatrixXcd trajectory = solver.get_trajectory_(); 
-    Eigen::MatrixXcd trajectory = npy2EigenMat("../../generated_lam/generated_laminar_beta_0.419nu_0.00018_200000period1500check500progresseps0.1.npy");
+    Eigen::MatrixXcd trajectory = solver.get_trajectory_(); 
+    // Eigen::MatrixXcd trajectory = npy2EigenMat("../../generated_lam/generated_laminar_beta_0.419nu_0.00018_200000period1500check500progresseps0.1.npy");
+    /*
+            █
+    █████   █          █
+    ██  ██  █          █
+    ██   █  █   ████  ████
+    ██  ██  █  ██  ██  █
+    █████   █  █    █  █
+    ██      █  █    █  █
+    ██      █  █    █  █
+    ██      █  ██  ██  ██
+    ██      █   ████    ██
+    */
     // plot settings
     std::map<std::string, std::string> plotSettings;
     plotSettings["font.family"] = "Times New Roman";
@@ -35,35 +61,96 @@ int main(){
     // Set the size of output image = 1200x780 pixels
     plt::figure_size(1200, 1200);
     // Add graph title
-    std::vector<double> x(trajectory.cols()),y(trajectory.cols());
-
-    for(int i=0; i < trajectory.rows()-1; i++){
-        for(int j=0; j < trajectory.cols(); j+=100){
-            x[j]=trajectory(i, j).real();
-            y[j]=trajectory(i, j).imag();
+    std::vector<std::vector<double>> xs(trajectory.rows() - 1, std::vector<double>()), ys(trajectory.rows() - 1, std::vector<double>());
+    for(int i=0; i < trajectory.cols(); i++){
+        if (omp_get_thread_num() == 0) {
+            std::cout << "\r processing..." << i << "/" << trajectory.cols() << std::flush;
         }
-        plt::subplot(4,4, i+1);
-        plt::plot(x,y);
-        plt::xlabel("Real($U_{" + std::to_string(i+1) + "}$)");
-        plt::ylabel("Imag($U_{" + std::to_string(i+1) + "}$)");
+        for (int j=0; j < trajectory.rows() - 1; j++){
+            xs[j].push_back(trajectory(j, i).real());
+            ys[j].push_back(trajectory(j, i).imag());
+        }
+        
+        if (i%refresh == 0 && i > trajectory.cols()/10){
+            plt::clf();
+            for (int j=0; j < trajectory.rows() - 1; j++){
+                plt::subplot(4,4, j+1);
+                std::map<std::string, std::string> keywords1;
+                keywords1.insert(std::make_pair("c", "b")); 
+                keywords1.insert(std::make_pair("lw", "0.1"));
+                // keywords1.insert(std::make_pair("alpha", "1"));
+
+                plt::plot(xs[j],ys[j], keywords1);
+                std::vector<double> x = {0, xs[j].back()};
+                std::vector<double> y = {0, ys[j].back()};
+                std::map<std::string, std::string> keywords2;
+                keywords2.insert(std::make_pair("c", "r")); 
+                keywords2.insert(std::make_pair("lw", "1.5"));
+                plt::plot(x, y, keywords2);
+                plt::xlabel("Real($U_{" + std::to_string(j+1) + "}$)");
+                plt::ylabel("Imag($U_{" + std::to_string(j+1) + "}$)");
+            }
+            std::map<std::string, double> keywords;
+            keywords.insert(std::make_pair("hspace", 0.5)); // also right, top, bottom
+            keywords.insert(std::make_pair("wspace", 0.5)); // also hspace
+            plt::subplots_adjust(keywords);
+            std::ostringstream oss;
+            oss << "../../animation_frames/real-imag_beta_" << beta << "nu_" << nu <<"_"<< t-t_0 << "period" << i << ".png";  // 文字列を結合する
+            std::string plotfname = oss.str(); // 文字列を取得する
+            plt::save(plotfname);
+            oss.str("");
+        }
     }
-    std::map<std::string, double> keywords;
-    keywords.insert(std::make_pair("hspace", 0.5)); // also right, top, bottom
-    keywords.insert(std::make_pair("wspace", 0.5)); // also hspace
-    plt::subplots_adjust(keywords);
 
+   /*
+      ████                                     █       █               ██      ██  █████      ██
+     ██                                        █       █               ███    ███  ██  ██    ███
+    ██       ████   █ ███  █    █   ███   █ ██████    ████   ████      ███    ███  ██   █   ████
+    █       ██  ██  ██  ██  █   █  ██  █  ██   █       █    ██  ██     █ █   ████  ██  ██   █ ██
+    █       █    █  █    █  █  ██  █   ██ █    █       █    █    █     █  █  █ ██  █████   █  ██
+    █       █    █  █    █  ██ █   ██████ █    █       █    █    █     █  █  █ ██  ██     ██  ██
+    ██      █    █  █    █   █ █   █      █    █       █    █    █     █  ███  ██  ██     ███████
+     ██     ██  ██  █    █   ███   ██     █    ██      ██   ██  ██     █   ██  ██  ██         ██
+      ████   ████   █    █   ██     ████  █     ██      ██   ████      █   ██  ██  ██         ██
+   */
+    std::vector<std::string> imagePaths;
     std::ostringstream oss;
-    oss << "../../traj_images/real-imag_beta_" << beta << "nu_" << nu <<"_"<< t-t_0 << "period.png";  // 文字列を結合する
-    std::string plotfname = oss.str(); // 文字列を取得する
-    std::cout << "Saving result to " << plotfname << std::endl;
-    plt::save(plotfname);
+    oss << "../../animation/real-imag_beta_" << beta << "nu_" << nu <<"_"<< t-t_0 << "period.mp4";  // 文字列を結合する
+    std::string outputFilename =  oss.str();
+    std::string folderPath = "../../animation_frames"; // フォルダのパスを指定
+    int framerate = 60; // フレーム間の遅延時間（ミリ秒）
 
-    oss.str("");
-     // 文字列を取得する
-    oss << "../../beta" << beta << "_nu" << nu <<"_"<< t-t_0 << "period.npy";  // 文字列を結合する
-    std::string npyfname = oss.str();
-    // std::cout << "Saving result to " << npyfname << std::endl;
-    // EigenMt2npy(trajectory, npyfname);
+    // 画像ファイルのパスを取得
+    for (const auto& entry : fs::directory_iterator(folderPath)) {
+        if (entry.path().extension() == ".png") {
+            imagePaths.push_back(entry.path().string());
+        }
+    }
+
+    // ImageMagickのconvertコマンドを使用してGIF画像を作成
+    std::string command = "ffmpeg -framerate" + std::to_string(framerate) + " -pattern_type glob -i";
+    for (const auto& imagePath : imagePaths) {
+        command += imagePath + " ";
+    }
+    command += "-c:v libx264 -pix_fmt yuv420p";
+    command += outputFilename;
+
+    // コマンドを実行
+    int result = std::system(command.c_str());
+    if (result == 0) {
+        std::cout << "MP4 animation created successfully." << std::endl;
+        // フォルダ内のファイルを削除
+        for (const auto& entry : fs::directory_iterator(folderPath)) {
+            fs::remove(entry.path());
+        }
+
+        std::cout << "All files in the animation_frames/ have been deleted." << std::endl;
+    } else {
+        std::cerr << "Failed to create Mp4 animation." << std::endl;
+    }
+
+    return 0;
+
 
     auto end = std::chrono::system_clock::now();  // 計測終了時間
     int hours = std::chrono::duration_cast<std::chrono::hours>(end-start).count(); //処理に要した時間を変換

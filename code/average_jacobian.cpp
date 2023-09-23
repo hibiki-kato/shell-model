@@ -129,7 +129,7 @@ int main() {
     // Set the size of output image = 1200x780 pixels
     plt::figure_size(800, 3000);
     int skip = 1; // plot every skip points
-    std::vector<double> x((trajectory.cols()-1)/skip),y((trajectory.cols()-1)/skip);
+    std::vector<double> x((average.cols()-1)/skip),y((average.cols()-1)/skip);
     //time
     for(int i=0;i<x.size();i++){
         x[i]=average(average.rows()-1, i*skip);

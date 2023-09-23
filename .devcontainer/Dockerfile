@@ -19,7 +19,8 @@ RUN if [ "${REINSTALL_CMAKE_VERSION_FROM_SOURCE}" != "none" ]; then \
     libpython3-all-dev \
     python3-numpy \
     python3-matplotlib \
-    msttcorefonts 
+    msttcorefonts \
+    ffmpeg
 
     # refresh matplotlib cache
     # && rm -r ~/.cache/matplotlib

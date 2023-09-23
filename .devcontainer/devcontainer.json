@@ -30,7 +30,8 @@
 				"ms-azuretools.vscode-docker",
 				"MS-CEINTL.vscode-language-pack-ja",
 				"ms-vscode.makefile-tools",
-				"GitHub.copilot"
+				"GitHub.copilot",
+				"cschlosser.doxdocgen"
 			]
 		}
 	}

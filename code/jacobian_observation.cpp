@@ -65,7 +65,6 @@ int main() {
     Eigen::MatrixXd upperBelt3(numTimeSteps, dim*2-3);
     Eigen::MatrixXd upperBelt2(numTimeSteps, dim*2-2);
     Eigen::MatrixXd upperBelt1(numTimeSteps, dim*2-1);
-    Eigen::MatrixXd diagonal(numTimeSteps, dim*2);
     Eigen::MatrixXd lowerBelt1(numTimeSteps, dim*2-1);
     Eigen::MatrixXd lowerBelt2(numTimeSteps, dim*2-2);
     Eigen::MatrixXd lowerBelt3(numTimeSteps, dim*2-3);
@@ -106,10 +105,6 @@ int main() {
             lowerBelt1(i, j) = jacobian(j+1, j);
         }
 
-        for (int j = 0; j < dim*2; j++){
-            diagonal(i, j) = jacobian(j, j);
-        }
-
     }
     
 
@@ -124,8 +119,6 @@ int main() {
     // Set the size of output image = 1200x780 pixels
     plt::figure_size(3000, 3000);
     int skip = 100;
-    // Set the size of output image = 1200x780 pixels
-    plt::figure_size(2400, 3600);
     std::vector<double> x((numTimeSteps-1)/skip),y1((numTimeSteps-1)/skip), y2((numTimeSteps-1)/skip);
     // times for x axis
     // for(int i=0;i<trajectory.cols();i++){
@@ -191,14 +184,6 @@ int main() {
 
         plt::subplot(dim*2, dim*2, (i+1)*dim*2 + i + 1);
         plt::hist(y2);
-    }
-
-    for(int i=0; i < dim*2; i++){
-        for(int j=0; j < y1.size(); j++){
-            y1[j]=diagonal(j*skip, i);
-        }
-        plt::subplot(dim*2, dim*2, i*dim*2 + i + 1);
-        plt::hist(y1);
     }
 
     std::map<std::string, double> keywords;

@@ -22,16 +22,16 @@
 namespace plt = matplotlibcpp;
 void EigenMt2npy(Eigen::MatrixXcd Mat, std::string fname);
 Eigen::VectorXcd npy2EigenVec(const char* fname);
-double unwrap(double pre_angle, double angle);
+int shift(double pre_theta, double theta, int rotation_number);
 
 int main(){
     auto start = std::chrono::system_clock::now(); // 計測開始時間
     double nu = 0.00018;
-    double beta = 0.41623;
+    double beta = 0.41616;
     std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
-    double ddt = 0.01;
+    double ddt = 0.001;
     double t_0 = 0;
-    double t = 1e+5;
+    double t = 1E+3;
     double latter = 1;
     int numthreads = omp_get_max_threads();
 
@@ -90,12 +90,20 @@ int main(){
     //unwrap
     #pragma omp parallel for num_threads(numthreads)
     for (int i = 0; i < angles.cols(); i++){
+        int rotation_number = 0;
         for (int j = 0; j < angles.rows(); j++){
             if (j == 0){
                 continue;
             }
-            angles(j, i) = unwrap(angles(j-1, i), angles(j, i));
+            //　unwrapされた角度と回転数を返す
+            int  n= shift(angles(j-1, i), angles(j, i), rotation_number);
+            // 一個前の角度に回転数を加える
+            angles(j-1, i) += rotation_number * 2 * M_PI;
+            // 回転数を更新
+            rotation_number = n;
         }
+        // 一番最後の角度に回転数を加える
+        angles(angles.rows()-1, i) += rotation_number * 2 * M_PI;
     }
     /*
               ██                                                       ██                 
@@ -119,7 +127,7 @@ int main(){
     std::cout << "plotting angles" << std::endl;
     for(int i=0; i < angles.cols(); i++){
         for(int j=0; j < y.size(); j++){
-            y[j]=angles.cwiseAbs()(j*skip, i);
+            y[j]=angles(j*skip, i);
         }
         plt::subplot(angles.cols(), 2, 2*i+2);
         plt::plot(x,y);
@@ -165,17 +173,24 @@ void EigenMt2npy(Eigen::MatrixXcd Mat, std::string fname){
     // save to np-arrays files
     cnpy::npy_save(fname, MOut.data(), {(size_t)transposed.cols(), (size_t)transposed.rows()}, "w");
 }
-
-double unwrap(double pre_angle, double angle){
-    double diff = angle - pre_angle;
-    while (diff > M_PI) {
-        diff -= 2 * M_PI;
-        angle -= 2 * M_PI;
-
+/**
+ * @brief given previous theta and rotation_number and current theta,  return rotation number(unwrapped)
+ * 
+ * @param pre_theta : previous theta
+ * @param theta : current theta
+ * @param rotation_number : previous rotation number (n in Z, unwrapped angle is theta + 2 * n * pi)
+ * @return int 
+ */
+int shift(double pre_theta, double theta, int rotation_number){
+    //forward
+    if ((theta - pre_theta) < -M_PI){
+        std::cout << theta << std::endl;
+        rotation_number += 1;
     }
-    while (diff < -M_PI) {
-        diff += 2 * M_PI;
-        angle += 2 * M_PI;
+    //backward
+    else if ((theta - pre_theta) > M_PI){
+        rotation_number -= 1;
     }
-        return angle;
+
+    return rotation_number;
 }
