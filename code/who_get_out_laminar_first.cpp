@@ -1,3 +1,13 @@
+/**
+ * @file who_get_out_laminar_first.cpp
+ * @author Hibiki Kato
+ * @brief observe trajectory and detect which shell get out laminar first
+ * @version 0.1
+ * @date 2023-09-23
+ * 
+ * @copyright Copyright (c) 2023
+ * 
+ */
 #include <iostream>
 #include <fstream>
 #include <sstream>
