@@ -31,22 +31,18 @@ int main(){
     std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
     double ddt = 0.01;
     double t_0 = 0;
-    double t = 1e+3;
+    double t = 1e+5;
     double latter = 1;
-    int numthreads = omp_get_max_threads();
+    int threads = omp_get_max_threads();
 
     //make pairs of shells to observe phase difference(num begins from 1)
     std::vector<std::pair<int, int>> sync_pairs;
-    sync_pairs.push_back(std::make_pair(2, 5));
-    sync_pairs.push_back(std::make_pair(2, 8));
-    sync_pairs.push_back(std::make_pair(2, 11));
-    sync_pairs.push_back(std::make_pair(2, 14));
-    sync_pairs.push_back(std::make_pair(5, 8));
-    sync_pairs.push_back(std::make_pair(5, 11));
-    sync_pairs.push_back(std::make_pair(5, 14));
-    sync_pairs.push_back(std::make_pair(8, 11));
-    sync_pairs.push_back(std::make_pair(8, 14));
-    sync_pairs.push_back(std::make_pair(11, 14));
+    sync_pairs.push_back(std::make_pair(3, 6));
+    sync_pairs.push_back(std::make_pair(3, 9));
+    sync_pairs.push_back(std::make_pair(3, 12));
+    sync_pairs.push_back(std::make_pair(6, 9));
+    sync_pairs.push_back(std::make_pair(6, 12));
+    sync_pairs.push_back(std::make_pair(9, 12));
     
     Eigen::VectorXcd x_0 = npy2EigenVec("../../initials/beta0.41616nu0.00018_1.00923e+06period.npy");
     ShellModel solver(nu, beta, f, ddt, t_0, t, latter, x_0);
@@ -56,7 +52,7 @@ int main(){
 
     std::cout << "unwrapping angles" << std::endl;
     //unwrap
-    #pragma omp parallel for num_threads(numthreads)
+    #pragma omp parallel for num_threads(threads)
     for (int i = 0; i < angles.cols(); i++){
         int rotation_number = 0;
         for (int j = 0; j < angles.rows(); j++){
@@ -109,7 +105,6 @@ int main(){
     for(int i=0;i<x.size();i++){
         x[i]=trajectory.cwiseAbs()(trajectory.rows()-1, i*skip);
     }
-    std::cout << "here" << std::endl;
     int counter = 0;
     for(const auto& pair : sync_pairs){
         counter++;
