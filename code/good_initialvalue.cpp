@@ -17,7 +17,6 @@ void EigenVec2npy(Eigen::VectorXcd Vec, std::string fname);
 
 int main(){
     auto start = std::chrono::system_clock::now(); // 計測開始時間
-    
     // generating laminar sample !DO NOT CHANGE!
     double nu = 0.00018;
     double beta = 0.41616;

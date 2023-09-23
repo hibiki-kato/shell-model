@@ -31,18 +31,23 @@ int main(){
     std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
     double ddt = 0.01;
     double t_0 = 0;
-    double t = 1e+5;
+    double t = 3e+6;
     double latter = 1;
     int threads = omp_get_max_threads();
 
     //make pairs of shells to observe phase difference(num begins from 1)
     std::vector<std::pair<int, int>> sync_pairs;
-    sync_pairs.push_back(std::make_pair(3, 6));
-    sync_pairs.push_back(std::make_pair(3, 9));
-    sync_pairs.push_back(std::make_pair(3, 12));
-    sync_pairs.push_back(std::make_pair(6, 9));
-    sync_pairs.push_back(std::make_pair(6, 12));
-    sync_pairs.push_back(std::make_pair(9, 12));
+    sync_pairs.push_back(std::make_pair(2, 5));
+    sync_pairs.push_back(std::make_pair(2, 8));
+    sync_pairs.push_back(std::make_pair(2, 11));
+    sync_pairs.push_back(std::make_pair(2, 14));    
+    sync_pairs.push_back(std::make_pair(5, 8));
+    sync_pairs.push_back(std::make_pair(5, 11));
+    sync_pairs.push_back(std::make_pair(5, 14));
+    sync_pairs.push_back(std::make_pair(8, 11));
+    sync_pairs.push_back(std::make_pair(8, 14));
+    sync_pairs.push_back(std::make_pair(11, 14));
+    
     
     Eigen::VectorXcd x_0 = npy2EigenVec("../../initials/beta0.41616nu0.00018_1.00923e+06period.npy");
     ShellModel solver(nu, beta, f, ddt, t_0, t, latter, x_0);
