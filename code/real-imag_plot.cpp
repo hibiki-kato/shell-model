@@ -30,11 +30,11 @@ Eigen::MatrixXcd npy2EigenMat(const char* fname);
 int main(){
     auto start = std::chrono::system_clock::now(); // 計測開始時間
     double nu = 0.00018;
-    double beta = 0.4164;
+    double beta = 0.41616;
     std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
     double ddt = 0.01;
     double t_0 = 0;
-    double t = 2e+4;
+    double t = 1e+4;
     double latter = 1;
     int refresh = 500; // 1000だとカクカク
     Eigen::VectorXcd x_0 = npy2EigenVec("../../initials/beta0.41616nu0.00018_1.6762e+07period.npy");
