@@ -52,6 +52,7 @@ int main() {
     ShellModel SM(nu, beta, f, dt, t_0, t, latter, dummy);
     // データは読み込み必須
     Eigen::MatrixXcd rawData = npy2EigenMat("../../beta0.5_nu1e-05_100000period.npy");
+    Eigen::MatrixXd Time = rawData.row(rawData.rows()-1).cwiseAbs();
     // パラメータの設定（例）
     int dim = rawData.rows() - 1;
     // データの整形(実関数化)
@@ -113,7 +114,7 @@ int main() {
             traj(dim, i) = now;
         }
         #pragma omp critical
-        average += traj.cwiseAbs2() / repetitions;
+        average += traj.cwiseAbs() / repetitions;
 
     }
     
@@ -132,7 +133,7 @@ int main() {
     std::vector<double> x((average.cols()-1)/skip),y((average.cols()-1)/skip);
     //time
     for(int i=0;i<x.size();i++){
-        x[i]=average(average.rows()-1, i*skip);
+        x[i]=Time(Time.rows()-1, i*skip);
     }
     //plot
     for(int i=0; i < dim; i++){

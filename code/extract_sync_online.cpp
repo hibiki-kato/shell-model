@@ -1,10 +1,10 @@
 /**
- * @file extract_sync.cpp
+ * @file extract_sync_online.cpp
  * @author Hibiki Kato
- * @brief extract synchronized part of trajectory
+ * @brief extract synchronized part of trajectory each time step
  * @version 0.1
- * @date 2023-09-19
- *
+ * @date 2023-09-30
+ * 
  * @copyright Copyright (c) 2023
  * 
  */
@@ -28,11 +28,11 @@ bool isSync(double a, double b, double epsilon);
 int main(){
     auto start = std::chrono::system_clock::now(); // 計測開始時間
     double nu = 0.00018;
-    double beta = 0.4162;
+    double beta = 0.417;
     std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
     double dt = 0.01;
     double t_0 = 0;
-    double t = 1e+5;
+    double t = 2e+5;
     double latter = 1;
     int numthreads = omp_get_max_threads();
     int window = 1000; // how long the sync part should be. (sec)
@@ -48,10 +48,10 @@ int main(){
     sync_pairs.push_back(std::make_tuple(7, 13, 1.1));
     sync_pairs.push_back(std::make_tuple(10, 13, 3.4E-2));
 
-    sync_pairs.push_back(std::make_tuple(5, 8, 2.1));
-    sync_pairs.push_back(std::make_tuple(5, 11, 2.1));
-    sync_pairs.push_back(std::make_tuple(5, 14, 2.1));
-    sync_pairs.push_back(std::make_tuple(8, 11, 0.5));
+    sync_pairs.push_back(std::make_tuple(5, 8, 2.2));
+    sync_pairs.push_back(std::make_tuple(5, 11, 2.2));
+    sync_pairs.push_back(std::make_tuple(5, 14, 2.2));
+    sync_pairs.push_back(std::make_tuple(8, 11, 0.55));
     sync_pairs.push_back(std::make_tuple(8, 14, 0.55));
     sync_pairs.push_back(std::make_tuple(11, 14, 8E-3));
 
@@ -87,7 +87,7 @@ int main(){
     }
 
     std::cout << "extracting sync" << std::endl;
-    std::vector<std::vector<std::complex<double>>> synced;
+    std::vector<std::vector<double>> synced;
     synced.resize(angles.cols()+1);
     int counter = 0;
     for (int i = 0; i < angles.rows(); i++){
@@ -108,7 +108,7 @@ int main(){
                 //adding synchronized part to synced
                 for (int j = 0 + counter/6; j < counter - 1 - counter/10; j++){
                     for (int k = 0; k < angles.cols() + 1; k++){
-                        synced[k].push_back(trajectory(k, j + i - counter));
+                        synced[k].push_back(std::abs(trajectory(k, j + i - counter)));
                     }
                 }
             }
@@ -119,7 +119,7 @@ int main(){
     if (counter >= window){
         for (int j = 0 + counter/6; j < counter - 1 - counter/10; j++){
             for (int k = 0; k < angles.cols() + 1; k++){
-                synced[k].push_back(trajectory(k, j + angles.rows() - counter));
+                synced[k].push_back(std::abs(trajectory(k, j + angles.rows() - counter)));
             }
         }
     }
@@ -149,12 +149,7 @@ int main(){
     std::map<std::string, double> keywords;
     keywords.insert(std::make_pair("hspace", 0.6)); // also right, top, bottom
     keywords.insert(std::make_pair("wspace", 0.4)); // also hspace
-    std::vector<double> x(synced[0].size()/skip),y(synced[0].size()/skip);
-    for (int i = 0; i < x.size(); i++){
-        x[i] = std::abs(synced[synced.size()-1][i*skip]);
-        y[i] = std::abs(synced[0][i*skip]);
-    }
-    plt::scatter(x, y);
+    plt::scatter(synced[3], synced[4]);
 
     std::ostringstream oss;
     oss << "../../sync/beta_" << beta << "nu_" << nu <<"_"<< t-t_0 << "period" <<  window <<"window.png";  // 文字列を結合する
@@ -162,29 +157,6 @@ int main(){
     std::cout << "Saving result to " << plotfname << std::endl;
     plt::save(plotfname);
 
-    /* 
-     ████                          █
-    █                              █
-    █       ███  █    █   ███     ████   ████         █ ███   █ ███  █    █
-    ██         █  █   █  ██  █     █    ██  ██        ██  ██  ██  ██  █   █
-     ███       █  █  ██  █   ██    █    █    █        █    █  █    █  █  ██
-        █   ████  ██ █   ██████    █    █    █        █    █  █    █  ██ █
-        ██ █   █   █ █   █         █    █    █        █    █  █    █   █ █
-        █  █   █   ███   ██        ██   ██  ██     █  █    █  ██  ██   ███
-    ████   █████   ██     ████      ██   ████      ██ █    █  █████     █
-                                                              █         █
-                                                              █        █
-                                                              █      ███
-    */
-        // reset oss
-    oss.str("");
-    oss << "../../sync/beta_" << beta << "nu_" << nu <<"_"<< t-t_0 << "period" <<  window <<"window.npy";  // 文字列を結合する
-    std::string fname = oss.str(); // 文字列を取得する
-    std::cout << "Saving result to " << fname << std::endl;
-    // データの形状を設定
-
-    // cnpyを使用してnpyファイルに出力
-    cnpy::npy_save(fname, &synced[0][0], shape, "w");
     auto end = std::chrono::system_clock::now();  // 計測終了時間
     int hours = std::chrono::duration_cast<std::chrono::hours>(end-start).count(); //処理に要した時間を変換
     int minutes = std::chrono::duration_cast<std::chrono::minutes>(end-start).count(); //処理に要した時間を変換
@@ -248,13 +220,6 @@ bool isSync(double a, double b, double epsilon) {
         lowerBound = 2 * n * M_PI - epsilon;
         upperBound = 2 * n * M_PI + epsilon;
     }
+    
     return false;
-}
-
-void EigenMt2npy(Eigen::MatrixXcd Mat, std::string fname){
-    Eigen::MatrixXcd transposed = Mat.transpose();
-    // map to const mats in memory
-    Eigen::Map<const Eigen::MatrixXcd> MOut(&transposed(0,0), transposed.cols(), transposed.rows());
-    // save to np-arrays files
-    cnpy::npy_save(fname, MOut.data(), {(size_t)transposed.cols(), (size_t)transposed.rows()}, "w");
 }

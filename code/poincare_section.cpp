@@ -20,20 +20,20 @@ std::vector<int> extractCommonColumns(const std::vector<Eigen::MatrixXd>& matric
 int main(){
     auto start = std::chrono::system_clock::now(); // timer start
     double nu = 0.00018;
-    double beta = 0.41616;
+    double beta = 0.4162;
     std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
     double ddt = 0.01;
     double t_0 = 0;
-    double t = 70000;
+    double t = 34000;
     double latter = 2;
-    Eigen::VectorXcd x_0 = npy2EigenVec("../../initials/beta0.41616nu0.00018_1.5371e+07period.npy");
+    Eigen::VectorXcd x_0 = npy2EigenVec("../../initials/beta0.41616nu0.00018_1.00923e+06period.npy");
     std::vector<Eigen::MatrixXd> matrices; //ポアンカレ写像の結果を格納するベクトル
 
     ShellModel SM(nu, beta, f, ddt, t_0, t, latter, x_0);
     // 計算する場合は以下のコメントアウトを外す
-    Eigen::MatrixXcd trajectory = SM.get_trajectory_();
+    // Eigen::MatrixXcd trajectory = SM.get_trajectory_();
     // 計算済みの場合は以下のコメントアウトを外す
-    // Eigen::MatrixXcd trajectory = npy2EigenMat("../../beta0.41616_nu0.00018_combined.npy");
+    Eigen::MatrixXcd trajectory = npy2EigenMat("../../sync/beta_0.4162nu_0.00018_100000period100000window.npy");
     Eigen::MatrixXd traj_abs = trajectory.cwiseAbs();
     
     Eigen::MatrixXd loc_max_4 = loc_max(traj_abs, 4);
@@ -69,7 +69,7 @@ int main(){
     plt::ylim(0.15, 0.4);
     plt::xlim(0.05, 0.6);
     oss.str("");
-    oss << "../../poincare/beta_" << beta << "nu_" << nu << "loc_max_4_super_laminar"<< t / latter <<"period.png";  // 文字列を結合する
+    oss << "../../poincare/beta_" << beta << "nu_" << nu << "loc_max_4"<< t / latter <<"period.png";  // 文字列を結合する
     // oss << "../../poincare/beta_" << beta << "nu_" << nu << "loc_max_4_laminar43000period.png";
     std::string plotfname = oss.str(); // 文字列を取得する
     std::cout << "Saving result to " << plotfname << std::endl;

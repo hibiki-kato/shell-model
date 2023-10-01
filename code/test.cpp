@@ -22,13 +22,15 @@ int main(){
     double t_0 = 0;
     double t = 10000;
     double latter = 1;
-    Eigen::VectorXcd x_0(6);
+    Eigen::VectorXcd x_0(8);
     x_0(0) = std::complex<double>(1 ,1);
     x_0(1) = std::complex<double>(1 ,1);
     x_0(2) = std::complex<double>(1 ,1);
     x_0(3) = std::complex<double>(1 ,1);
     x_0(4) = std::complex<double>(1 ,1);
     x_0(5) = std::complex<double>(1 ,1);
+    x_0(6) = std::complex<double>(1 ,1);
+    x_0(7) = std::complex<double>(1 ,1);
 
     Eigen::VectorXd k_n(x_0.rows());
     for (int i = 0; i < x_0.rows(); ++i) {

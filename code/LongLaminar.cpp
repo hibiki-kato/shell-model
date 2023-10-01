@@ -91,6 +91,9 @@ bool LongLaminar::isLaminarPoint_(Eigen::VectorXcd state){
     int row_end = 9;
     Eigen::VectorXd distance = (laminar.middleRows(row_start, row_end).cwiseAbs() - state.middleRows(row_start, row_end).replicate(1, laminar.cols()).cwiseAbs()).colwise().norm();
 
+    
+
+
     return (distance.array() < epsilon).any();
 }
 
