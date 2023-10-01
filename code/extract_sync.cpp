@@ -28,7 +28,7 @@ bool isSync(double a, double b, double epsilon);
 int main(){
     auto start = std::chrono::system_clock::now(); // 計測開始時間
     double nu = 0.00018;
-    double beta = 0.4162;
+    double beta = 0.4163;
     std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
     double ddt = 0.01;
     double t_0 = 0;
@@ -39,9 +39,26 @@ int main(){
 
     //make pairs of shells to observe phase difference(num begins from 1)
     std::vector<std::tuple<int, int, double>> sync_pairs;
-    sync_pairs.push_back(std::make_tuple(7, 10, 1.05));
+    
+    sync_pairs.push_back(std::make_tuple(4, 7, 2.1));
+    sync_pairs.push_back(std::make_tuple(4, 10, 2.1));
+    sync_pairs.push_back(std::make_tuple(4, 13, 2.1));
+    sync_pairs.push_back(std::make_tuple(7, 10, 1.1));
+    sync_pairs.push_back(std::make_tuple(7, 13, 1.1));
     sync_pairs.push_back(std::make_tuple(10, 13, 3.4E-2));
+
+    sync_pairs.push_back(std::make_tuple(5, 8, 2.2));
+    sync_pairs.push_back(std::make_tuple(5, 11, 2.2));
+    sync_pairs.push_back(std::make_tuple(5, 14, 2.2));
+    sync_pairs.push_back(std::make_tuple(8, 11, 0.55));
+    sync_pairs.push_back(std::make_tuple(8, 14, 0.55));
     sync_pairs.push_back(std::make_tuple(11, 14, 8E-3));
+
+    sync_pairs.push_back(std::make_tuple(6, 9, 1.7));
+    sync_pairs.push_back(std::make_tuple(6, 12, 1.7));
+    sync_pairs.push_back(std::make_tuple(9, 12, 0.2));
+
+    // sync_pairs.push_back(std::make_tuple(1, 2, 4)); // dummy to check unextracted trajectory
 
     Eigen::VectorXcd x_0 = npy2EigenVec("../../initials/beta0.41616nu0.00018_1.00923e+06period.npy");
     ShellModel solver(nu, beta, f, ddt, t_0, t, latter, x_0);
@@ -69,7 +86,8 @@ int main(){
     }
 
     std::cout << "extracting sync" << std::endl;
-    std::vector<double> x, y;
+    std::vector<std::vector<double>> synced;
+    synced.resize(angles.cols()+1);
     int counter = 0;
     for (int i = 0; i < angles.rows(); i++){
         bool allSync = true; // flag 
@@ -77,27 +95,31 @@ int main(){
             // if any pair is not sync, allSync is false
             if(! isSync(angles(i, std::get<0>(pair)-1), angles(i, std::get<1>(pair)-1), std::get<2>(pair))){
                 allSync = false;
-                
                 break;
             }
         }
+
         if (allSync){
             counter++;
         }
         else{
             if (counter >= window){
-                for (int j = 0 + counter/10; j < counter - 1 - counter/10; j++){
-                    x.push_back(std::abs(trajectory(trajectory.rows()-1, i + j - counter + 1)));
-                    y.push_back(std::abs(trajectory(0, i + j - counter + 1)));
+                //adding synchronized part to synced
+                for (int j = 0 + counter/6; j < counter - 1 - counter/10; j++){
+                    for (int k = 0; k < angles.cols() + 1; k++){
+                        synced[k].push_back(trajectory(k, j + i - counter));
+                    }
                 }
             }
             counter = 0;
             }
     }
+    //adding last part to synced
     if (counter >= window){
-        for (int j = 0 + counter/10; j < counter - 1 - counter/10; j++){
-            x.push_back(std::abs(trajectory(trajectory.rows()-1, angles.rows() - counter + j)));
-            y.push_back(std::abs(trajectory(0, angles.rows() - counter + j)));
+        for (int j = 0 + counter/10; j < counter - 1 - counter; j++){
+            for (int k = 0; k < angles.cols() + 1; k++){
+                synced[k].push_back(trajectory(k, j + angles.rows() - counter));
+            }
         }
     }
     /*
@@ -126,7 +148,7 @@ int main(){
     std::map<std::string, double> keywords;
     keywords.insert(std::make_pair("hspace", 0.6)); // also right, top, bottom
     keywords.insert(std::make_pair("wspace", 0.4)); // also hspace
-    plt::scatter(x, y);
+    plt::scatter(synced[3], synced[4]);
 
     std::ostringstream oss;
     oss << "../../sync/beta_" << beta << "nu_" << nu <<"_"<< t-t_0 << "period" <<  window <<"window.png";  // 文字列を結合する

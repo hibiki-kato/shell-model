@@ -19,8 +19,8 @@ void EigenMt2npy(Eigen::MatrixXcd Mat, std::string fname);
 Eigen::MatrixXcd npy2EigenMat(const char* fname);
 
 int main(){
-    const char* a_name = "../../generated_lam/generated_laminar_beta_0.418nu_0.00018_47000period1300check200progresseps0.04.npy";
-    const char* b_name = "../../generated_lam/generated_laminar_beta_0.418nu_0.00018_50000period1300check200progresseps0.04.npy";
+    const char* a_name = "../../generated_lam/generated_laminar_beta_0.421nu_0.00018_47000period1300check200progresseps0.04.npy";
+    const char* b_name = "../../generated_lam/generated_laminar_beta_0.421nu_0.00018_50000period1300check200progresseps0.04.npy";
     int check_point = 46600; // the last time of a (not equal to time in the file name, usually a nice round number)
 
     Eigen::MatrixXcd a = npy2EigenMat(a_name);
