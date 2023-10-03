@@ -60,9 +60,9 @@ int main(){
     latter = 1;
     t = 50000;
     t_0 = 46600;
-    Eigen::MatrixXcd loaded = npy2EigenMat("../../generated_lam/generated_laminar_beta_0.418nu_0.00018_47000period1300check200progresseps0.04.npy");
-    x_0 = loaded.block(0, t_0*100 - 1, 14, 1);
-    // x_0 = npy2EigenVec("../../initials/beta0.418_nu0.00018_3000period.npy");
+    // Eigen::MatrixXcd loaded = npy2EigenMat("../../generated_lam/generated_laminar_beta_0.418nu_0.00018_47000period1300check200progresseps0.04.npy");
+    // x_0 = loaded.block(0, t_0*100 - 1, 14, 1);
+    x_0 = npy2EigenVec("../../initials/beta0.418_nu0.00018_3000period.npy");
 
     LongLaminar LL(nu, beta, f, ddt, t_0, t, latter, x_0, laminar_sample, epsilon, skip, check_sec, progress_sec, threads);
     Eigen::MatrixXcd calced_laminar = LL.stagger_and_step_();
