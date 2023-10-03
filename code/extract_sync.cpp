@@ -32,7 +32,7 @@ int main(){
     std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
     double dt = 0.01;
     double t_0 = 0;
-    double t = 4e+5;
+    double t = 1e+6;
     double latter = 1;
     int numthreads = omp_get_max_threads();
     int window = 1000; // how long the sync part should be. (sec)
