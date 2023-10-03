@@ -28,11 +28,11 @@ bool isSync(double a, double b, double epsilon);
 int main(){
     auto start = std::chrono::system_clock::now(); // 計測開始時間
     double nu = 0.00018;
-    double beta = 0.4162;
+    double beta = 0.417;
     std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
     double dt = 0.01;
     double t_0 = 0;
-    double t = 1e+5;
+    double t = 4e+5;
     double latter = 1;
     int numthreads = omp_get_max_threads();
     int window = 1000; // how long the sync part should be. (sec)
@@ -51,7 +51,7 @@ int main(){
     sync_pairs.push_back(std::make_tuple(5, 8, 2.1));
     sync_pairs.push_back(std::make_tuple(5, 11, 2.1));
     sync_pairs.push_back(std::make_tuple(5, 14, 2.1));
-    sync_pairs.push_back(std::make_tuple(8, 11, 0.5));
+    sync_pairs.push_back(std::make_tuple(8, 11, 0.55));
     sync_pairs.push_back(std::make_tuple(8, 14, 0.55));
     sync_pairs.push_back(std::make_tuple(11, 14, 8E-3));
 
@@ -181,10 +181,14 @@ int main(){
     oss << "../../sync/beta_" << beta << "nu_" << nu <<"_"<< t-t_0 << "period" <<  window <<"window.npy";  // 文字列を結合する
     std::string fname = oss.str(); // 文字列を取得する
     std::cout << "Saving result to " << fname << std::endl;
-    // データの形状を設定
+    Eigen::MatrixXcd matrix(synced.size(), synced[0].size());
+    for (int i = 0; i < synced.size(); i++) {
+        for (int j = 0; j < synced[0].size(); j++) {
+            matrix(i, j) = synced[i][j];
+        }
+    }
+    EigenMt2npy(matrix, fname);
 
-    // cnpyを使用してnpyファイルに出力
-    cnpy::npy_save(fname, &synced[0][0], shape, "w");
     auto end = std::chrono::system_clock::now();  // 計測終了時間
     int hours = std::chrono::duration_cast<std::chrono::hours>(end-start).count(); //処理に要した時間を変換
     int minutes = std::chrono::duration_cast<std::chrono::minutes>(end-start).count(); //処理に要した時間を変換
@@ -249,12 +253,4 @@ bool isSync(double a, double b, double epsilon) {
         upperBound = 2 * n * M_PI + epsilon;
     }
     return false;
-}
-
-void EigenMt2npy(Eigen::MatrixXcd Mat, std::string fname){
-    Eigen::MatrixXcd transposed = Mat.transpose();
-    // map to const mats in memory
-    Eigen::Map<const Eigen::MatrixXcd> MOut(&transposed(0,0), transposed.cols(), transposed.rows());
-    // save to np-arrays files
-    cnpy::npy_save(fname, MOut.data(), {(size_t)transposed.cols(), (size_t)transposed.rows()}, "w");
 }
