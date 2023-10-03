@@ -29,22 +29,23 @@ VectorXd rungeKuttaJacobian(const VectorXd& state, const MatrixXd& jacobian, dou
 // メイン関数
 int main() {
     auto start = std::chrono::system_clock::now(); // 計測開始時間
-    double nu = 1E-8;
-    double beta = 0.5;
+    double nu = 0.00018;
+    double beta = 0.417;
     std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
-    double dt = 0.0001;
+    double dt = 0.002;
     double t_0 = 0;
-    double t = 3000;
+    double t = 50000;
     double latter = 1;
     int threads = omp_get_max_threads();
     Eigen::VectorXcd x_0 = npy2EigenVec("../../initials/beta0.5_nu1e-08_24dim_period.npy");
     
     ShellModel SM(nu, beta, f, dt, t_0, t, latter, x_0);
+    // std::cout << "calculating trajectory" << std::endl;
+    // Eigen::MatrixXcd rawData = SM.get_trajectory_();
     // データの読み込みをここに記述
-    // Eigen::MatrixXcd rawData = npy2EigenMat("../../generated_lam/generated_laminar_beta_0.417nu_0.00018_50000period1300check200progresseps0.05.npy");
+    Eigen::MatrixXcd rawData = npy2EigenMat("../../generated_lam/generated_laminar_beta_0.417nu_0.00018_dt0.002_50000period1300check200progresseps0.04.npy");
     
-    std::cout << "calculating trajectory" << std::endl;
-    Eigen::MatrixXcd rawData = SM.get_trajectory_();
+    
     // パラメータの設定（例）
     int dim = rawData.rows() - 1;
     // データの整形(実関数化)
@@ -86,7 +87,7 @@ int main() {
         Eigen::VectorXd diag = R.diagonal().cwiseAbs().array().log();
         sum += diag;
         if (i % 10000 == 0){
-            std::cout << sum.array() / (i+1) / dt << std::endl;
+            std::cout << "\r" <<  sum(0).array() / (i+1) / dt << std::flush;
         }
 
     }

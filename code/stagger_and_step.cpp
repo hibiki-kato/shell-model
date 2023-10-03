@@ -33,20 +33,15 @@ int main(){
     double nu = 0.00018;
     double beta = 0.41616;
     std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
-    double ddt = 0.01;
+    double dt = 0.01;
     double t_0 = 0;
     double t = 50000;
     double latter = 200;
     Eigen::VectorXcd x_0 = npy2EigenVec("../../initials/beta0.41616nu0.00018_1.05286e+07period.npy");
 
-    double epsilon=4E-2; // 4~5E-2 is appropriate
-    int skip = 1000;
-    double check_sec = 1300;
-    double progress_sec = 200;
-    int threads = omp_get_max_threads();
-    std::cout << threads << "threads" << std::endl;
+    //generating laminar sample for detection
+    ShellModel SM(nu, beta, f, dt, t_0, t, latter, x_0);
 
-    ShellModel SM(nu, beta, f, ddt, t_0, t, latter, x_0);
     Eigen::MatrixXcd laminar = SM.get_trajectory_();
     int numCols = laminar.cols() / 10;
     Eigen::MatrixXcd laminar_sample(laminar.rows(), numCols);
@@ -59,12 +54,19 @@ int main(){
     nu = 0.00018;
     latter = 1;
     t = 50000;
-    t_0 = 46600;
+    dt = 0.002;
+    t_0 = 0;
     // Eigen::MatrixXcd loaded = npy2EigenMat("../../generated_lam/generated_laminar_beta_0.418nu_0.00018_47000period1300check200progresseps0.04.npy");
     // x_0 = loaded.block(0, t_0*100 - 1, 14, 1);
-    x_0 = npy2EigenVec("../../initials/beta0.418_nu0.00018_3000period.npy");
+    x_0 = npy2EigenVec("../../initials/beta0.417_nu0.00018_7000period_dt0.002.npy");
+    double epsilon=4E-2; // 4~5E-2 is appropriate
+    int skip = 1000;
+    double check_sec = 1300;
+    double progress_sec = 200;
+    int threads = omp_get_max_threads();
+    std::cout << threads << "threads" << std::endl;
 
-    LongLaminar LL(nu, beta, f, ddt, t_0, t, latter, x_0, laminar_sample, epsilon, skip, check_sec, progress_sec, threads);
+    LongLaminar LL(nu, beta, f, dt, t_0, t, latter, x_0, laminar_sample, epsilon, skip, check_sec, progress_sec, threads);
     Eigen::MatrixXcd calced_laminar = LL.stagger_and_step_();
     plt::figure_size(1200, 780);
     // Add graph title
@@ -84,7 +86,7 @@ int main(){
     plt::save(filename);
 
     oss.str("");
-    oss << "../../generated_lam/generated_laminar_beta_" << beta << "nu_" << nu <<"_"<< reach << "period" << check_sec << "check" << progress_sec << "progress" << "eps" << epsilon << ".npy";
+    oss << "../../generated_lam/generated_laminar_beta_" << beta << "nu_" << nu <<"_dt"<< dt << "_" << reach << "period" << check_sec << "check" << progress_sec << "progress" << "eps" << epsilon << ".npy";
     std::string fname = oss.str(); // 文字列を取得する
     std::cout << "saving as " << fname << std::endl;
     EigenMt2npy(calced_laminar, fname);

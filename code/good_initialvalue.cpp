@@ -36,14 +36,15 @@ int main(){
     }
 
     // set up for search
-    t=3000;
+    t=7000;
     latter = 1;
     nu = 0.00018;
-    beta = 0.42;
-    x_0 = npy2EigenVec("../../initials/beta0.419_nu0.00018_3000period.npy");
+    beta = 0.417;
+    ddt = 0.002;
+    x_0 = npy2EigenVec("../../initials/beta0.417_nu0.00018_3000period_dt0.002.npy");
     int num_of_candidates = 32;
     int skip = 100;
-    double epsilon = 4E-2;
+    double epsilon = 3E-2;
     int threads = omp_get_max_threads();
     std::cout << threads << "threads" << std::endl;
 
@@ -79,7 +80,7 @@ int main(){
     }
     
     std::ostringstream oss;
-    oss << "../../initials/beta" << beta << "_nu" << nu<< "_" << static_cast<int>(longest+0.5) << "period.npy";  // 文字列を結合する
+    oss << "../../initials/beta" << beta << "_nu" << nu<< "_" << static_cast<int>(longest+0.5) << "period_dt" << ddt << ".npy";  // 文字列を結合する
     std::string fname = oss.str(); // 文字列を取得する
     std::cout << "saving as " << fname << std::endl;
     EigenVec2npy(LL.get_x_0_(), fname);

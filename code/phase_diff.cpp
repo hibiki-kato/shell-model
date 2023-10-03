@@ -33,11 +33,13 @@ int main(){
     double ddt = 0.01;
     double t_0 = 0;
     double t = 5e+4;
+
     double latter = 1;
     int threads = omp_get_max_threads();
 
     //make pairs of shells to observe phase difference(num begins from 1)
     std::vector<std::pair<int, int>> sync_pairs;
+
     sync_pairs.push_back(std::make_pair(1, 4));
     sync_pairs.push_back(std::make_pair(1, 7));
     sync_pairs.push_back(std::make_pair(1, 10));
@@ -59,6 +61,7 @@ int main(){
     // sync_pairs.push_back(std::make_pair(8, 11));
     // sync_pairs.push_back(std::make_pair(8, 14));
     // sync_pairs.push_back(std::make_pair(11, 14));
+
     
     
     Eigen::VectorXcd x_0 = npy2EigenVec("../../initials/beta0.41616nu0.00018_1.00923e+06period.npy");
