@@ -65,22 +65,30 @@ Eigen::MatrixXcd ShellModel::get_trajectory_(){
     return trajectory;
 };
 
-Eigen::VectorXd ShellModel::get_energy_spectrum_(){
-    Eigen::VectorXcd x = x_0;
-    Eigen::VectorXd sum(x_0.rows(), 1);
-    
-    //renew x_0 while reaching latter
-    for (long i = 0; i < static_cast<long>((t - t_0) / ddt +0.5) - steps; i++){
-        x = ShellModel::rk4_(x);
-    }
+Eigen::VectorXd ShellModel::get_energy_spectrum_(const Eigen::MatrixXcd& trajectory){
+    if (trajectory.rows() == 0){
+        Eigen::VectorXcd x = x_0;
+        Eigen::VectorXd sum(x_0.rows(), 1);
+        
+        //renew x_0 while reaching latter
+        for (long i = 0; i < static_cast<long>((t - t_0) / ddt +0.5) - steps; i++){
+            x = ShellModel::rk4_(x);
+        }
 
-    // get energy spectrum by calc mean of absolute value of each shell's
-    sum = x.cwiseAbs();
-    for (long i = 0; i < steps; i++){
-        x = ShellModel::rk4_(x);
-        sum += x.cwiseAbs();
+        // get energy spectrum by calc mean of absolute value of each shell's
+        sum = x.cwiseAbs();
+        for (long i = 0; i < steps; i++){
+            x = ShellModel::rk4_(x);
+            sum += x.cwiseAbs();
+        }
+        return sum.array() / (steps+1);
     }
-    return sum.array() / (steps+1);
+    else{
+        Eigen::VectorXd sum(trajectory.rows()-1, 1);
+        sum = trajectory.topRows(trajectory.rows()-1).cwiseAbs().rowwise().mean();
+        return sum;
+    }
+    
 }
 
 void ShellModel::set_nu_(double input_nu){

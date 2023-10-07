@@ -36,13 +36,13 @@ int main(){
     }
 
     // set up for search
-    t=7000;
+    t=10000;
     latter = 1;
     nu = 0.00018;
-    beta = 0.417;
-    ddt = 0.002;
-    x_0 = npy2EigenVec("../../initials/beta0.417_nu0.00018_3000period_dt0.002.npy");
-    int num_of_candidates = 32;
+    beta = 0.42;
+    ddt = 0.01;
+    x_0 = npy2EigenVec("../../initials/beta0.42_nu0.00018_2000period.npy");
+    int num_of_candidates = 8;
     int skip = 100;
     double epsilon = 3E-2;
     int threads = omp_get_max_threads();

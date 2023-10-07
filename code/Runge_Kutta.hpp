@@ -15,7 +15,7 @@ public:
     //destructor
     ~ShellModel();
     Eigen::MatrixXcd get_trajectory_();
-    Eigen::VectorXd get_energy_spectrum_();
+    Eigen::VectorXd get_energy_spectrum_(const Eigen::MatrixXcd& trajectory = Eigen::MatrixXcd());
     Eigen::VectorXcd rk4_(Eigen::VectorXcd present);
 
     void set_nu_(double input_nu);

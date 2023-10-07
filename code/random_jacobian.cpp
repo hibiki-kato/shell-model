@@ -144,42 +144,42 @@ int main() {
                                                 ██
                                             █████
     */
-    // 結果の表示
-    // std::cout << "plotting" << std::endl;
-    // // plot settings
-    // std::map<std::string, std::string> plotSettings;
-    // plotSettings["font.family"] = "Times New Roman";
-    // plotSettings["font.size"] = "10";
-    // plt::rcparams(plotSettings);
-    // // Set the size of output image = 1200x780 pixels
-    // plt::figure_size(2000, 3000);
-    // int skip = 1; // plot every skip points
-    // std::vector<double> x((average.cols()-1)/skip),y((average.cols()-1)/skip);
-    // //time
-    // for(int i=0;i<x.size();i++){
-    //     x[i]=Time(i*skip);
-    // }
-    // //plot
-    // for(int i=0; i < dim; i+=4){
-    //     for(int j=0; j < y.size(); j++){
-    //         y[j]=average(i, j*skip);
-    //     }
-    //     plt::subplot(dim,1, i+1);
-    //     plt::yscale("log");
-    //     plt::plot(x,y);
-    //     plt::xlabel("Time");
-    //     plt::ylabel("$U_{" + std::to_string(i+1) + "}$");
-    // }
-    // std::map<std::string, double> keywords;
-    // keywords.insert(std::make_pair("hspace", 0.5)); // also right, top, bottom
-    // keywords.insert(std::make_pair("wspace", 0.5)); // also hspace
-    // plt::subplots_adjust(keywords);
+    //結果の表示
+    std::cout << "plotting" << std::endl;
+    // plot settings
+    std::map<std::string, std::string> plotSettings;
+    plotSettings["font.family"] = "Times New Roman";
+    plotSettings["font.size"] = "10";
+    plt::rcparams(plotSettings);
+    // Set the size of output image = 1200x780 pixels
+    plt::figure_size(2000, 3000);
+    int skip = 1; // plot every skip points
+    std::vector<double> x((average.cols()-1)/skip),y((average.cols()-1)/skip);
+    //time
+    for(int i=0;i<x.size();i++){
+        x[i]=Time(i*skip);
+    }
+    //plot
+    for(int i=0; i < dim; i+=4){
+        for(int j=0; j < y.size(); j++){
+            y[j]=average(i, j*skip);
+        }
+        plt::subplot(dim,1, i+1);
+        plt::yscale("log");
+        plt::plot(x,y);
+        plt::xlabel("Time");
+        plt::ylabel("$U_{" + std::to_string(i+1) + "}$");
+    }
+    std::map<std::string, double> keywords;
+    keywords.insert(std::make_pair("hspace", 0.5)); // also right, top, bottom
+    keywords.insert(std::make_pair("wspace", 0.5)); // also hspace
+    plt::subplots_adjust(keywords);
 
-    // std::ostringstream oss;
-    // oss << "../../traj_images/jacobian_beta_" << beta << "nu_" << nu <<"_"<< t-t_0 << "period"<<repetitions << "repeat.png";  // 文字列を結合する
-    // std::string plotfname = oss.str(); // 文字列を取得する
-    // std::cout << "Saving result to " << plotfname << std::endl;
-    // plt::save(plotfname);
+    std::ostringstream oss;
+    oss << "../../traj_images/jacobian_beta_" << beta << "nu_" << nu <<"_"<< t-t_0 << "period"<<repetitions << "repeat.png";  // 文字列を結合する
+    std::string plotfname = oss.str(); // 文字列を取得する
+    std::cout << "Saving result to " << plotfname << std::endl;
+    plt::save(plotfname);
     
     /*
      ██     █                    █                      ███                          █
@@ -197,46 +197,46 @@ int main() {
                                             █████
     // */
     // calculate error ratio of each shell
-    for (int i = 0; i < average.cols(); i++) {
-        average.block(0, i, dim, 1) /= average.block(0, i, dim, 1).sum();
-    }
-    // 結果の表示
-    std::cout << "plotting" << std::endl;
-    // plot settings
-    std::map<std::string, std::string> plotSettings;
-    plotSettings["font.family"] = "Times New Roman";
-    plotSettings["font.size"] = "10";
-    plt::rcparams(plotSettings);
-    // Set the size of output image = 1200x780 pixels
-    plt::figure_size(1200, 780);
-    int skip = 100; // plot every skip points
-    std::vector<double> x((average.cols()-1)/skip),y((average.cols()-1)/skip);
-    //time
-    for(int i=0;i<x.size();i++){
-        x[i]=Time(i*skip);
-    }
-    //plot
-    for(int i=0; i < dim; i++){
-        if (i == 0 | i == 1 | i == 3 | i == 4 | i == 7 | i == 8){
-            for(int j=0; j < y.size(); j++){
-                y[j]=average(i, j*skip);
-            }
-            std::map<std::string, std::string> keywords;
-            keywords.insert(std::pair<std::string, std::string>("label", std::to_string(i+1)+"th shell"));
-            plt::plot(x, y, keywords);
-        }
-    }
-    plt::xscale("log");
-    plt::yscale("log");
-    plt::xlabel("Time");
-    plt::ylabel("Ratio among shells");
-    plt::legend();
+    // for (int i = 0; i < average.cols(); i++) {
+    //     average.block(0, i, dim, 1) /= average.block(0, i, dim, 1).sum();
+    // }
+    // // 結果の表示
+    // std::cout << "plotting" << std::endl;
+    // // plot settings
+    // std::map<std::string, std::string> plotSettings;
+    // plotSettings["font.family"] = "Times New Roman";
+    // plotSettings["font.size"] = "10";
+    // plt::rcparams(plotSettings);
+    // // Set the size of output image = 1200x780 pixels
+    // plt::figure_size(1200, 780);
+    // int skip = 100; // plot every skip points
+    // std::vector<double> x((average.cols()-1)/skip),y((average.cols()-1)/skip);
+    // //time
+    // for(int i=0;i<x.size();i++){
+    //     x[i]=Time(i*skip);
+    // }
+    // //plot
+    // for(int i=0; i < dim; i++){
+    //     if (i == 0 | i == 1 | i == 3 | i == 4 | i == 7 | i == 8){
+    //         for(int j=0; j < y.size(); j++){
+    //             y[j]=average(i, j*skip);
+    //         }
+    //         std::map<std::string, std::string> keywords;
+    //         keywords.insert(std::pair<std::string, std::string>("label", std::to_string(i+1)+"th shell"));
+    //         plt::plot(x, y, keywords);
+    //     }
+    // }
+    // plt::xscale("log");
+    // plt::yscale("log");
+    // plt::xlabel("Time");
+    // plt::ylabel("Ratio among shells");
+    // plt::legend();
 
-    std::ostringstream oss;
-    oss << "../../error_dominant_shell/jacobian_beta_" << beta << "nu_" << nu <<"_"<< t-t_0 << "period"<<repetitions << "repeat.png";  // 文字列を結合する
-    std::string plotfname = oss.str(); // 文字列を取得する
-    std::cout << "Saving result to " << plotfname << std::endl;
-    plt::save(plotfname);
+    // std::ostringstream oss;
+    // oss << "../../error_dominant_shell/jacobian_beta_" << beta << "nu_" << nu <<"_"<< t-t_0 << "period"<<repetitions << "repeat.png";  // 文字列を結合する
+    // std::string plotfname = oss.str(); // 文字列を取得する
+    // std::cout << "Saving result to " << plotfname << std::endl;
+    // plt::save(plotfname);
 
     auto end = std::chrono::system_clock::now();  // 計測終了時間
     int hours = std::chrono::duration_cast<std::chrono::hours>(end-start).count(); //処理に要した時間を変換
@@ -317,7 +317,27 @@ VectorXd rungeKuttaJacobian(const VectorXd& state, const MatrixXd& jacobian, dou
 
 VectorXd computeDerivativeJacobian(const VectorXd& state, const MatrixXd& jacobian) {
     VectorXd derivative(state.rows());
-    derivative = jacobian * state;
+    VectorXd energy_scale = VectorXd::Zero(state.rows());
+    std::vector<double> energy = {0.287058,
+                                0.192392,
+                                0.206979,
+                                0.101921,
+                                0.0960957,
+                                0.0836411,
+                                0.0567056,
+                                0.0414303,
+                                0.0369566,
+                                0.0252059,
+                                0.0153319,
+                                0.0151464,
+                                0.00973406,
+                                0.00322299,
+                                0.000500837};
+    for(int i=0; i < energy_scale.size(); i++){
+        energy_scale(2*i) = energy[i];
+        energy_scale(2*i+1) = energy[i];
+    }
+    derivative = jacobian * (state.array() * (1-state.array()/energy_scale.array()));
     return derivative;
 }
 

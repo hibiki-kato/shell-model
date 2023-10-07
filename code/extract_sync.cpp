@@ -28,11 +28,11 @@ bool isSync(double a, double b, double epsilon);
 int main(){
     auto start = std::chrono::system_clock::now(); // 計測開始時間
     double nu = 0.00018;
-    double beta = 0.417;
+    double beta = 0.4162;
     std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
     double dt = 0.01;
     double t_0 = 0;
-    double t = 1e+6;
+    double t = 1e+5;
     double latter = 1;
     int numthreads = omp_get_max_threads();
     int window = 1000; // how long the sync part should be. (sec)
@@ -106,7 +106,7 @@ int main(){
         else{
             if (counter >= window){
                 //adding synchronized part to synced
-                for (int j = 0 + counter/6; j < counter - 1 - counter/10; j++){
+                for (int j = 0 + 500*100; j < counter - 1 - 500*100; j++){
                     for (int k = 0; k < angles.cols() + 1; k++){
                         synced[k].push_back(trajectory(k, j + i - counter));
                     }

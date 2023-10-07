@@ -106,7 +106,7 @@ int main(){
         else{
             if (counter >= window){
                 //adding synchronized part to synced
-                for (int j = 0 + counter/6; j < counter - 1 - counter/10; j++){
+                for (int j = 0 + 400*100; j < counter - 1 - 400*100; j++){
                     for (int k = 0; k < angles.cols() + 1; k++){
                         synced[k].push_back(std::abs(trajectory(k, j + i - counter)));
                     }
