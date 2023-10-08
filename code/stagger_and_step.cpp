@@ -31,13 +31,13 @@ int main(){
     // generating laminar sample for detection
     // !DO NOT CHANGE!
     double nu = 0.00018;
-    double beta = 0.41616;
+    double beta = 0.415;
     std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
     double dt = 0.01;
     double t_0 = 0;
-    double t = 50000;
-    double latter = 200;
-    Eigen::VectorXcd x_0 = npy2EigenVec("../../initials/beta0.41616nu0.00018_1.05286e+07period.npy");
+    double t = 5000;
+    double latter = 20;
+    Eigen::VectorXcd x_0 = npy2EigenVec("../../initials/beta0.415_nu0.00018_100000period_dt0.01.npy");
 
     //generating laminar sample for detection
     ShellModel SM(nu, beta, f, dt, t_0, t, latter, x_0);
@@ -50,19 +50,19 @@ int main(){
         laminar_sample.col(i) = laminar.col(colIdx);
     }
 
-    beta = 0.418;
+    beta = 0.416;
     nu = 0.00018;
     latter = 1;
     t = 50000;
-    dt = 0.002;
+    dt = 0.01;
     t_0 = 0;
     // Eigen::MatrixXcd loaded = npy2EigenMat("../../generated_lam/generated_laminar_beta_0.418nu_0.00018_47000period1300check200progresseps0.04.npy");
     // x_0 = loaded.block(0, t_0*100 - 1, 14, 1);
-    x_0 = npy2EigenVec("../../initials/beta0.417_nu0.00018_7000period_dt0.002.npy");
-    double epsilon=4E-2; // 4~5E-2 is appropriate
+    x_0 = npy2EigenVec("../../initials/beta0.416_nu0.00018_10000period_dt0.01eps0.02.npy");
+    double epsilon=1E-2; // 4~5E-2 is appropriate
     int skip = 1000;
-    double check_sec = 1300;
-    double progress_sec = 200;
+    double check_sec = 500;
+    double progress_sec = 20;
     int threads = omp_get_max_threads();
     std::cout << threads << "threads" << std::endl;
 

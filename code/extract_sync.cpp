@@ -28,11 +28,11 @@ bool isSync(double a, double b, double epsilon);
 int main(){
     auto start = std::chrono::system_clock::now(); // 計測開始時間
     double nu = 0.00018;
-    double beta = 0.4162;
+    double beta = 0.417;
     std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
     double dt = 0.01;
     double t_0 = 0;
-    double t = 1e+5;
+    double t = 1e+6;
     double latter = 1;
     int numthreads = omp_get_max_threads();
     int window = 1000; // how long the sync part should be. (sec)
@@ -138,7 +138,7 @@ int main(){
     std::cout << synced[0].size() << "/" << angles.rows() << " is synchronized" <<std::endl;
     std::cout << "plotting" << std::endl;
     // plot settings
-    int skip = 100; // plot every skip points
+    int skip = 1; // plot every skip points
     std::map<std::string, std::string> plotSettings;
     plotSettings["font.family"] = "Times New Roman";
     plotSettings["font.size"] = "10";

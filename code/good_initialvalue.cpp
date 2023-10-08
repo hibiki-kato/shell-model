@@ -19,13 +19,13 @@ int main(){
     auto start = std::chrono::system_clock::now(); // 計測開始時間
     // generating laminar sample !DO NOT CHANGE!
     double nu = 0.00018;
-    double beta = 0.41616;
+    double beta = 0.415;
     std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
     double ddt = 0.01;
     double t_0 = 0;
-    double t = 1000;
-    double latter = 4;
-    Eigen::VectorXcd x_0 = npy2EigenVec("../../initials/beta0.41616nu0.00018_1.05286e+07period.npy");
+    double t = 5000;
+    double latter = 20;
+    Eigen::VectorXcd x_0 = npy2EigenVec("../../initials/beta0.415_nu0.00018_100000period_dt0.01.npy");
     ShellModel SM(nu, beta, f, ddt, t_0, t, latter, x_0);
     Eigen::MatrixXcd laminar = SM.get_trajectory_();
     int numRows = laminar.cols() / 10;
@@ -34,17 +34,26 @@ int main(){
         int colIdx = 10 * i;
         laminar_sample.col(i) = laminar.col(colIdx);
     }
+    // undo comment out if you want to see laminar sample
+    // std::vector<double> x(laminar_sample.cols()),y(laminar_sample.cols());
+    // for(int i = 0; i < laminar_sample.cols(); i++){
+    //     x[i] = std::abs(laminar_sample(14, i));
+    //     y[i] = std::abs(laminar_sample(13, i));
+    // }
+    // plt::figure();
+    // plt::scatter(x, y);
+    // plt::save("../../laminar_sample.png");
 
     // set up for search
     t=10000;
     latter = 1;
     nu = 0.00018;
-    beta = 0.42;
+    beta = 0.416;
     ddt = 0.01;
-    x_0 = npy2EigenVec("../../initials/beta0.42_nu0.00018_2000period.npy");
-    int num_of_candidates = 8;
+    x_0 = npy2EigenVec("../../initials/beta0.416_nu0.00018_1000period_dt0.01eps0.01.npy");
+    int num_of_candidates = 32;
     int skip = 100;
-    double epsilon = 3E-2;
+    double epsilon = 2E-2;
     int threads = omp_get_max_threads();
     std::cout << threads << "threads" << std::endl;
 
@@ -52,7 +61,7 @@ int main(){
     Eigen::MatrixXcd initials(x_0.size(), num_of_candidates);
     double longest;
 
-    for(int i = 0; i < 40; i++){
+    for(int i = 0; i < 400; i++){
         // make matrix that each cols are candidates of initial value
         std::cout << "現在"  << i+1 << "回" <<std::endl;
         initials.col(0) = LL.get_x_0_();
@@ -80,7 +89,7 @@ int main(){
     }
     
     std::ostringstream oss;
-    oss << "../../initials/beta" << beta << "_nu" << nu<< "_" << static_cast<int>(longest+0.5) << "period_dt" << ddt << ".npy";  // 文字列を結合する
+    oss << "../../initials/beta" << beta << "_nu" << nu<< "_" << static_cast<int>(longest+0.5) << "period_dt" << ddt <<"eps" << epsilon <<".npy";  // 文字列を結合する
     std::string fname = oss.str(); // 文字列を取得する
     std::cout << "saving as " << fname << std::endl;
     EigenVec2npy(LL.get_x_0_(), fname);

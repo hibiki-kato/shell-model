@@ -30,14 +30,14 @@ Eigen::MatrixXcd npy2EigenMat(const char* fname);
 int main(){
     auto start = std::chrono::system_clock::now(); // 計測開始時間
     double nu = 0.00018;
-    double beta = 0.41616;
+    double beta = 0.415;
     std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
     double ddt = 0.01;
     double t_0 = 0;
     double t = 1e+4;
     double latter = 1;
     int refresh = 500; // 1000だとカクカク
-    Eigen::VectorXcd x_0 = npy2EigenVec("../../initials/beta0.41616nu0.00018_1.6762e+07period.npy");
+    Eigen::VectorXcd x_0 = npy2EigenVec("../../initials/beta0.415_nu0.00018_14dim_period.npy");
     ShellModel solver(nu, beta, f, ddt, t_0, t, latter, x_0);
     Eigen::MatrixXcd trajectory = solver.get_trajectory_(); 
     // Eigen::MatrixXcd trajectory = npy2EigenMat("../../generated_lam/generated_laminar_beta_0.419nu_0.00018_200000period1500check500progresseps0.1.npy");
@@ -120,7 +120,8 @@ int main(){
     std::string folderPath = "../../animation_frames/"; // フォルダのパスを指定
     int framerate = 60; // フレーム間の遅延時間（ミリ秒）
 
-    // ImageMagickのconvertコマンドを使用してGIF画像を作成
+    // フォルダ内のファイルを取得
+    
     std::string command = "ffmpeg -framerate " + std::to_string(framerate) + " -pattern_type glob -i '" + folderPath + "*.png' -c:v libx264 -pix_fmt yuv420p " + outputFilename;
     std::cout << command << std::endl;
     // コマンドを実行
