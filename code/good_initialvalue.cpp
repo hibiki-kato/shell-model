@@ -19,13 +19,13 @@ int main(){
     auto start = std::chrono::system_clock::now(); // 計測開始時間
     // generating laminar sample !DO NOT CHANGE!
     double nu = 0.00018;
-    double beta = 0.415;
+    double beta = 0.417;
     std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
     double ddt = 0.01;
     double t_0 = 0;
     double t = 5000;
     double latter = 20;
-    Eigen::VectorXcd x_0 = npy2EigenVec("../../initials/beta0.415_nu0.00018_100000period_dt0.01.npy");
+    Eigen::VectorXcd x_0 = npy2EigenVec("../../initials/beta0.417_nu0.00018_10000period_dt0.01eps0.02.npy");
     ShellModel SM(nu, beta, f, ddt, t_0, t, latter, x_0);
     Eigen::MatrixXcd laminar = SM.get_trajectory_();
     int numRows = laminar.cols() / 10;
@@ -35,25 +35,25 @@ int main(){
         laminar_sample.col(i) = laminar.col(colIdx);
     }
     // undo comment out if you want to see laminar sample
-    // std::vector<double> x(laminar_sample.cols()),y(laminar_sample.cols());
-    // for(int i = 0; i < laminar_sample.cols(); i++){
-    //     x[i] = std::abs(laminar_sample(14, i));
-    //     y[i] = std::abs(laminar_sample(13, i));
-    // }
-    // plt::figure();
-    // plt::scatter(x, y);
-    // plt::save("../../laminar_sample.png");
+    std::vector<double> x(laminar_sample.cols()),y(laminar_sample.cols());
+    for(int i = 0; i < laminar_sample.cols(); i++){
+        x[i] = std::abs(laminar_sample(3, i));
+        y[i] = std::abs(laminar_sample(4, i));
+    }
+    plt::figure();
+    plt::scatter(x, y);
+    plt::save("../../laminar_sample.png");
 
     // set up for search
     t=10000;
     latter = 1;
     nu = 0.00018;
-    beta = 0.416;
+    beta = 0.417;
     ddt = 0.01;
-    x_0 = npy2EigenVec("../../initials/beta0.416_nu0.00018_2446period_dt0.01eps0.01.npy");
-    int num_of_candidates = 8;
+    x_0 = npy2EigenVec("../../initials/beta0.417_nu0.00018_9973period_dt0.01eps0.005.npy");
+    int num_of_candidates = 32;
     int skip = 100;
-    double epsilon = 1E-2;
+    double epsilon = 5E-3;
     int threads = omp_get_max_threads();
     std::cout << threads << "threads" << std::endl;
 
@@ -66,7 +66,7 @@ int main(){
         std::cout << "現在"  << i+1 << "回" <<std::endl;
         initials.col(0) = LL.get_x_0_();
         for(int j = 1; j < num_of_candidates - 1; j++){
-            initials.col(j) = LL.perturbation_(LL.get_x_0_(), -10, -1);
+            initials.col(j) = LL.perturbation_(LL.get_x_0_(), -14, -1);
         }
         Eigen::VectorXd durations(num_of_candidates);
         #pragma omp parallel for num_threads(threads)
@@ -81,9 +81,10 @@ int main(){
             }
         int maxId;
         longest = durations.maxCoeff(&maxId);
+        double difference_scale = (LL.get_x_0_()-initials.col(maxId)).norm()/LL.get_x_0_().norm();
         LL.set_x_0_(initials.col(maxId));
-        std::cout << "現在最高" << longest << std::endl;
-        if (longest > 0.99*t){
+        std::cout << "現在最高" << longest << "    摂動のスケール" << difference_scale << std::endl;
+        if (longest > 0.9999*t){
             break;
         }
     }
@@ -93,6 +94,21 @@ int main(){
     std::string fname = oss.str(); // 文字列を取得する
     std::cout << "saving as " << fname << std::endl;
     EigenVec2npy(LL.get_x_0_(), fname);
+
+    //pngで保存
+    LL.set_t_(longest);
+    Eigen::MatrixXcd plot_traj = LL.get_trajectory_();
+    std::vector<double> x2(plot_traj.cols()),y2(plot_traj.cols()); 
+    for(int i=0;i<plot_traj.cols();i++){
+        x2[i]=std::abs(plot_traj(3, i));
+        y2[i]=std::abs(plot_traj(4, i));
+    }
+    plt::figure();
+    plt::plot(x2, y2);
+    oss.str("");
+    oss << "../../traj_images/beta_" << beta << "nu_" << nu <<"_"<< static_cast<int>(longest+0.5) << "period_dt" << ddt <<"eps" << epsilon <<".png";  // 文字列を結合する
+    std::cout << "saving as" << oss.str() << std::endl;
+    plt::save(oss.str());
 
     auto end = std::chrono::system_clock::now();  // 計測終了時間
     int hours = std::chrono::duration_cast<std::chrono::hours>(end-start).count(); //処理に要した時間を変換

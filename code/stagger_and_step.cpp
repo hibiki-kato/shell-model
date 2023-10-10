@@ -31,13 +31,13 @@ int main(){
     // generating laminar sample for detection
     // !DO NOT CHANGE!
     double nu = 0.00018;
-    double beta = 0.415;
+    double beta = 0.417;
     std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
     double dt = 0.01;
     double t_0 = 0;
     double t = 5000;
     double latter = 20;
-    Eigen::VectorXcd x_0 = npy2EigenVec("../../initials/beta0.415_nu0.00018_100000period_dt0.01.npy");
+    Eigen::VectorXcd x_0 = npy2EigenVec("../../initials/beta0.417_nu0.00018_10000period_dt0.01eps0.005.npy");
 
     //generating laminar sample for detection
     ShellModel SM(nu, beta, f, dt, t_0, t, latter, x_0);
@@ -58,11 +58,11 @@ int main(){
     t_0 = 0;
     // Eigen::MatrixXcd loaded = npy2EigenMat("../../generated_lam/generated_laminar_beta_0.416nu_0.00018_dt0.01_38100period500check20progresseps0.02.npy");
     // x_0 = loaded.block(0, t_0*100 - 1, 14, 1);
-    x_0 = npy2EigenVec("../../initials/beta0.417_nu0.00018_8524period_dt0.01eps0.02.npy");
-    double epsilon=2E-2; // 4~5E-2 is appropriate
+    x_0 = npy2EigenVec("../../initials/beta0.417_nu0.00018_10000period_dt0.01eps0.005.npy");
+    double epsilon=5E-3; // 4~5E-2 is appropriate
     int skip = 100;
     double check_sec = 500;
-    double progress_sec = 10;
+    double progress_sec = 20;
     int threads = omp_get_max_threads();
     std::cout << threads << "threads" << std::endl;
 
@@ -74,8 +74,8 @@ int main(){
     int reach = static_cast<int>(calced_laminar.bottomRightCorner(1, 1).cwiseAbs()(0, 0) + 0.5); 
 
     for(int i=0;i<calced_laminar.cols();i++){
-        x[i]=calced_laminar.cwiseAbs()(14, i);
-        y[i]=calced_laminar.cwiseAbs()(0, i);
+        x[i]=calced_laminar.cwiseAbs()(3, i);
+        y[i]=calced_laminar.cwiseAbs()(4, i);
     }
 
     plt::plot(x,y);
