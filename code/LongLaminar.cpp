@@ -30,7 +30,7 @@ Eigen::MatrixXcd LongLaminar::stagger_and_step_(){
     int stagger_and_step_num = static_cast<int>((end_time_of_stag_and_step - begin_time_of_stag_and_step) / progress_sec + 0.5); // times of stagger and step
     int check_steps = static_cast<int>(check_sec / ShellModel::get_ddt_() + 0.5); //steps of checked trajectory
     int progress_steps = static_cast<int>(progress_sec / ShellModel::get_ddt_() + 0.5); //steps of progress
-    int cycle_limit = 5E+04;
+    int cycle_limit = 5E+05;
     // ShellModel::set_steps_(check_steps); //　多分いらない?
     
     for (int i = 0; i < stagger_and_step_num; i++){
@@ -55,14 +55,14 @@ Eigen::MatrixXcd LongLaminar::stagger_and_step_(){
                 int thread_id = omp_get_thread_num();
                 while (true) {
                     local_counter++;
-                    ShellModel::set_x_0_(LongLaminar::perturbation_(ShellModel::get_x_0_(), -15, -3));
+                    ShellModel::set_x_0_(LongLaminar::perturbation_(ShellModel::get_x_0_(), -8, -2));
                     Eigen::MatrixXcd checked_traj = ShellModel::get_trajectory_();
                     if (LongLaminar::isLaminarTrajectory_(checked_traj)) {
                         #pragma omp single 
                         {
                             staggered_traj.middleCols(i * progress_steps, progress_steps + 1) = checked_traj.leftCols(progress_steps + 1);
                             Eigen::VectorXcd former_x_0 = ShellModel::get_x_0_();
-                            std::cout << "摂動のスケールは" << (former_x_0 - checked_traj.topLeftCorner(former_x_0.rows(), 1)).norm() / former_x_0.norm() << std::endl;
+                            std::cout << "摂動のスケールは" << (former_x_0 - checked_traj.topLeftCorner(former_x_0.rows(), 1)).norm()<< std::endl;
                             ShellModel::set_t_0_(ShellModel::get_t_0_() + progress_sec);
                             ShellModel::set_x_0_(checked_traj.block(0, progress_steps, ShellModel::get_x_0_().size(), 1));
                             

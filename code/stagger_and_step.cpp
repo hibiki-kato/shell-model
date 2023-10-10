@@ -60,9 +60,9 @@ int main(){
     // x_0 = loaded.block(0, t_0*100 - 1, 14, 1);
     x_0 = npy2EigenVec("../../initials/beta0.417_nu0.00018_10000period_dt0.01eps0.005.npy");
     double epsilon=5E-3; // 4~5E-2 is appropriate
-    int skip = 100;
-    double check_sec = 500;
-    double progress_sec = 20;
+    int skip = 10;
+    double check_sec = 5;
+    double progress_sec = 1;
     int threads = omp_get_max_threads();
     std::cout << threads << "threads" << std::endl;
 

@@ -25,7 +25,7 @@ int main(){
     double t_0 = 0;
     double t = 5000;
     double latter = 20;
-    Eigen::VectorXcd x_0 = npy2EigenVec("../../initials/beta0.417_nu0.00018_10000period_dt0.01eps0.02.npy");
+    Eigen::VectorXcd x_0 = npy2EigenVec("../../initials/beta0.417_nu0.00018_10000period_dt0.01eps0.005.npy");
     ShellModel SM(nu, beta, f, ddt, t_0, t, latter, x_0);
     Eigen::MatrixXcd laminar = SM.get_trajectory_();
     int numRows = laminar.cols() / 10;
@@ -45,15 +45,15 @@ int main(){
     plt::save("../../laminar_sample.png");
 
     // set up for search
-    t=10000;
+    t=1000;
     latter = 1;
     nu = 0.00018;
-    beta = 0.417;
+    beta = 0.418;
     ddt = 0.01;
-    x_0 = npy2EigenVec("../../initials/beta0.417_nu0.00018_9973period_dt0.01eps0.005.npy");
+    x_0 = npy2EigenVec("../../initials/beta0.417_nu0.00018_10000period_dt0.01eps0.005.npy");
     int num_of_candidates = 32;
     int skip = 100;
-    double epsilon = 5E-3;
+    double epsilon = 1E-2;
     int threads = omp_get_max_threads();
     std::cout << threads << "threads" << std::endl;
 
