@@ -48,12 +48,12 @@ int main(){
     t=1000;
     latter = 1;
     nu = 0.00018;
-    beta = 0.418;
+    beta = 0.416;
     ddt = 0.01;
-    x_0 = npy2EigenVec("../../initials/beta0.417_nu0.00018_10000period_dt0.01eps0.005.npy");
+    x_0 = npy2EigenVec("../../initials/beta0.416_nu0.00018_10000period_dt0.01eps0.02.npy");
     int num_of_candidates = 32;
     int skip = 100;
-    double epsilon = 1E-2;
+    double epsilon = 2E-2;
     int threads = omp_get_max_threads();
     std::cout << threads << "threads" << std::endl;
 
@@ -66,7 +66,7 @@ int main(){
         std::cout << "現在"  << i+1 << "回" <<std::endl;
         initials.col(0) = LL.get_x_0_();
         for(int j = 1; j < num_of_candidates - 1; j++){
-            initials.col(j) = LL.perturbation_(LL.get_x_0_(), -14, -1);
+            initials.col(j) = LL.perturbation_(LL.get_x_0_(), -15, -3);
         }
         Eigen::VectorXd durations(num_of_candidates);
         #pragma omp parallel for num_threads(threads)
