@@ -50,10 +50,10 @@ int main(){
     nu = 0.00018;
     beta = 0.416;
     ddt = 0.01;
-    x_0 = npy2EigenVec("../../initials/beta0.416_nu0.00018_1000period_dt0.01eps0.01.npy");
-    int num_of_candidates = 32;
+    x_0 = npy2EigenVec("../../initials/beta0.416_nu0.00018_2446period_dt0.01eps0.01.npy");
+    int num_of_candidates = 8;
     int skip = 100;
-    double epsilon = 2E-2;
+    double epsilon = 1E-2;
     int threads = omp_get_max_threads();
     std::cout << threads << "threads" << std::endl;
 
@@ -61,7 +61,7 @@ int main(){
     Eigen::MatrixXcd initials(x_0.size(), num_of_candidates);
     double longest;
 
-    for(int i = 0; i < 400; i++){
+    for(int i = 0; i < 40; i++){
         // make matrix that each cols are candidates of initial value
         std::cout << "現在"  << i+1 << "回" <<std::endl;
         initials.col(0) = LL.get_x_0_();

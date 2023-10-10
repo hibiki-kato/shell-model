@@ -70,7 +70,7 @@ int main() {
     std::mt19937 engine(seed_gen());
     std::uniform_int_distribution<> dist(0, numTimeSteps-1);
 
-    int candidates = 1000;
+    int candidates = 100;
     // ヤコビ行列をcandidates個横に並べたワイドな行列
     Eigen::MatrixXd jacobian_matrix(numVariables, numVariables * candidates);
     // 平均ヤコビ行列の計算
@@ -86,11 +86,12 @@ int main() {
 
     Eigen::MatrixXd average(dim+1, SM.get_steps_() + 1);
 
-    #pragma omp paralell for num_threads(threads)
+    #pragma omp paralell for num_threads(1)
     for (int h; h<repetitions; h++){
         if(omp_get_thread_num == 0){
-            std::cout << "processing..." << h*threads << "/" << repetitions << std::flush;
+            std::cout << "\r processing..." << h*threads << "/" << repetitions << std::flush;
         }
+        std::cout << "\r processing..." << h*threads << "/" << repetitions << std::flush;
         std::random_device rd;
         std::mt19937 gen(rd());
         std::uniform_real_distribution<double> s(-M_PI, M_PI);
@@ -113,10 +114,10 @@ int main() {
         // ヤコビ行列による時間発展
         // ヤコビ行列の選択
         std::uniform_int_distribution<> dist(0, candidates-1);
-        // Eigen::MatrixXd jacobian = jacobian_matrix.middleCols(dist(engine)*numVariables, numVariables);
+        Eigen::MatrixXd jacobian = jacobian_matrix.middleCols(dist(engine)*numVariables, numVariables);
         for (int i = 1; i < traj.cols(); i++){
             now += dt;
-            Eigen::MatrixXd jacobian = jacobian_matrix.middleCols(dist(engine)*numVariables, numVariables);
+            // Eigen::MatrixXd jacobian = jacobian_matrix.middleCols(dist(engine)*numVariables, numVariables);
             state = rungeKuttaJacobian(state, jacobian, dt);
             for (int j = 0; j < dim; j++){
                 std::complex<double> tmp(state(2*j), state(2*j+1));
@@ -128,6 +129,7 @@ int main() {
         average += traj.cwiseAbs() / repetitions;
 
     }
+
     
     /*
      ██     █                    █                        █     █  █       ██   █               █  █
@@ -195,8 +197,8 @@ int main() {
                                                  █
                                                 ██
                                             █████
-    // */
-    // calculate error ratio of each shell
+    */
+    // // calculate error ratio of each shell
     // for (int i = 0; i < average.cols(); i++) {
     //     average.block(0, i, dim, 1) /= average.block(0, i, dim, 1).sum();
     // }
@@ -333,11 +335,22 @@ VectorXd computeDerivativeJacobian(const VectorXd& state, const MatrixXd& jacobi
                                 0.00973406,
                                 0.00322299,
                                 0.000500837};
-    for(int i=0; i < energy_scale.size(); i++){
+    for(int i=0; i < energy.size(); i++){
         energy_scale(2*i) = energy[i];
         energy_scale(2*i+1) = energy[i];
     }
-    derivative = jacobian * (state.array() * (1-state.array()/energy_scale.array()));
+    derivative = jacobian * (state.array() * (1-abs(state.array()/energy_scale.array()))).matrix();
+    //derivativeにnanが含まれていたらプログラムを停止
+    if(derivative.hasNaN()){
+        std::cout << "derivative has NaN" << std::endl;
+        std::cout << state << std::endl;
+        std::cout << energy_scale << std::endl;
+        std::cout << (1-abs(state.array()/energy_scale.array())) << std::endl;
+        exit(1);
+    }
+    std::cout << state << std::endl;
+    std::cout << "罰則高は" << std::endl;
+    std::cout << (1-abs(state.array()/energy_scale.array())) << std::endl;
     return derivative;
 }
 

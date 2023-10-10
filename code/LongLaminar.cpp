@@ -30,7 +30,7 @@ Eigen::MatrixXcd LongLaminar::stagger_and_step_(){
     int stagger_and_step_num = static_cast<int>((end_time_of_stag_and_step - begin_time_of_stag_and_step) / progress_sec + 0.5); // times of stagger and step
     int check_steps = static_cast<int>(check_sec / ShellModel::get_ddt_() + 0.5); //steps of checked trajectory
     int progress_steps = static_cast<int>(progress_sec / ShellModel::get_ddt_() + 0.5); //steps of progress
-    int cycle_limit = 5E+04;
+    int cycle_limit = 2E+04;
     // ShellModel::set_steps_(check_steps); //　多分いらない?
     
     for (int i = 0; i < stagger_and_step_num; i++){

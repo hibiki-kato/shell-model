@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 #include <vector>
 #include <complex>
 #include <cmath>
@@ -30,20 +31,20 @@ VectorXd rungeKuttaJacobian(const VectorXd& state, const MatrixXd& jacobian, dou
 int main() {
     auto start = std::chrono::system_clock::now(); // 計測開始時間
     double nu = 0.00018;
-    double beta = 0.42;
+    double beta = 0.415;
     std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
     double dt = 0.01;
     double t_0 = 0;
-    double t = 100000;
+    double t = 50000;
     double latter = 1;
     int threads = omp_get_max_threads();
-    Eigen::VectorXcd x_0 = npy2EigenVec("../../initials/beta0.416_nu0.00018_10000period_dt0.01.npy");
+    Eigen::VectorXcd x_0 = npy2EigenVec("../../initials/beta0.415_nu0.00018_100000period_dt0.01.npy");
     
     ShellModel SM(nu, beta, f, dt, t_0, t, latter, x_0);
     std::cout << "calculating trajectory" << std::endl;
     Eigen::MatrixXcd rawData = SM.get_trajectory_();
     // データの読み込みをここに記述
-    // Eigen::MatrixXcd rawData = npy2EigenMat("../../generated_lam/generated_laminar_beta_0.417nu_0.00018_dt0.002_50000period1300check200progresseps0.04.npy");
+    // Eigen::MatrixXcd rawData = npy2EigenMat("../../generated_lam/generated_laminar_beta_0.416nu_0.00018_dt0.01_50000period500check20progresseps0.02.npy");
     
     
     // パラメータの設定（例）
@@ -123,6 +124,17 @@ int main() {
     std::string plotfname = oss.str(); // 文字列を取得する
     std::cout << "Saving result to " << plotfname << std::endl;
     plt::save(plotfname);
+
+    // xをテキストファイルに保存
+    oss.str("");
+    oss << "../../lyapunov_exponents/beta_" << beta << "nu_" << nu <<"_dt"<< dt << "_" << static_cast<int>(rawData.cwiseAbs().bottomRightCorner(1, 1)(0, 0)) << "period.txt";
+    std::string fname = oss.str(); // 文字列を取得する
+    std::cout << "saving as " << fname << std::endl;
+    std::ofstream ofs(fname);
+    for (int i = 0; i < lyapunovExponents.rows(); ++i) {
+        ofs << i+1 << " " << lyapunovExponents(i) << std::endl;
+    }
+    ofs.close();
 
     auto end = std::chrono::system_clock::now();  // 計測終了時間
     int hours = std::chrono::duration_cast<std::chrono::hours>(end-start).count(); //処理に要した時間を変換
