@@ -45,15 +45,15 @@ int main(){
     plt::save("../../laminar_sample.png");
 
     // set up for search
-    t=1000;
+    t=5000;
     latter = 1;
     nu = 0.00018;
-    beta = 0.416;
+    beta = 0.4165;
     ddt = 0.01;
-    x_0 = npy2EigenVec("../../initials/beta0.416_nu0.00018_10000period_dt0.01eps0.02.npy");
-    int num_of_candidates = 32;
+    x_0 = npy2EigenVec("../../initials/beta0.417_nu0.00018_11649period_dt0.01eps0.005.npy");
+    int num_of_candidates = omp_get_max_threads();
     int skip = 100;
-    double epsilon = 2E-2;
+    double epsilon = 3E-2;
     int threads = omp_get_max_threads();
     std::cout << threads << "threads" << std::endl;
 
@@ -61,7 +61,7 @@ int main(){
     Eigen::MatrixXcd initials(x_0.size(), num_of_candidates);
     double longest;
 
-    for(int i = 0; i < 40; i++){
+    for(int i = 0; i < 1000; i++){
         // make matrix that each cols are candidates of initial value
         std::cout << "現在"  << i+1 << "回" <<std::endl;
         initials.col(0) = LL.get_x_0_();
@@ -103,8 +103,12 @@ int main(){
         x2[i]=std::abs(plot_traj(3, i));
         y2[i]=std::abs(plot_traj(4, i));
     }
-    plt::figure();
-    plt::plot(x2, y2);
+    plt::figure_size(1000, 1000);
+    //lw=0.1でプロット
+    std::map<std::string, std::string> keywords1;
+    keywords1.insert(std::make_pair("c", "b")); 
+    keywords1.insert(std::make_pair("lw", "0.1"));
+    plt::plot(x2,y2, keywords1);
     oss.str("");
     oss << "../../traj_images/beta_" << beta << "nu_" << nu <<"_"<< static_cast<int>(longest+0.5) << "period_dt" << ddt <<"eps" << epsilon <<".png";  // 文字列を結合する
     std::cout << "saving as" << oss.str() << std::endl;

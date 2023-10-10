@@ -16,13 +16,13 @@ Eigen::VectorXcd npy2EigenVec(const char* fname);
 int main(){
     auto start = std::chrono::system_clock::now(); // 計測開始時間
     double nu = 0.00018;
-    double beta = 0.417;
+    double beta = 0.416;
     std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
     double ddt = 0.01;
     double t_0 = 0;
-    double t = 1e+4;
+    double t = 10000;
     double latter = 1;
-    Eigen::VectorXcd x_0 = npy2EigenVec("../../initials/beta0.417_nu0.00018_10000period_dt0.01eps0.01.npy");
+    Eigen::VectorXcd x_0 = npy2EigenVec("../../initials/beta0.416_nu0.00018_10000period_dt0.01eps0.02.npy");
     ShellModel solver(nu, beta, f, ddt, t_0, t, latter, x_0);
     Eigen::MatrixXcd trajectory = solver.get_trajectory_(); 
     // plot settings
@@ -53,7 +53,7 @@ int main(){
     oss << "../../beta" << beta << "_nu" << nu <<"_"<< t-t_0 << "period.npy";  // 文字列を結合する
     std::string npyfname = oss.str();
     std::cout << "Saving result to " << npyfname << std::endl;
-    // EigenMt2npy(trajectory, npyfname);
+    EigenMt2npy(trajectory, npyfname);
 
     auto end = std::chrono::system_clock::now();  // 計測終了時間
     int hours = std::chrono::duration_cast<std::chrono::hours>(end-start).count(); //処理に要した時間を変換

@@ -28,11 +28,11 @@ int shift(double pre_theta, double theta, int rotation_number);
 int main(){
     auto start = std::chrono::system_clock::now(); // 計測開始時間
     double nu = 0.00018;
-    double beta = 0.417;
+    double beta = 0.4163;
     std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
     double ddt = 0.01;
     double t_0 = 0;
-    double t = 5e+4;
+    double t = 1e+4;
 
     double latter = 1;
     int threads = omp_get_max_threads();
@@ -40,10 +40,6 @@ int main(){
     //make pairs of shells to observe phase difference(num begins from 1)
     std::vector<std::pair<int, int>> sync_pairs;
 
-    sync_pairs.push_back(std::make_pair(1, 4));
-    sync_pairs.push_back(std::make_pair(1, 7));
-    sync_pairs.push_back(std::make_pair(1, 10));
-    sync_pairs.push_back(std::make_pair(1, 13));
     sync_pairs.push_back(std::make_pair(4, 7));
     sync_pairs.push_back(std::make_pair(4, 10));
     sync_pairs.push_back(std::make_pair(4, 13));
@@ -51,24 +47,24 @@ int main(){
     sync_pairs.push_back(std::make_pair(7, 13));
     sync_pairs.push_back(std::make_pair(10, 13));
 
-    // sync_pairs.push_back(std::make_pair(2, 5));
-    // sync_pairs.push_back(std::make_pair(2, 8));
-    // sync_pairs.push_back(std::make_pair(2, 11));
-    // sync_pairs.push_back(std::make_pair(2, 14));    
-    // sync_pairs.push_back(std::make_pair(5, 8));
-    // sync_pairs.push_back(std::make_pair(5, 11));
-    // sync_pairs.push_back(std::make_pair(5, 14));
-    // sync_pairs.push_back(std::make_pair(8, 11));
-    // sync_pairs.push_back(std::make_pair(8, 14));
-    // sync_pairs.push_back(std::make_pair(11, 14));
+    sync_pairs.push_back(std::make_pair(5, 8));
+    sync_pairs.push_back(std::make_pair(5, 11));
+    sync_pairs.push_back(std::make_pair(5, 14));
+    sync_pairs.push_back(std::make_pair(8, 11));
+    sync_pairs.push_back(std::make_pair(8, 14));
+    sync_pairs.push_back(std::make_pair(11, 14));
+
+    sync_pairs.push_back(std::make_pair(6, 9));
+    sync_pairs.push_back(std::make_pair(6, 12));
+    sync_pairs.push_back(std::make_pair(9, 12));
 
     
     
-    Eigen::VectorXcd x_0 = npy2EigenVec("../../initials/beta0.41616nu0.00018_1.00923e+06period.npy");
+    Eigen::VectorXcd x_0 = npy2EigenVec("../../initials/beta0.4163_nu0.00018_10000period_dt0.01.npy");
     ShellModel solver(nu, beta, f, ddt, t_0, t, latter, x_0);
     std::cout << "calculating trajectory" << std::endl;
-    // Eigen::MatrixXcd trajectory = solver.get_trajectory_(); //wide matrix
-    Eigen::MatrixXcd trajectory = npy2EigenMat("../../generated_lam/generated_laminar_beta_0.417nu_0.00018_50000period1300check200progresseps0.05.npy"); //wide matrix
+    Eigen::MatrixXcd trajectory = solver.get_trajectory_(); //wide matrix
+    // Eigen::MatrixXcd trajectory = npy2EigenMat("../../generated_lam/generated_laminar_beta_0.417nu_0.00018_50000period1300check200progresseps0.05.npy"); //wide matrix
     // Eigen::MatrixXcd trajectory = trajectory_.leftCols(500000);
     Eigen::MatrixXd angles = trajectory.topRows(trajectory.rows()-1).cwiseArg().transpose(); //tall matrix
 

@@ -9,6 +9,7 @@
  * 
  */
 #include <iostream>
+#include <iomanip> // include this header for std::setw() and std::setfill()
 #include <fstream>
 #include <sstream>
 #include <filesystem>
@@ -37,7 +38,7 @@ int main(){
     double t = 1e+4;
     double latter = 1;
     int refresh = 500; // 1000だとカクカク
-    Eigen::VectorXcd x_0 = npy2EigenVec("../../initials/beta0.415_nu0.00018_14dim_period.npy");
+    Eigen::VectorXcd x_0 = npy2EigenVec("../../initials/beta0.415_nu0.00018_100000period_dt0.01.npy");
     ShellModel solver(nu, beta, f, ddt, t_0, t, latter, x_0);
     Eigen::MatrixXcd trajectory = solver.get_trajectory_(); 
     // Eigen::MatrixXcd trajectory = npy2EigenMat("../../generated_lam/generated_laminar_beta_0.419nu_0.00018_200000period1500check500progresseps0.1.npy");
@@ -62,6 +63,7 @@ int main(){
     plt::figure_size(900, 1500);
     // Add graph title
     std::vector<std::vector<double>> xs(trajectory.rows() - 1, std::vector<double>()), ys(trajectory.rows() - 1, std::vector<double>());
+    int counter = 0;
     for(int i=0; i < trajectory.cols(); i++){
         if (omp_get_thread_num() == 0) {
             std::cout << "\r processing..." << i << "/" << trajectory.cols() << std::flush;
@@ -75,12 +77,13 @@ int main(){
             plt::clf();
             for (int j=0; j < trajectory.rows() - 1; j++){
                 plt::subplot(5, 3, j+1);
+                //plot trajectory
                 std::map<std::string, std::string> keywords1;
                 keywords1.insert(std::make_pair("c", "b")); 
                 keywords1.insert(std::make_pair("lw", "0.1"));
                 // keywords1.insert(std::make_pair("alpha", "1"));
-
                 plt::plot(xs[j],ys[j], keywords1);
+                //plot clock hand
                 std::vector<double> x = {0, xs[j].back()};
                 std::vector<double> y = {0, ys[j].back()};
                 std::map<std::string, std::string> keywords2;
@@ -95,8 +98,10 @@ int main(){
             keywords.insert(std::make_pair("wspace", 0.5)); // also hspace
             plt::subplots_adjust(keywords);
             std::ostringstream oss;
-            oss << "../../animation_frames/real-imag_beta_" << beta << "nu_" << nu <<"_"<< (t-t_0)/latter << "period" << i << ".png";  // 文字列を結合する
+            oss << "../../animation_frames/real-imag_beta_" << beta << "nu_" << nu << "_" << std::setfill('0') << std::setw(6) << counter << ".png";
+            counter++;
             std::string plotfname = oss.str(); // 文字列を取得する
+            std::cout << "Saving result to " << plotfname << std::endl;
             plt::save(plotfname);
             oss.str("");
         }
