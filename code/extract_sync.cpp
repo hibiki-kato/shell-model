@@ -41,27 +41,27 @@ int main(){
     //make pairs of shells to observe phase difference(num begins from 1)
     std::vector<std::tuple<int, int, double>> sync_pairs;
     
-    sync_pairs.push_back(std::make_tuple(4, 7, 2.1));
-    sync_pairs.push_back(std::make_tuple(4, 10, 2.1));
-    sync_pairs.push_back(std::make_tuple(4, 13, 2.1));
-    sync_pairs.push_back(std::make_tuple(7, 10, 1.1));
-    sync_pairs.push_back(std::make_tuple(7, 13, 1.1));
-    sync_pairs.push_back(std::make_tuple(10, 13, 3.4E-2));
+    // sync_pairs.push_back(std::make_tuple(4, 7, 1.8));
+    // sync_pairs.push_back(std::make_tuple(4, 10, 1.8));
+    // sync_pairs.push_back(std::make_tuple(4, 13, 1.8));
+    // sync_pairs.push_back(std::make_tuple(7, 10, 1));
+    sync_pairs.push_back(std::make_tuple(7, 13, 1));
+    sync_pairs.push_back(std::make_tuple(10, 13, 3E-2));
 
-    sync_pairs.push_back(std::make_tuple(5, 8, 2.1));
-    sync_pairs.push_back(std::make_tuple(5, 11, 2.1));
-    sync_pairs.push_back(std::make_tuple(5, 14, 2.1));
-    sync_pairs.push_back(std::make_tuple(8, 11, 0.55));
-    sync_pairs.push_back(std::make_tuple(8, 14, 0.55));
-    sync_pairs.push_back(std::make_tuple(11, 14, 8E-3));
+    // sync_pairs.push_back(std::make_tuple(5, 8, 1.8));
+    // sync_pairs.push_back(std::make_tuple(5, 11, 1.8));
+    // sync_pairs.push_back(std::make_tuple(5, 14, 1.8));
+    // sync_pairs.push_back(std::make_tuple(8, 11, 0.43));
+    sync_pairs.push_back(std::make_tuple(8, 14, 0.43));
+    sync_pairs.push_back(std::make_tuple(11, 14, 6.2E-3));
 
-    sync_pairs.push_back(std::make_tuple(6, 9, 1.7));
-    sync_pairs.push_back(std::make_tuple(6, 12, 1.7));
-    sync_pairs.push_back(std::make_tuple(9, 12, 0.2));
+    // sync_pairs.push_back(std::make_tuple(6, 9, 1.5));
+    sync_pairs.push_back(std::make_tuple(6, 12, 1.5));
+    sync_pairs.push_back(std::make_tuple(9, 12, 0.15));
 
     // sync_pairs.push_back(std::make_tuple(1, 2, 4)); // dummy to check unextracted trajectory
 
-    Eigen::VectorXcd x_0 = npy2EigenVec("../../initials/beta0.41616nu0.00018_1.00923e+06period.npy");
+    Eigen::VectorXcd x_0 = npy2EigenVec("../../initials/beta0.41616_nu0.00018_10000period_dt0.01.npy");
     ShellModel solver(nu, beta, f, dt, t_0, t, latter, x_0);
     std::cout << "calculating trajectory" << std::endl;
     Eigen::MatrixXcd trajectory = solver.get_trajectory_(); //wide matrix
@@ -154,6 +154,8 @@ int main(){
         x[i] = std::abs(synced[3][i*skip]);
         y[i] = std::abs(synced[4][i*skip]);
     }
+    plt::xlim(0.0, 0.4);
+    plt::ylim(0.0, 0.4);
     plt::scatter(x, y);
 
     std::ostringstream oss;
