@@ -15,6 +15,7 @@
 #include <complex>
 #include <cmath>
 #include <utility> // std::pair用
+#include <tuple>
 #include "Runge_Kutta.hpp"
 #include <chrono>
 #include "cnpy/cnpy.h"
@@ -34,9 +35,11 @@ int main(){
     double t_0 = 0;
     double t = 2e+5;
     double latter = 1;
+    double check = 1e+3;
+    double progress = 100;
+    Eigen::VectorXcd x_0 = npy2EigenVec("../../initials/beta0.41616nu0.00018_1.00923e+06period.npy");
+    ShellModel SM(nu, beta, f, dt, t_0, t, latter, x_0);
     int numthreads = omp_get_max_threads();
-    int window = 1000; // how long the sync part should be. (sec)
-    window *= 100; // when dt = 0.01 
 
     //make pairs of shells to observe phase difference(num begins from 1)
     std::vector<std::tuple<int, int, double>> sync_pairs;
@@ -59,70 +62,71 @@ int main(){
     sync_pairs.push_back(std::make_tuple(6, 12, 1.7));
     sync_pairs.push_back(std::make_tuple(9, 12, 0.2));
 
-    // sync_pairs.push_back(std::make_tuple(1, 2, 4)); // dummy to check unextracted trajectory
+    // sync_pairs.push_back(std::make_tuple(1, 2, 4)); // dummy to check all trajectory
 
-    Eigen::VectorXcd x_0 = npy2EigenVec("../../initials/beta0.41616nu0.00018_1.00923e+06period.npy");
-    ShellModel solver(nu, beta, f, dt, t_0, t, latter, x_0);
-    std::cout << "calculating trajectory" << std::endl;
-    Eigen::MatrixXcd trajectory = solver.get_trajectory_(); //wide matrix
-    Eigen::MatrixXd angles = trajectory.topRows(trajectory.rows()-1).cwiseArg().transpose(); //tall matrix
+    /*
+      ██                                                                    █
+    █████                                                                   █
+    █      ██                                                               █            ██
+    █     ████   ████   █████   █████   ████   █ ██      ████  ██████   █████     █████ ████   ████   █████
+    ███    █        █  ██  ██  ██  ██  █   ██  ██           █  ██   █  ██  ██     █      █    █   ██  ██   █
+      ███  █        █  █    █  █    █  █   ██  █            █  █    █  █    █     ██     █    █   ██  █    █
+        ██ █    █████  █    █  █    █  ██████  █        █████  █    █  █    █      ███   █    ██████  █    █
+        ██ █    █   █  █    █  █    █  █       █        █   █  █    █  █    █        ██  █    █       █    █
+        █  ██   █   █  ██  ██  ██  ██  ██      █        █   █  █    █  ██  ██        ██  ██   ██      ██   █
+    █████   ███ █████   █████   █████   ████   █        █████  █    █   ███ █     ████    ███  ████   █████
+                            █       █                                                                █
+                           ██      ██                                                                █
+                       █████   █████                                                                 █
+    */
+    Eigen::MatrixXcd calced_laminar(x_0.rows()+1, SM.get_steps_()+1);
+    int stagger_and_step_num = static_cast<int>((t-t_0) / progress + 0.5);
+    int check_steps = static_cast<int>(check / dt + 0.5);
+    int progress_steps = static_cast<int>(progress / dt + 0.5);
+    SM.set_steps_(check_steps);
 
-    std::cout << "unwrapping angles" << std::endl;
-    #pragma omp parallel for num_threads(numthreads)
-    for (int i = 0; i < angles.cols(); i++){
-        int rotation_number = 0;
-        for (int j = 0; j < angles.rows(); j++){
-            if (j == 0){
-                continue;
+    for (int i; i < stagger_and_step_num; i++){
+        std::cout << "\r 現在" << SM.get_t_0_() << "時間" << std::flush;
+        bool laminar = true; // flag
+        double now_time = SM.get_t_0_();
+        Eigen::VectorXcd now = SM.get_x_0_();
+        Eigen::MatrixXcd trajectory = Eigen::MatrixXcd::Zero(x_0.rows()+1, progress_steps+1); //wide matrix for progress
+        trajectory.topLeftCorner(x_0.size(), 1) = now;
+        // SM.rk4_()　のポインターを作成
+        Eigen::VectorXcd (*rk4)(Eigen::VectorXcd) = SM.rk4_;
+
+        // no perturbation at first
+        Eigen::VectorXi n = Eigen::VectorXi::Zero(x_0.rows());
+        Eigen::VectorXd theta = trajectory.topRows(trajectory.rows()-1).cwiseArg().transpose();
+        for (int j = 0; j < check_steps; j++){
+            std::tuple<Eigen::VectorXi, Eigen::VectorXd, Eigen::VectorXcd> next = SM.calc_next_(rk4, n, theta, trajectory);
+            n = std::get<0>(next);
+            theta = std::get<1>(next);
+            now = std::get<2>(next);
+            if (isLaminar(theta, sync_pairs)){
+                if (j < progress_steps){
+                    not_time += dt;
+                    trajectory.block(0, j+1, x_0.rows()-1, j+1) = now;
+                    trajectory(x_0.rows(), j+1) = ;
+                }
             }
-            //　unwrapされた角度と回転数を返す
-            int  n= shift(angles(j-1, i), angles(j, i), rotation_number);
-            // 一個前の角度に回転数を加える
-            angles(j-1, i) += rotation_number * 2 * M_PI;
-            // 回転数を更新
-            rotation_number = n;
-        }
-        // 一番最後の角度に回転数を加える
-        angles(angles.rows()-1, i) += rotation_number * 2 * M_PI;
-    }
-
-    std::cout << "extracting sync" << std::endl;
-    std::vector<std::vector<double>> synced;
-    synced.resize(angles.cols()+1);
-    int counter = 0;
-    for (int i = 0; i < angles.rows(); i++){
-        bool allSync = true; // flag 
-        for (const auto& pair : sync_pairs){
-            // if any pair is not sync, allSync is false
-            if(! isSync(angles(i, std::get<0>(pair)-1), angles(i, std::get<1>(pair)-1), std::get<2>(pair))){
-                allSync = false;
+            else{
+                laminar = false;
                 break;
             }
         }
+        // if laminar, continue to for loop
+        if (laminar){
+            SM.set_t_0_(now_time);
+            SM.set_x_0_(now);
+            calced_laminar.block(0, i*progress_steps, x_0.rows(), progress_steps) = trajectory.topLeftCorner(x_0.rows(), progress_steps);
+            calced_laminar(x_0.rows(), i*progress_steps) = trajectory(x_0.rows(), progress_steps);
+            continue;
+        }
 
-        if (allSync){
-            counter++;
-        }
-        else{
-            if (counter >= window){
-                //adding synchronized part to synced
-                for (int j = 0 + 400*100; j < counter - 1 - 400*100; j++){
-                    for (int k = 0; k < angles.cols() + 1; k++){
-                        synced[k].push_back(std::abs(trajectory(k, j + i - counter)));
-                    }
-                }
-            }
-            counter = 0;
-            }
     }
-    //adding last part to synced
-    if (counter >= window){
-        for (int j = 0 + counter/6; j < counter - 1 - counter/10; j++){
-            for (int k = 0; k < angles.cols() + 1; k++){
-                synced[k].push_back(std::abs(trajectory(k, j + angles.rows() - counter)));
-            }
-        }
-    }
+
+
     /*
             █             
     █████   █          █  
@@ -145,17 +149,26 @@ int main(){
     plt::rcparams(plotSettings);
     // Set the size of output image = 1200x780 pixels
     plt::figure_size(800, 300);
-    
-    std::map<std::string, double> keywords;
-    keywords.insert(std::make_pair("hspace", 0.6)); // also right, top, bottom
-    keywords.insert(std::make_pair("wspace", 0.4)); // also hspace
-    plt::scatter(synced[3], synced[4]);
+    std::vector<double> x(calced_laminar.cols()),y(calced_laminar.cols());
+    int reach = static_cast<int>(calced_laminar.bottomRightCorner(1, 1).cwiseAbs()(0, 0) + 0.5); 
 
+    for(int i=0;i<calced_laminar.cols();i++){
+        x[i]=calced_laminar.cwiseAbs()(3, i);
+        y[i]=calced_laminar.cwiseAbs()(4, i);
+    }
+
+    plt::plot(x,y);
     std::ostringstream oss;
-    oss << "../../sync/beta_" << beta << "nu_" << nu <<"_"<< t-t_0 << "period" <<  window <<"window.png";  // 文字列を結合する
-    std::string plotfname = oss.str(); // 文字列を取得する
-    std::cout << "Saving result to " << plotfname << std::endl;
-    plt::save(plotfname);
+    oss << "../../generated_lam_imag/sync_gen_laminar_beta_" << beta << "nu_" << nu <<"_"<< reach << "period.png";  // 文字列を結合する
+    std::string filename = oss.str(); // 文字列を取得する
+    std::cout << "\n Saving result to " << filename << std::endl;
+    plt::save(filename);
+
+    oss.str("");
+    oss << "../../generated_lam/sync_gen_laminar_beta_" << beta << "nu_" << nu <<"_dt"<< dt << "_" << reach << "period" << check_sec << "check" << progress_sec << "progress" << "eps" << epsilon << ".npy";
+    std::string fname = oss.str(); // 文字列を取得する
+    std::cout << "saving as " << fname << std::endl;
+    EigenMt2npy(calced_laminar, fname);
 
     auto end = std::chrono::system_clock::now();  // 計測終了時間
     int hours = std::chrono::duration_cast<std::chrono::hours>(end-start).count(); //処理に要した時間を変換
@@ -197,29 +210,24 @@ int shift(double pre_theta, double theta, int rotation_number){
     return rotation_number;
 }
 
-/**
- * @brief given 2 angles, check if they are in sync
- * 
- * @param a : angle 1
- * @param b  : angle 2
- * @param epsilon : tolerance
- * @return true : sync
- * @return false : not sync
- */
-bool isSync(double a, double b, double epsilon) {
-    int n = 0;
-    double lowerBound = 2 * n * M_PI - epsilon;
-    double upperBound = 2 * n * M_PI + epsilon;
-    
-    while (lowerBound <= std::abs(a - b)) {
-        if (lowerBound <= std::abs(a - b) && std::abs(a - b) <= upperBound) {
-            // std::cout << std::abs(a-b) << std::endl;
-            return true;
+bool isLaminar(Eigen::VectorXd phases, std::vector<std::tuple<int, int, double>> sync_pairs){
+    bool allSync = true; // flag 
+    for (const auto& pair : sync_pairs){
+        // if any pair is not sync, allSync is false
+        if(std::abs(phases(std::get<0>(pair)-1) - phases(std::get<1>(pair)-1)) > std::get<2>(pair)){
+            allSync = false;
+            break;
         }
-        n++;
-        lowerBound = 2 * n * M_PI - epsilon;
-        upperBound = 2 * n * M_PI + epsilon;
     }
-    
-    return false;
+    return allSync;
+}
+
+std::tuple<Eigen::VectorXi, Eigen::VectorXd> calc_next(Eigen::VectorXcd (*rk4)(Eigen::VectorXcd), Eigen::VectorXi pre_n, Eigen::VectorXd pre_theta, Eigen::MatrixXcd previous){
+    Eigen::VectorXcd now = rk4(previous);
+    Eigen::VectorXd theta = now.cwiseArg();
+    Eigen::VectorXi n = pre_n;
+    for(int i; i < theta.size(); i++){
+        n(i) = shift(pre_theta(i), theta(i), pre_n(i));
+    }
+    return std::make_tuple(n, theta);
 }

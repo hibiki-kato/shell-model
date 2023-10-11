@@ -151,13 +151,18 @@ int main(){
     keywords.insert(std::make_pair("wspace", 0.4)); // also hspace
     std::vector<double> x(synced[0].size()/skip),y(synced[0].size()/skip);
     for (int i = 0; i < x.size(); i++){
-        x[i] = std::abs(synced[synced.size()-1][i*skip]);
-        y[i] = std::abs(synced[0][i*skip]);
+        x[i] = std::abs(synced[3][i*skip]);
+        y[i] = std::abs(synced[4][i*skip]);
     }
     plt::scatter(x, y);
 
     std::ostringstream oss;
-    oss << "../../sync/beta_" << beta << "nu_" << nu <<"_"<< t-t_0 << "period" <<  window <<"window.png";  // 文字列を結合する
+    oss << "../../sync/sync_beta_" << beta << "nu_" << nu <<"_"<< t-t_0 << "period" <<  window <<"window";
+    for (const auto& pair : sync_pairs){
+        oss << "_" << std::get<0>(pair) << "-" << std::get<1>(pair);
+    }
+    oss << ".png";
+
     std::string plotfname = oss.str(); // 文字列を取得する
     std::cout << "Saving result to " << plotfname << std::endl;
     plt::save(plotfname);
@@ -178,7 +183,12 @@ int main(){
     */
         // reset oss
     oss.str("");
-    oss << "../../sync/beta_" << beta << "nu_" << nu <<"_"<< t-t_0 << "period" <<  window <<"window.npy";  // 文字列を結合する
+    oss << "../../sync/npy/sync_beta_" << beta << "nu_" << nu <<"_"<< t-t_0 << "period" <<  window <<"window";
+    for (const auto& pair : sync_pairs){
+        oss << "_" << std::get<0>(pair) << "-" << std::get<1>(pair);
+    }
+    oss << ".npy";
+
     std::string fname = oss.str(); // 文字列を取得する
     std::cout << "Saving result to " << fname << std::endl;
     Eigen::MatrixXcd matrix(synced.size(), synced[0].size());

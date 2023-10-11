@@ -18,18 +18,18 @@ Eigen::VectorXcd perturbation(Eigen::VectorXcd state,  std::vector<int> dim, int
 int main(){
     auto start = std::chrono::system_clock::now(); // 計測開始時間
     
-    double nu = 0.00004;
-    double beta = 0.5;
+    double nu = 0.00018;
+    double beta = 0.417;
     std::complex<double> f = std::complex<double>(1.0,0.0) * 5.0 * 0.001;
     double ddt = 0.01;
     double t_0 = 0;
-    double t = 400;
+    double t = 10000;
     double latter = 1;
-    Eigen::VectorXcd x_0 = npy2EigenVec("../../initials/beta0.5_nu1e-05_15dim_period.npy");
+    Eigen::VectorXcd x_0 = npy2EigenVec("../../initials/beta0.417_nu0.00018_13348period_dt0.01eps0.005.npy");
     ShellModel SM(nu, beta, f, ddt, t_0, t, latter, x_0);
     std::vector<int> perturbed_dim = {13};
     int threads = omp_get_max_threads();
-    int repetitions = 1000;
+    int repetitions = 1;
     std::cout << threads << "threads" << std::endl;
     std::ostringstream oss;
     
@@ -47,9 +47,9 @@ int main(){
         //1からx_0.size()のベクトルの作成
         std::vector<int> range(x_0.size());
         std::iota(range.begin(), range.end(), 1); // iota: 連番を作成する
-        SM_origin.set_x_0_(perturbation(SM_origin.get_x_0_(), range, 0, 0)); // 初期値をランダムに与える
+        // SM_origin.set_x_0_(perturbation(SM_origin.get_x_0_(), range, 0, 0)); // 初期値をランダムに与える
         ShellModel SM_another = SM;
-        Eigen::VectorXcd perturbed_x_0 = perturbation(SM_origin.get_x_0_(), perturbed_dim, -4, -4); // create perturbed init value
+        Eigen::VectorXcd perturbed_x_0 = perturbation(SM_origin.get_x_0_(), perturbed_dim, -15, -15); // create perturbed init value
         SM_another.set_x_0_(perturbed_x_0); // set above
         
         Eigen::MatrixXcd origin = SM_origin.get_trajectory_();
@@ -62,7 +62,7 @@ int main(){
         }
     }
 
-    EigenVec2npy(average_errors, "../../test.npy");
+    // EigenVec2npy(average_errors, "../../test.npy");
 
     // Eigen::VectorXd average_error_growth_rates = (average_errors.tail(average_errors.size() - 2).array().log().matrix() - average_errors.head(average_errors.size() - 2).array().log().matrix()).array() / (SM.get_ddt_()*2);
     Eigen::VectorXd average_error_growth_rates = (average_errors.tail(average_errors.size() - 6).array().log().matrix() - 9*average_errors.segment(5, average_errors.size() - 6).array().log().matrix() + 45*average_errors.segment(4, average_errors.size() - 6).array().log().matrix() - 45*average_errors.segment(2, average_errors.size() - 6) + 9*average_errors.segment(1, average_errors.size() - 6).array().log().matrix() - average_errors.head(average_errors.size() - 6)).array().log().matrix() / (60*SM.get_ddt_());
