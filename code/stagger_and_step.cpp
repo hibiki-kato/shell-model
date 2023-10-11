@@ -58,13 +58,13 @@ int main(){
     t_0 = 0;
     // Eigen::MatrixXcd loaded = npy2EigenMat("../../generated_lam/generated_laminar_beta_0.416nu_0.00018_dt0.01_38100period500check20progresseps0.02.npy");
     // x_0 = loaded.block(0, t_0*100 - 1, 14, 1);
-    x_0 = npy2EigenVec("../../initials/beta0.417_nu0.00018_11649period_dt0.01eps0.005.npy");
-    double epsilon=5E-2; // 4~5E-2 is appropriate
+    x_0 = npy2EigenVec("../../initials/beta0.417_nu0.00018_13348period_dt0.01eps0.005.npy");
+    double epsilon=1E-1; // 4~5E-2 is appropriate
     int skip = 1000;
 
-    
+
     double check_sec = 5000;
-    double progress_sec = 500;
+    double progress_sec = 1000;
     int threads = omp_get_max_threads();
     std::cout << threads << "threads" << std::endl;
 
