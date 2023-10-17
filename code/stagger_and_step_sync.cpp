@@ -163,7 +163,7 @@ int main(){
                 ShellModel Local_SM = SM; // copy of SM
                 std::vector<std::tuple<int, int, double>> Local_sync_pairs = sync_pairs; // copy of sync_pairs
                 double Local_now_time = Local_SM.get_t_0_();
-                Eigen::VectorXcd Local_x_0 = Local_LL.perturbation_(Local_SM.get_x_0_(), -16, -4);
+                Eigen::VectorXcd Local_x_0 = Local_LL.perturbation_(Local_SM.get_x_0_(), -16, -6);
                 Eigen::VectorXcd Local_now = Local_x_0; // perturbed initial state
                 Eigen::MatrixXcd Local_trajectory = Eigen::MatrixXcd::Zero(Local_now.rows()+1, progress_steps+1); //wide matrix for progress
                 Local_trajectory.topLeftCorner(Local_now.rows(), 1) = Local_now;
