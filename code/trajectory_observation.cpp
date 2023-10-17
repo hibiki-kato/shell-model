@@ -16,13 +16,13 @@ Eigen::VectorXcd npy2EigenVec(const char* fname);
 int main(){
     auto start = std::chrono::system_clock::now(); // 計測開始時間
     double nu = 0.00018;
-    double beta = 0.417;
+    double beta = 0.41525;
     std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
     double ddt = 0.01;
     double t_0 = 0;
-    double t = 10000;
-    double latter = 1;
-    Eigen::VectorXcd x_0 = npy2EigenVec("../../initials/beta0.417_nu0.00018_13348period_dt0.01eps0.005.npy");
+    double t = 100000;
+    double latter = 4;
+    Eigen::VectorXcd x_0 = npy2EigenVec("../../initials/beta0.41525_nu0.00018_14dim_period.npy");
     ShellModel solver(nu, beta, f, ddt, t_0, t, latter, x_0);
     Eigen::MatrixXcd trajectory = solver.get_trajectory_(); 
     // plot settings

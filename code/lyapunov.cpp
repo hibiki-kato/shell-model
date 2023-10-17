@@ -31,14 +31,14 @@ VectorXd rungeKuttaJacobian(const VectorXd& state, const MatrixXd& jacobian, dou
 int main() {
     auto start = std::chrono::system_clock::now(); // 計測開始時間
     double nu = 0.00018;
-    double beta = 0.42;
+    double beta = 0.41525;
     std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
     double dt = 0.01;
     double t_0 = 0;
     double t = 100000;
     double latter = 1;
     int threads = omp_get_max_threads();
-    Eigen::VectorXcd x_0 = npy2EigenVec("../../initials/beta0.417_nu0.00018_11649period_dt0.01eps0.005.npy");
+    Eigen::VectorXcd x_0 = npy2EigenVec("../../initials/beta0.41525_nu0.00018_14dim_period.npy");
     
     ShellModel SM(nu, beta, f, dt, t_0, t, latter, x_0);
     std::cout << "calculating trajectory" << std::endl;

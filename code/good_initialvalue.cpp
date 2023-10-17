@@ -81,7 +81,7 @@ int main(){
             }
         int maxId;
         longest = durations.maxCoeff(&maxId);
-        double difference_scale = (LL.get_x_0_()-initials.col(maxId)).norm()/LL.get_x_0_().norm();
+        double difference_scale = (LL.get_x_0_()-initials.col(maxId)).norm();
         LL.set_x_0_(initials.col(maxId));
         std::cout << "現在最高" << longest << "    摂動のスケール" << difference_scale << std::endl;
         if (longest > 0.9999*t){

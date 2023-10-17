@@ -44,13 +44,13 @@ int main() {
     double nu = 0.00001;
     double beta = 0.5;
     std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
-    double dt = 0.01;
+    double dt = 0._01;
     double t_0 = 0;
-    double t = 400;
+    double t = 5000;
     double latter = 1;
     int threads = omp_get_max_threads();
     Eigen::VectorXcd dummy = Eigen::VectorXd::Zero(15);
-    int refresh = 1000;
+    int refresh = 5000;
     
     double repetitions = 1;
     double r = 1E-5;
@@ -80,7 +80,7 @@ int main() {
     Eigen::MatrixXd jacobian_matrix(numVariables, numVariables * candidates);
     // 平均ヤコビ行列の計算
     #pragma omp parallel for num_threads(threads)
-    for (int i = 0; i < candidates; ++i) {
+    for (int i = 0; i < candidates; ++i){
         VectorXd state = Data.col(dist(engine)); // ランダムにデータを選ぶ
         // ヤコビアンの計算
         Eigen::MatrixXd jacobian = computeJacobian(state, SM.get_k_n_(), SM.get_beta_(), SM.get_nu_());
@@ -119,10 +119,16 @@ int main() {
         // ヤコビ行列による時間発展
         // ヤコビ行列の選択
         std::uniform_int_distribution<> dist(0, candidates-1);
-        // Eigen::MatrixXd jacobian = jacobian_matrix.middleCols(dist(engine)*numVariables, numVariables); // 1つのjacobi行列をランダムに選択し時間発展
+        Eigen::MatrixXd jacobian = jacobian_matrix.middleCols(dist(engine)*numVariables, numVariables); // 1つのjacobi行列をランダムに選択し時間発展
+        //　ヤコビ行列の最大固有値を計算
+        Eigen::EigenSolver<Eigen::MatrixXd> es(jacobian);
+        Eigen::VectorXd eigenvalues = es.eigenvalues().real();
+        double max_eigenvalue = eigenvalues.cwiseAbs().maxCoeff();
+        std::cout << "max eigenvalue is " << max_eigenvalue << std::endl;
+        jacobian /= max_eigenvalue;
         for (int i = 1; i < traj.cols(); i++){
             now += dt;
-            Eigen::MatrixXd jacobian = jacobian_matrix.middleCols(dist(engine)*numVariables, numVariables); // ステップごとの
+            // Eigen::MatrixXd jacobian = jacobian_matrix.middleCols(dist(engine)*numVariables, numVariables); // ステップごとの
             state = rungeKuttaJacobian(state, jacobian, dt);
             for (int j = 0; j < dim; j++){
                 std::complex<double> tmp(state(2*j), state(2*j+1));
@@ -131,7 +137,7 @@ int main() {
             traj(dim, i) = now;
         }
         #pragma omp critical
-        average += traj.cwiseAbs() / repetitions;
+        average += traj / repetitions;
     }
 
     /*
@@ -165,14 +171,14 @@ int main() {
             ys[j].push_back(average(j, i).imag());
         }
         
-        if (i%refresh == 0 && i > average.cols()/10){
+        if (i%refresh == 0){
             plt::clf();
             for (int j=0; j < average.rows() - 1; j++){
                 plt::subplot(5, 3, j+1);
                 //plot trajectory
                 std::map<std::string, std::string> keywords1;
                 keywords1.insert(std::make_pair("c", "b")); 
-                keywords1.insert(std::make_pair("lw", "0.1"));
+                keywords1.insert(std::make_pair("lw", "1"));
                 // keywords1.insert(std::make_pair("alpha", "1"));
                 plt::plot(xs[j],ys[j], keywords1);
                 plt::xlabel("Real($U_{" + std::to_string(j+1) + "}$)");
@@ -309,27 +315,31 @@ VectorXd rungeKuttaJacobian(const VectorXd& state, const MatrixXd& jacobian, dou
 
 VectorXd computeDerivativeJacobian(const VectorXd& state, const MatrixXd& jacobian) {
     VectorXd derivative(state.rows());
-    VectorXd energy_scale = VectorXd::Zero(state.rows());
-    std::vector<double> energy = {0.287058,
-                                0.192392,
-                                0.206979,
-                                0.101921,
-                                0.0960957,
-                                0.0836411,
-                                0.0567056,
-                                0.0414303,
-                                0.0369566,
-                                0.0252059,
-                                0.0153319,
-                                0.0151464,
-                                0.00973406,
-                                0.00322299,
-                                0.000500837};
-    for(int i=0; i < energy.size(); i++){
-        energy_scale(2*i) = energy[i];
-        energy_scale(2*i+1) = energy[i];
-    }
-    derivative = jacobian * (state.array() * (1-(state.array()/energy_scale.array()))).matrix();
+    // jacobianの最大固有値(絶対値)を計算
+    // VectorXd energy_scale = VectorXd::Zero(state.rows());
+    // std::vector<double> energy = {0.287058,
+    //                             0.192392,
+    //                             0.206979,
+    //                             0.101921,
+    //                             0.0960957,
+    //                             0.0836411,
+    //                             0.0567056,
+    //                             0.0414303,
+    //                             0.0369566,
+    //                             0.0252059,
+    //                             0.0153319,
+    //                             0.0151464,
+    //                             0.00973406,
+    //                             0.00322299,
+    //                             0.000500837};
+    // for(int i=0; i < energy.size(); i++){
+    //     energy_scale(2*i) = energy[i]*10;
+    //     energy_scale(2*i+1) = energy[i]*10;
+    // }
+    derivative = jacobian * state;
+
+    // derivative = jacobian * (state.array() / max_eigenvalue * (1-(state.array()/energy_scale.array()))).matrix();
+
     // //derivativeにnanが含まれていたらプログラムを停止
     // if(derivative.hasNaN()){
     //     std::cout << "derivative has NaN" << std::endl;

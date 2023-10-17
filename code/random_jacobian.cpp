@@ -42,12 +42,12 @@ int main() {
     std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
     double dt = 0.01;
     double t_0 = 0;
-    double t = 400;
+    double t = 5000;
     double latter = 1;
     int threads = omp_get_max_threads();
     Eigen::VectorXcd dummy = Eigen::VectorXd::Zero(15);
     
-    double repetitions = 1;
+    double repetitions = 100;
     double r = 1E-5;
     ShellModel SM(nu, beta, f, dt, t_0, t, latter, dummy);
     // データは読み込み必須
@@ -70,7 +70,7 @@ int main() {
     std::mt19937 engine(seed_gen());
     std::uniform_int_distribution<> dist(0, numTimeSteps-1);
 
-    int candidates = 10;
+    int candidates = 100;
     // ヤコビ行列をcandidates個横に並べたワイドな行列
     Eigen::MatrixXd jacobian_matrix(numVariables, numVariables * candidates);
     // 平均ヤコビ行列の計算
@@ -91,7 +91,6 @@ int main() {
         if(omp_get_thread_num == 0){
             std::cout << "\r processing..." << h*threads << "/" << repetitions << std::flush;
         }
-        std::cout << "\r processing..." << h*threads << "/" << repetitions << std::flush;
         std::random_device rd;
         std::mt19937 gen(rd());
         std::uniform_real_distribution<double> s(-M_PI, M_PI);
@@ -114,10 +113,20 @@ int main() {
         // ヤコビ行列による時間発展
         // ヤコビ行列の選択
         std::uniform_int_distribution<> dist(0, candidates-1);
-        // Eigen::MatrixXd jacobian = jacobian_matrix.middleCols(dist(engine)*numVariables, numVariables); // 1つのjacobi行列をランダムに選択し時間発展
+        Eigen::MatrixXd jacobian = jacobian_matrix.middleCols(dist(engine)*numVariables, numVariables); // 1つのjacobi行列をランダムに選択し時間発展
+        // jacobianの最大固有値(絶対値)を計算
+        Eigen::EigenSolver<MatrixXd> es(jacobian);
+        double max_eigenvalue = 0;
+        for (int i = 0; i < jacobian.rows(); ++i) {
+            if (max_eigenvalue < std::abs(es.eigenvalues()[i])) {
+                max_eigenvalue = std::abs(es.eigenvalues()[i]);
+            }
+        }
+        std::cout << "最大固有値は" << max_eigenvalue << std::endl;
+        jacobian /= max_eigenvalue;
         for (int i = 1; i < traj.cols(); i++){
             now += dt;
-            Eigen::MatrixXd jacobian = jacobian_matrix.middleCols(dist(engine)*numVariables, numVariables); // ステップごとの
+            // Eigen::MatrixXd jacobian = jacobian_matrix.middleCols(dist(engine)*numVariables, numVariables); // ステップごとの
             state = rungeKuttaJacobian(state, jacobian, dt);
             for (int j = 0; j < dim; j++){
                 std::complex<double> tmp(state(2*j), state(2*j+1));
@@ -126,7 +135,7 @@ int main() {
             traj(dim, i) = now;
         }
         #pragma omp critical
-        average += traj / repetitions;
+        average += traj.cwiseAbs() / repetitions;
 
     }
 
@@ -167,7 +176,8 @@ int main() {
             y[j]=average(i, j*skip);
         }
         plt::subplot(dim,1, i+1);
-        plt::yscale("log");
+        // plt::yscale("log");
+        plt::xscale("log");
         plt::plot(x,y);
         plt::xlabel("Time");
         plt::ylabel("$U_{" + std::to_string(i+1) + "}$");
@@ -198,47 +208,47 @@ int main() {
                                                 ██
                                             █████
     */
-    // // calculate error ratio of each shell
-    // for (int i = 0; i < average.cols(); i++) {
-    //     average.block(0, i, dim, 1) /= average.block(0, i, dim, 1).sum();
-    // }
-    // // 結果の表示
-    // std::cout << "plotting" << std::endl;
-    // // plot settings
-    // std::map<std::string, std::string> plotSettings;
-    // plotSettings["font.family"] = "Times New Roman";
-    // plotSettings["font.size"] = "10";
-    // plt::rcparams(plotSettings);
-    // // Set the size of output image = 1200x780 pixels
-    // plt::figure_size(1200, 780);
-    // int skip = 100; // plot every skip points
-    // std::vector<double> x((average.cols()-1)/skip),y((average.cols()-1)/skip);
-    // //time
-    // for(int i=0;i<x.size();i++){
-    //     x[i]=Time(i*skip);
-    // }
-    // //plot
-    // for(int i=0; i < dim; i++){
-    //     if (i == 0 | i == 1 | i == 3 | i == 4 | i == 7 | i == 8){
-    //         for(int j=0; j < y.size(); j++){
-    //             y[j]=average(i, j*skip);
-    //         }
-    //         std::map<std::string, std::string> keywords;
-    //         keywords.insert(std::pair<std::string, std::string>("label", std::to_string(i+1)+"th shell"));
-    //         plt::plot(x, y, keywords);
-    //     }
-    // }
-    // plt::xscale("log");
-    // plt::yscale("log");
-    // plt::xlabel("Time");
-    // plt::ylabel("Ratio among shells");
-    // plt::legend();
+//     // calculate error ratio of each shell
+//     for (int i = 0; i < average.cols(); i++) {
+//         average.block(0, i, dim, 1) /= average.block(0, i, dim, 1).sum();
+//     }
+//     // 結果の表示
+//     std::cout << "plotting" << std::endl;
+//     // plot settings
+//     std::map<std::string, std::string> plotSettings;
+//     plotSettings["font.family"] = "Times New Roman";
+//     plotSettings["font.size"] = "10";
+//     plt::rcparams(plotSettings);
+//     // Set the size of output image = 1200x780 pixels
+//     plt::figure_size(1200, 780);
+//     int skip = 100; // plot every skip points
+//     std::vector<double> x((average.cols()-1)/skip),y((average.cols()-1)/skip);
+//     //time
+//     for(int i=0;i<x.size();i++){
+//         x[i]=Time(i*skip);
+//     }
+//     //plot
+//     for(int i=0; i < dim; i++){
+//         if (i == 0 | i == 1 | i == 3 | i == 4 | i == 7 | i == 8){
+//             for(int j=0; j < y.size(); j++){
+//                 y[j]=average(i, j*skip);
+//             }
+//             std::map<std::string, std::string> keywords;
+//             keywords.insert(std::pair<std::string, std::string>("label", std::to_string(i+1)+"th shell"));
+//             plt::plot(x, y, keywords);
+//         }
+//     }
+//     plt::xscale("log");
+//     // plt::yscale("log");
+//     plt::xlabel("Time");
+//     plt::ylabel("Ratio among shells");
+//     plt::legend();
 
-    // std::ostringstream oss;
-    // oss << "../../error_dominant_shell/jacobian_beta_" << beta << "nu_" << nu <<"_"<< t-t_0 << "period"<<repetitions << "repeat.png";  // 文字列を結合する
-    // std::string plotfname = oss.str(); // 文字列を取得する
-    // std::cout << "Saving result to " << plotfname << std::endl;
-    // plt::save(plotfname);
+//     std::ostringstream oss;
+//     oss << "../../error_dominant_shell/jacobian_beta_" << beta << "nu_" << nu <<"_"<< t-t_0 << "period"<<repetitions << "repeat.png";  // 文字列を結合する
+//     std::string plotfname = oss.str(); // 文字列を取得する
+//     std::cout << "Saving result to " << plotfname << std::endl;
+//     plt::save(plotfname);
 
     auto end = std::chrono::system_clock::now();  // 計測終了時間
     int hours = std::chrono::duration_cast<std::chrono::hours>(end-start).count(); //処理に要した時間を変換
@@ -319,6 +329,7 @@ VectorXd rungeKuttaJacobian(const VectorXd& state, const MatrixXd& jacobian, dou
 
 VectorXd computeDerivativeJacobian(const VectorXd& state, const MatrixXd& jacobian) {
     VectorXd derivative(state.rows());
+    derivative = jacobian * state;
     // VectorXd energy_scale = VectorXd::Zero(state.rows());
     // std::vector<double> energy = {0.287058,
     //                             0.192392,

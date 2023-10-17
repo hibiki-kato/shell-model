@@ -19,7 +19,7 @@ int main(){
     auto start = std::chrono::system_clock::now(); // 計測開始時間
     
     double nu = 0.00018;
-    double beta = 0.415;
+    double beta = 0.41525 ;
     std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
     double ddt = 0.01;
     double t_0 = 0;
@@ -27,7 +27,7 @@ int main(){
     double latter = 1;
     int dim = 14;
 
-    Eigen::VectorXcd x_0 = npy2EigenVec("../../initials/beta0.416_nu0.00017520319481270297_step0.01_10000.0period_laminar.npy");
+    Eigen::VectorXcd x_0 = npy2EigenVec("../../initials/beta0.415_nu0.00018_100000period_dt0.01.npy");
     std::vector<std::complex<double>> x_0_vec(x_0.data(), x_0.data() + x_0.size());
     for(int i = 0; i < dim - x_0.size(); i++){
         x_0_vec.push_back(std::complex<double>(1e-6, 1e-6));
