@@ -36,7 +36,7 @@ int main(){
     double t_0 = 0;
     double t = 2e+4;
     double latter = 1;
-    double check = 2e+3;
+    double check = 1000;
     double progress = 100;
     int limit = 1e+5; //limitation of trial of stagger and step
     Eigen::VectorXcd x_0 = npy2EigenVec("../../initials/beta0.417_nu0.00018_13348period_dt0.01eps0.005.npy");
@@ -62,7 +62,7 @@ int main(){
     // sync_pairs.push_back(std::make_tuple(11, 14, 8E-3));
 
     // sync_pairs.push_back(std::make_tuple(6, 9, 1.7));
-    sync_pairs.push_back(std::make_tuple(6, 12, 1.7));
+    // sync_pairs.push_back(std::make_tuple(6, 12, 1.7));
     sync_pairs.push_back(std::make_tuple(9, 12, 0.2));
 
     // sync_pairs.push_back(std::make_tuple(9, 12, 0.06)); // dummy to check all trajectory
@@ -144,7 +144,7 @@ int main(){
             std::cout << std::endl;
             int counter = 0;
             bool success = false; // whether stagger and step succeeded
-            double max_duration = 0; // max duration of laminar
+            double max_duration = check - progress; // max duration of laminar
             double total_perturbation = 0; // total perturbation
             // successとmax_durationとcounter以外はprivateにする
             #pragma omp parallel for num_threads(numThreads) schedule(dynamic) shared(success, max_duration, SM, n, total_perturbation, counter) firstprivate(LL, sync_pairs, check_steps, progress_steps, numThreads)
@@ -156,7 +156,7 @@ int main(){
                 if (omp_get_thread_num() == 0)
                 {
                     counter++;
-                    std::cout << "\r " << counter * numThreads << "試行　最高" << max_duration << "/"<< check_steps << std::flush;
+                    std::cout << "\r " << counter * numThreads << "試行　最高" << max_duration << "/"<< check << std::flush;
                 }
                 bool Local_laminar = true; // flag
                 LongLaminar Local_LL = LL; // copy of LL
@@ -229,7 +229,6 @@ int main(){
                 if (max_duration-SM.get_t_0_() <= 0.1){
                     std::cout << "nは" << n << std::endl;
                     std::cout << "thetaは" << SM.get_x_0_().cwiseArg() << std::endl;
-                    std::cout << "x_0は" << SM.get_x_0_() << std::endl;
                     std::cout << "角度は" << theta + 2*n*M_PI << std::endl;
                 }
                 break;
