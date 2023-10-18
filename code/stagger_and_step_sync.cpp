@@ -29,16 +29,16 @@ std::tuple<Eigen::VectorXd, Eigen::VectorXd, Eigen::VectorXcd> calc_next(ShellMo
 
 int main(){
     auto start = std::chrono::system_clock::now(); // 計測開始時間
-    double nu = 0.00018;
-    double beta = 0.417;
-    std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
-    double dt = 0.01;
-    double t_0 = 0;
-    double t = 2e+4;
-    double latter = 1;
-    double check = 1000;
-    double progress = 100;
-    int limit = 1e+5; //limitation of trial of stagger and step
+    const double nu = 0.00018;
+    const double beta = 0.417;
+    const std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
+    const double dt = 0.01;
+    const double t_0 = 0;
+    const double t = 1e+5;
+    const double latter = 1;
+    const double check = 1500;
+    const double progress = 100;
+    int limit = 1e+4; //limitation of trial of stagger and step
     Eigen::VectorXcd x_0 = npy2EigenVec("../../initials/beta0.417_nu0.00018_13348period_dt0.01eps0.005.npy");
     ShellModel SM(nu, beta, f, dt, t_0, t, latter, x_0);
     Eigen::MatrixXcd Dummy_Laminar(x_0.rows()+1, 1); //dummy matrix to use LongLaminar Class
@@ -59,13 +59,13 @@ int main(){
     // sync_pairs.push_back(std::make_tuple(5, 14, 2));
     // sync_pairs.push_back(std::make_tuple(8, 11, 0.55));
     // sync_pairs.push_back(std::make_tuple(8, 14, 0.55));
-    // sync_pairs.push_back(std::make_tuple(11, 14, 8E-3));
+    // sync_pairs.push_back(std::make_tuple(11, 14, 9E-3));
 
     // sync_pairs.push_back(std::make_tuple(6, 9, 1.7));
     // sync_pairs.push_back(std::make_tuple(6, 12, 1.7));
-    sync_pairs.push_back(std::make_tuple(9, 12, 0.2));
+    // sync_pairs.push_back(std::make_tuple(9, 12, 0.19));
 
-    // sync_pairs.push_back(std::make_tuple(9, 12, 0.06)); // dummy to check all trajectory
+    sync_pairs.push_back(std::make_tuple(9, 12, 3.2)); // dummy to check all trajectory
 
     /*
       ██                                                                    █
@@ -88,6 +88,7 @@ int main(){
     int progress_steps = static_cast<int>(progress / dt + 0.5);
     SM.set_steps_(check_steps);
     Eigen::VectorXd n = Eigen::VectorXd::Zero(x_0.rows());
+
     Eigen::VectorXd next_n(x_0.rows()); // candidate of next n
 
     for (int i; i < stagger_and_step_num; i++){
@@ -163,7 +164,7 @@ int main(){
                 ShellModel Local_SM = SM; // copy of SM
                 std::vector<std::tuple<int, int, double>> Local_sync_pairs = sync_pairs; // copy of sync_pairs
                 double Local_now_time = Local_SM.get_t_0_();
-                Eigen::VectorXcd Local_x_0 = Local_LL.perturbation_(Local_SM.get_x_0_(), -16, -6);
+                Eigen::VectorXcd Local_x_0 = Local_LL.perturbation_(Local_SM.get_x_0_(), -16, -2);
                 Eigen::VectorXcd Local_now = Local_x_0; // perturbed initial state
                 Eigen::MatrixXcd Local_trajectory = Eigen::MatrixXcd::Zero(Local_now.rows()+1, progress_steps+1); //wide matrix for progress
                 Local_trajectory.topLeftCorner(Local_now.rows(), 1) = Local_now;
@@ -268,6 +269,15 @@ int main(){
     plt::xlim(0.0, 0.4);
     plt::ylim(0.0, 0.4);
     plt::plot(x,y);
+    // 最後の点を赤でプロット(サイズは大きめ)
+    std::vector<double> x_last(1), y_last(1);
+    x_last[0] = x[x.size()-1];
+    y_last[0] = y[y.size()-1];
+    std::map<std::string, std::string> lastPointSettings;
+    lastPointSettings["color"] = "red";
+    lastPointSettings["marker"] = "o";
+    lastPointSettings["markersize"] = "5";
+    plt::plot(x_last, y_last, lastPointSettings);
     std::ostringstream oss;
     oss << "../../generated_lam_imag/sync_gen_laminar_beta_" << beta << "nu_" << nu <<"_dt"<< dt << "_" << reach << "period" << check << "check" << progress << "progress";
     for (const auto& pair : sync_pairs){
