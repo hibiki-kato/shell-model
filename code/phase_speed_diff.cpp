@@ -87,6 +87,8 @@ int main(){
         // 一番最後の角度に回転数を加える
         angles(angles.rows()-1, i) += rotation_number * 2 * M_PI;
     }
+    // rotation speed
+    Eigen::MatrixXd rotation_speed = (angles.bottomRows(angles.rows()-1) - angles.topRows(angles.rows()-1)) / ddt;
 
 
     /*
@@ -126,7 +128,7 @@ int main(){
     int counter = 0;
     for(const auto& pair : sync_pairs){
         counter++;
-        Eigen::VectorXd diff = (angles.col(pair.first-1) - angles.col(pair.second-1)).cwiseAbs();
+        Eigen::VectorXd diff = (rotation_speed.col(pair.first-1) - rotation_speed.col(pair.second-1)).cwiseAbs();
         for (int i = 0; i < y.size(); i++){
             y[i] = diff(i*skip);
         }
@@ -137,7 +139,7 @@ int main(){
     }
 
     std::ostringstream oss;
-    oss << "../../phase_diff/beta_" << beta << "nu_" << nu <<"_"<< t-t_0 << "period";
+    oss << "../../phase_speed_diff/beta_" << beta << "nu_" << nu <<"_"<< t-t_0 << "period";
     for (const auto& pair : sync_pairs){
         oss << "_" << std::get<0>(pair) << "-" << std::get<1>(pair);
     }
