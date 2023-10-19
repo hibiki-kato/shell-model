@@ -1,9 +1,9 @@
 /**
- * @file phase_diff.cpp
+ * @file phase_diff_diff.cpp
  * @author Hibiki Kato
- * @brief Observe phase difference between shells
+ * @brief Observe phase speed difference between shells
  * @version 0.1
- * @date 2023-09-19
+ * @date 2023-10-19
  *
  * @copyright Copyright (c) 2023
  * 
@@ -32,7 +32,7 @@ int main(){
     std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
     double ddt = 0.01;
     double t_0 = 0;
-    double t = 1e+4;
+    double t = 2e+3;
 
     double latter = 1;
     int threads = omp_get_max_threads();

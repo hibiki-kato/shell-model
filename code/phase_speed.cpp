@@ -83,6 +83,21 @@ int main(){
         plt::ylabel("$U_{" + std::to_string(i+1) + "}$");
     }
 
+    /*
+                   █                                  █
+      ████         █             ██                   █
+     █             █             ██                   █
+    █        ███   █   ████      █ █   █ ███    █████ █   ███   ████
+    █           █  █  ██        █  █   ██  ██  █   █  █  ██  █  █
+    █           █  █  █         █  █   █    █  █   █  █  █   ██ █
+    █        ████  █  █        ██████  █    █  █   █  █  ██████  ███
+    █       █   █  █  █        █    █  █    █  ████   █  █         ██
+     █      █   █  █  ██       █    ██ █    █  █      █  ██        ██
+      ████  █████  █   ████   █      █ █    █  █████  █   ████  ████
+                                              ██   ██
+                                              █    ██
+                                               █████
+    */
     Eigen::MatrixXd angles = trajectory.topRows(trajectory.rows()-1).cwiseArg().transpose();
 
     std::cout << "unwrapping angles" << std::endl;
@@ -105,6 +120,9 @@ int main(){
         // 一番最後の角度に回転数を加える
         angles(angles.rows()-1, i) += rotation_number * 2 * M_PI;
     }
+
+    // rotation speed
+    Eigen::MatrixXd rotation_speed = (angles.bottomRows(angles.rows()-1) - angles.topRows(angles.rows()-1)) / ddt;
     /*
               ██                                                       ██                 
     ██████    ██                                                       ██                 
@@ -124,12 +142,12 @@ int main(){
                                                               █   ██                      
                                                               █████                       
     */
-    std::cout << "plotting angles" << std::endl;
-    for(int i=0; i < angles.cols(); i++){
+    std::cout << "plotting rotation_speed" << std::endl;
+    for(int i=0; i < rotation_speed.cols(); i++){
         for(int j=0; j < y.size(); j++){
-            y[j]=angles(j*skip, i);
+            y[j]=rotation_speed(j*skip, i);
         }
-        plt::subplot(angles.cols(), 2, 2*i+2);
+        plt::subplot(rotation_speed.cols(), 2, 2*i+2);
         plt::plot(x,y);
         plt::xlabel("Time");
         plt::ylabel("$U_{" + std::to_string(i+1) + "}$");
@@ -142,7 +160,7 @@ int main(){
     plt::subplots_adjust(keywords);
 
     std::ostringstream oss;
-    oss << "../../phase/beta_" << beta << "nu_" << nu <<"_"<< t-t_0 << "period.png";  // 文字列を結合する
+    oss << "../../phase_speed/beta_" << beta << "nu_" << nu <<"_"<< t-t_0 << "period.png";  // 文字列を結合する
     std::string plotfname = oss.str(); // 文字列を取得する
     std::cout << "Saving result to " << plotfname << std::endl;
     plt::save(plotfname);

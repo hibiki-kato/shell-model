@@ -34,16 +34,16 @@ int main(){
     const std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
     const double dt = 0.01;
     const double t_0 = 0;
-    const double t = 1e+5;
+    const double t = 5e+4;
     const double latter = 1;
     const double check = 1500;
     const double progress = 100;
-    int limit = 1e+4; //limitation of trial of stagger and step
+    int limit = 5e+3; //limitation of trial of stagger and step
     Eigen::VectorXcd x_0 = npy2EigenVec("../../initials/beta0.417_nu0.00018_13348period_dt0.01eps0.005.npy");
     ShellModel SM(nu, beta, f, dt, t_0, t, latter, x_0);
     Eigen::MatrixXcd Dummy_Laminar(x_0.rows()+1, 1); //dummy matrix to use LongLaminar Class
     LongLaminar LL(nu, beta, f, dt, t_0, t, latter, x_0, Dummy_Laminar, 0.01, 100, check, progress, 8);
-    int numThreads = omp_get_max_threads();
+    int numThreads = 8;
 
     //make pairs of shells to observe phase difference(num begins from 1)
     std::vector<std::tuple<int, int, double>> sync_pairs;
@@ -63,9 +63,9 @@ int main(){
 
     // sync_pairs.push_back(std::make_tuple(6, 9, 1.7));
     // sync_pairs.push_back(std::make_tuple(6, 12, 1.7));
-    // sync_pairs.push_back(std::make_tuple(9, 12, 0.19));
+    sync_pairs.push_back(std::make_tuple(9, 12, 0.165));
 
-    sync_pairs.push_back(std::make_tuple(9, 12, 3.2)); // dummy to check all trajectory
+    // sync_pairs.push_back(std::make_tuple(9, 12, 3.2)); // dummy to check all trajectory
 
     /*
       ██                                                                    █
@@ -90,6 +90,7 @@ int main(){
     Eigen::VectorXd n = Eigen::VectorXd::Zero(x_0.rows());
 
     Eigen::VectorXd next_n(x_0.rows()); // candidate of next n
+    double max_perturbation = 0; // max perturbation
 
     for (int i; i < stagger_and_step_num; i++){
         std::cout << "\r 現在" << SM.get_t_0_() << "時間" << std::flush;
@@ -147,8 +148,9 @@ int main(){
             bool success = false; // whether stagger and step succeeded
             double max_duration = check - progress; // max duration of laminar
             double total_perturbation = 0; // total perturbation
-            // successとmax_durationとcounter以外はprivateにする
-            #pragma omp parallel for num_threads(numThreads) schedule(dynamic) shared(success, max_duration, SM, n, total_perturbation, counter) firstprivate(LL, sync_pairs, check_steps, progress_steps, numThreads)
+            // 基本的に全てprivate変数にする
+            // #pragma omp parallel for num_threads(numThreads) schedule(dynamic) shared(success, max_duration, SM, n, total_perturbation, counter, max_perturbation) firstprivate(LL, sync_pairs, check_steps, progress_steps, numThreads) reduction(+:total_perturbation, counter)
+            #pragma omp parallel for num_threads(numThreads) schedule(dynamic)
             for (int j = 0; j < limit; j++){
                 if (success){
                     continue;
@@ -164,10 +166,11 @@ int main(){
                 ShellModel Local_SM = SM; // copy of SM
                 std::vector<std::tuple<int, int, double>> Local_sync_pairs = sync_pairs; // copy of sync_pairs
                 double Local_now_time = Local_SM.get_t_0_();
-                Eigen::VectorXcd Local_x_0 = Local_LL.perturbation_(Local_SM.get_x_0_(), -16, -2);
+                Eigen::VectorXcd Local_x_0 = Local_LL.perturbation_(Local_SM.get_x_0_(), -16, -3);
                 Eigen::VectorXcd Local_now = Local_x_0; // perturbed initial state
                 Eigen::MatrixXcd Local_trajectory = Eigen::MatrixXcd::Zero(Local_now.rows()+1, progress_steps+1); //wide matrix for progress
                 Local_trajectory.topLeftCorner(Local_now.rows(), 1) = Local_now;
+                Local_trajectory(Local_now.rows(), 0) = Local_now_time;
                 Eigen::VectorXd Local_theta = Local_now.cwiseArg();
                 Eigen::VectorXd Local_n = n; // It doesn't matter if this is not accurate because of perturbation, because it won't survive.
                 Eigen::VectorXd Local_next_n;
@@ -212,9 +215,12 @@ int main(){
                 #pragma omp critical
                 if (Local_laminar == true && success == false){
                     {   
-                        std::cout << "overall perturbation scale here is " << total_perturbation + (Local_trajectory.topLeftCorner(Local_now.rows(), 1) - SM.get_x_0_()).norm() << std::endl;
+                        double perturbation_size = total_perturbation + (Local_trajectory.topLeftCorner(Local_now.rows(), 1) - SM.get_x_0_()).norm();
+                        if (perturbation_size > max_perturbation){
+                            max_perturbation = perturbation_size;
+                        }
+                        std::cout << "overall perturbation scale here is " << perturbation_size << std::endl;
                         SM.set_t_0_(Local_trajectory.bottomRightCorner(1, 1).cwiseAbs()(0, 0));
-                        std::cout << "更新後の時間は" << SM.get_t_0_() << std::endl;
                         SM.set_x_0_(Local_trajectory.topRightCorner(Local_now.rows(), 1));
                         calced_laminar.middleCols(i*progress_steps, progress_steps+1) = Local_trajectory;
                         n = Local_next_n;
