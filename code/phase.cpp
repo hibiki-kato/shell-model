@@ -27,7 +27,7 @@ int shift(double pre_theta, double theta, int rotation_number);
 int main(){
     auto start = std::chrono::system_clock::now(); // 計測開始時間
     double nu = 0.00018;
-    double beta = 0.4165;
+    double beta = 0.42;
     std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
     double ddt = 0.01;
     double t_0 = 0;
@@ -35,7 +35,7 @@ int main(){
     double latter = 1;
     int numthreads = omp_get_max_threads();
 
-    Eigen::VectorXcd x_0 = npy2EigenVec("../../initials/beta0.4163_nu0.00018_10000period_dt0.01.npy");
+    Eigen::VectorXcd x_0 = npy2EigenVec("../../initials/beta0.42_nu0.00018_3830period_dt0.01.npy");
     ShellModel solver(nu, beta, f, ddt, t_0, t, latter, x_0);
     Eigen::MatrixXcd trajectory = solver.get_trajectory_();
     std::cout << "calculating trajectory" << std::endl;

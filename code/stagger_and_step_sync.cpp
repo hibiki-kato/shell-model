@@ -30,7 +30,7 @@ std::tuple<Eigen::VectorXd, Eigen::VectorXd, Eigen::VectorXcd> calc_next(ShellMo
 int main(){
     auto start = std::chrono::system_clock::now(); // 計測開始時間
     const double nu = 0.00018;
-    const double beta = 0.417;
+    const double beta = 0.42;
     const std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
     const double dt = 0.01;
     const double t_0 = 0;
@@ -38,12 +38,12 @@ int main(){
     const double latter = 1;
     const double check = 1500;
     const double progress = 100;
-    int limit = 5e+3; //limitation of trial of stagger and step
-    Eigen::VectorXcd x_0 = npy2EigenVec("../../initials/beta0.417_nu0.00018_13348period_dt0.01eps0.005.npy");
+    int limit = 1e+5; //limitation of trial of stagger and step
+    Eigen::VectorXcd x_0 = npy2EigenVec("../../initials/beta0.42_nu0.00018_3830period_dt0.01.npy");
     ShellModel SM(nu, beta, f, dt, t_0, t, latter, x_0);
     Eigen::MatrixXcd Dummy_Laminar(x_0.rows()+1, 1); //dummy matrix to use LongLaminar Class
     LongLaminar LL(nu, beta, f, dt, t_0, t, latter, x_0, Dummy_Laminar, 0.01, 100, check, progress, 8);
-    int numThreads = 8;
+    int numThreads = 32;
 
     //make pairs of shells to observe phase difference(num begins from 1)
     std::vector<std::tuple<int, int, double>> sync_pairs;
@@ -52,18 +52,18 @@ int main(){
     // sync_pairs.push_back(std::make_tuple(4, 13, 2));
     // sync_pairs.push_back(std::make_tuple(7, 10, 2));
     // sync_pairs.push_back(std::make_tuple(7, 13, 1.1));
-    // sync_pairs.push_back(std::make_tuple(10, 13, 3.3E-2));
+    // sync_pairs.push_back(std::make_tuple(10, 13, 3E-2));
 
     // sync_pairs.push_back(std::make_tuple(5, 8, 2));
     // sync_pairs.push_back(std::make_tuple(5, 11, 2));
     // sync_pairs.push_back(std::make_tuple(5, 14, 2));
     // sync_pairs.push_back(std::make_tuple(8, 11, 0.55));
     // sync_pairs.push_back(std::make_tuple(8, 14, 0.55));
-    // sync_pairs.push_back(std::make_tuple(11, 14, 9E-3));
+    sync_pairs.push_back(std::make_tuple(11, 14, 9E-3));
 
     // sync_pairs.push_back(std::make_tuple(6, 9, 1.7));
     // sync_pairs.push_back(std::make_tuple(6, 12, 1.7));
-    sync_pairs.push_back(std::make_tuple(9, 12, 0.165));
+    sync_pairs.push_back(std::make_tuple(9, 12, 0.16));
 
     // sync_pairs.push_back(std::make_tuple(9, 12, 3.2)); // dummy to check all trajectory
 
@@ -91,6 +91,7 @@ int main(){
 
     Eigen::VectorXd next_n(x_0.rows()); // candidate of next n
     double max_perturbation = 0; // max perturbation
+    double min_perturbation = 1; // min perturbation
 
     for (int i; i < stagger_and_step_num; i++){
         std::cout << "\r 現在" << SM.get_t_0_() << "時間" << std::flush;
@@ -148,9 +149,8 @@ int main(){
             bool success = false; // whether stagger and step succeeded
             double max_duration = check - progress; // max duration of laminar
             double total_perturbation = 0; // total perturbation
-            // 基本的に全てprivate変数にする
-            // #pragma omp parallel for num_threads(numThreads) schedule(dynamic) shared(success, max_duration, SM, n, total_perturbation, counter, max_perturbation) firstprivate(LL, sync_pairs, check_steps, progress_steps, numThreads) reduction(+:total_perturbation, counter)
-            #pragma omp parallel for num_threads(numThreads) schedule(dynamic)
+            // parallelization doesn't work well without option
+            #pragma omp parallel for num_threads(numThreads) schedule(dynamic) shared(success, max_duration, SM, n, total_perturbation, counter, max_perturbation) firstprivate(LL, sync_pairs, check_steps, progress_steps, numThreads)
             for (int j = 0; j < limit; j++){
                 if (success){
                     continue;
@@ -172,7 +172,7 @@ int main(){
                 Local_trajectory.topLeftCorner(Local_now.rows(), 1) = Local_now;
                 Local_trajectory(Local_now.rows(), 0) = Local_now_time;
                 Eigen::VectorXd Local_theta = Local_now.cwiseArg();
-                Eigen::VectorXd Local_n = n; // It doesn't matter if this is not accurate because of perturbation, because it won't survive.
+                Eigen::VectorXd Local_n = n; // It doesn't matter if this is not accurate due to the perturbation, because wrong case won't survive.
                 Eigen::VectorXd Local_next_n;
                 for (int k = 0; k < check_steps; k++){
                     std::tuple<Eigen::VectorXd, Eigen::VectorXd, Eigen::VectorXcd> Local_next = calc_next(Local_SM, Local_n, Local_theta, Local_now);
@@ -219,6 +219,9 @@ int main(){
                         if (perturbation_size > max_perturbation){
                             max_perturbation = perturbation_size;
                         }
+                        if (perturbation_size < min_perturbation){
+                            min_perturbation = perturbation_size;
+                        }
                         std::cout << "overall perturbation scale here is " << perturbation_size << std::endl;
                         SM.set_t_0_(Local_trajectory.bottomRightCorner(1, 1).cwiseAbs()(0, 0));
                         SM.set_x_0_(Local_trajectory.topRightCorner(Local_now.rows(), 1));
@@ -243,6 +246,12 @@ int main(){
         }// end of stagger and step
     }
 
+    // order of max perturbation
+    std::cout << "max perturbation is " << max_perturbation << std::endl;
+    std::cout << "min perturbation is " << min_perturbation << std::endl;
+    int logged_max_perturbation = static_cast<int>(log10(max_perturbation));
+    std::cout << "logged max perturbation is " << logged_max_perturbation << std::endl;
+    int logged_min_perturbation = static_cast<int>(log10(min_perturbation));
 
     /*
             █             
@@ -285,7 +294,7 @@ int main(){
     lastPointSettings["markersize"] = "5";
     plt::plot(x_last, y_last, lastPointSettings);
     std::ostringstream oss;
-    oss << "../../generated_lam_imag/sync_gen_laminar_beta_" << beta << "nu_" << nu <<"_dt"<< dt << "_" << reach << "period" << check << "check" << progress << "progress";
+    oss << "../../generated_lam_imag/sync_gen_laminar_beta_" << beta << "nu_" << nu <<"_dt"<< dt << "_" << reach << "period" << check << "check" << progress << "progress10^" << logged_min_perturbation<<"-10^"<< logged_max_perturbation << "perturb";
     for (const auto& pair : sync_pairs){
         oss << "_" << std::get<0>(pair) << "-" << std::get<1>(pair);
     }
@@ -295,7 +304,7 @@ int main(){
     plt::save(filename);
 
     oss.str("");
-    oss << "../../generated_lam/sync_gen_laminar_beta_" << beta << "nu_" << nu <<"_dt"<< dt << "_" << reach << "period" << check << "check" << progress << "progress";
+    oss << "../../generated_lam/sync_gen_laminar_beta_" << beta << "nu_" << nu <<"_dt"<< dt << "_" << reach << "period" << check << "check" << progress << "progress10^" << logged_min_perturbation<<"-10^"<< logged_max_perturbation << "perturb";
     for (const auto& pair : sync_pairs){
         oss << "_" << std::get<0>(pair) << "-" << std::get<1>(pair);
     }
