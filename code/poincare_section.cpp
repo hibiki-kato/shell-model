@@ -10,32 +10,31 @@
 #include <omp.h>
 #include "cnpy/cnpy.h"
 #include "matplotlibcpp.h"
+#include "Eigen_numpy_converter.hpp"
 namespace plt = matplotlibcpp;
 Eigen::MatrixXd loc_max(const Eigen::MatrixXd& traj_abs, int obs_dim, double dt);
-Eigen::VectorXcd npy2EigenVec(const char* fname);
-Eigen::MatrixXcd npy2EigenMat(const char* fname);
 Eigen::MatrixXd poincare_section(const Eigen::MatrixXd& traj_abs, int cut_dim, double cut_value);
 std::vector<int> extractCommonColumns(const std::vector<Eigen::MatrixXd>& matrices);
 
 int main(){
     auto start = std::chrono::system_clock::now(); // timer start
     double nu = 0.00018;
-    double beta = 0.4165;
+    double beta = 0.415;
     std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
     double ddt = 0.01;
     double t_0 = 0;
-    double t = 1000;
-    double latter = 2;
-    Eigen::VectorXcd x_0 = npy2EigenVec("../../initials/beta0.41616nu0.00018_1.00923e+06period.npy");
+    double t = 50000;
+    double latter = 1;
+    Eigen::VectorXcd x_0 = npy2EigenVec<std::complex<double>>("../../initials/beta0.415_nu0.00018_100000period_dt0.01.npy");
     std::vector<Eigen::MatrixXd> matrices; //ポアンカレ写像の結果を格納するベクトル
 
     ShellModel SM(nu, beta, f, ddt, t_0, t, latter, x_0);
     // 計算する場合は以下のコメントアウトを外す
-    // Eigen::MatrixXcd trajectory = SM.get_trajectory_();
+    Eigen::MatrixXcd trajectory = SM.get_trajectory_();
     // 計算済みの場合は以下のコメントアウトを外す
-    Eigen::MatrixXcd trajectory = npy2EigenMat("../../sync/beta_0.4162nu_0.00018_100000period100000window.npy");
-    Eigen::MatrixXd traj_abs = trajectory.cwiseAbs();
+    // Eigen::MatrixXcd trajectory = npy2EigenMat<std::complex<double>>("../../generated_lam/sync_gen_laminar_beta_0.423nu_0.00018_dt0.01_50000period1000check100progress10^-7-10^-3perturb_4-7_4-10_4-13_7-10_7-13_10-13_5-8_5-11_5-14_8-11_8-14_11-14_6-9_6-12_9-12.npy");
     
+    Eigen::MatrixXd traj_abs = trajectory.cwiseAbs();
     Eigen::MatrixXd loc_max_4 = loc_max(traj_abs, 4, ddt);
     matrices.push_back(loc_max_4);
     // Eigen::MatrixXd PoincareSection6 = poincare_section(traj_abs, 6, 0.1);
@@ -48,7 +47,11 @@ int main(){
     
 
     std::cout << commonColumns.size() <<"points"<< std::endl; //print the number of points
-    plt::figure_size(1000, 1000);
+    std::map<std::string, std::string> plotSettings;
+    plotSettings["font.family"] = "Times New Roman";
+    plotSettings["font.size"] = "10";
+    plt::rcparams(plotSettings);
+    plt::figure_size(1200, 1200);
     int plot_dim1 = 3;
     int plot_dim2 = 4;
     // Add graph title
@@ -59,7 +62,7 @@ int main(){
             y[ite] = loc_max_4(plot_dim2-1, index);
             ite++;
     }
-    plt::scatter(x,y);
+    plt::scatter(x,y,5.0);
     std::ostringstream oss;
     oss <<"Shell"<< plot_dim1;
     plt::xlabel(oss.str()); 
@@ -70,7 +73,7 @@ int main(){
     plt::xlim(0.05, 0.6);
     oss.str("");
     oss << "../../poincare/beta_" << beta << "nu_" << nu << "loc_max_4"<< t / latter <<"period.png";  // 文字列を結合する
-    // oss << "../../poincare/beta_" << beta << "nu_" << nu << "loc_max_4_laminar43000period.png";
+    // oss << "../../poincare/beta_" << beta << "nu_" << nu << "loc_max_4_laminar50000period.png";
     std::string plotfname = oss.str(); // 文字列を取得する
     std::cout << "Saving result to " << plotfname << std::endl;
     plt::save(plotfname);
@@ -82,27 +85,6 @@ int main(){
     int seconds = std::chrono::duration_cast<std::chrono::seconds>(end-start).count(); //処理に要した時間を変換
     int milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count(); //処理に要した時間を変換
     std::cout << hours << "h " << minutes % 60 << "m " << seconds % 60 << "s " << milliseconds % 1000 << "ms " << std::endl;
-}
-
-Eigen::VectorXcd npy2EigenVec(const char* fname){
-    std::string fname_str(fname);
-    cnpy::NpyArray arr = cnpy::npy_load(fname_str);
-    if (arr.word_size != sizeof(std::complex<double>)) {
-        throw std::runtime_error("Unsupported data type in the npy file.");
-    }
-    std::complex<double>* data = arr.data<std::complex<double>>();
-    Eigen::Map<Eigen::VectorXcd> vec(data, arr.shape[0]);
-    return vec;
-}
-
-Eigen::MatrixXcd npy2EigenMat(const char* fname){
-    std::string fname_str(fname);
-    cnpy::NpyArray arr = cnpy::npy_load(fname_str);
-    if (arr.word_size != sizeof(std::complex<double>)){
-        throw std::runtime_error("Unsupported data type in the npy file.");
-    }
-    Eigen::Map<const Eigen::MatrixXcd> MatT(arr.data<std::complex<double>>(), arr.shape[1], arr.shape[0]);
-    return MatT.transpose();
 }
 
 Eigen::MatrixXd loc_max(const Eigen::MatrixXd& traj_abs, int loc_max_dim, double dt){

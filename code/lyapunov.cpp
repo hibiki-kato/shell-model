@@ -31,20 +31,22 @@ VectorXd rungeKuttaJacobian(const VectorXd& state, const MatrixXd& jacobian, dou
 int main() {
     auto start = std::chrono::system_clock::now(); // 計測開始時間
     double nu = 0.00018;
-    double beta = 0.41525;
+    double beta = 0.423;
     std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
     double dt = 0.01;
     double t_0 = 0;
-    double t = 100000;
+    double t = 50000;
     double latter = 1;
     int threads = omp_get_max_threads();
-    Eigen::VectorXcd x_0 = npy2EigenVec("../../initials/beta0.41525_nu0.00018_14dim_period.npy");
+    Eigen::VectorXcd x_0 = npy2EigenVec("../../initials/beta0.469363_nu0.00011815_2000period.npy");
     
     ShellModel SM(nu, beta, f, dt, t_0, t, latter, x_0);
-    std::cout << "calculating trajectory" << std::endl;
-    Eigen::MatrixXcd rawData = SM.get_trajectory_();
+    // std::cout << "calculating trajectory" << std::endl;
+    // bool laminar = false;
+    // Eigen::MatrixXcd rawData = SM.get_trajectory_();
     // データの読み込みをここに記述
-    // Eigen::MatrixXcd rawData = npy2EigenMat("../../generated_lam/generated_laminar_beta_0.416nu_0.00018_dt0.01_50000period500check20progresseps0.02.npy");
+    bool laminar = true;
+    Eigen::MatrixXcd rawData = npy2EigenMat("../../generated_lam/sync_gen_laminar_beta_0.423nu_0.00018_dt0.01_50000period1000check100progress10^-7-10^-3perturb_4-7_4-10_4-13_7-10_7-13_10-13_5-8_5-11_5-14_8-11_8-14_11-14_6-9_6-12_9-12.npy");
     
     
     // パラメータの設定（例）
@@ -120,14 +122,22 @@ int main() {
     plt::xlabel("wavenumber");
     plt::ylabel("Lyapunov Exponents");
     std::ostringstream oss;
-    oss << "../../lyapunov_exponents/beta_" << beta << "nu_" << nu <<"_"<< static_cast<int>(rawData.cwiseAbs().bottomRightCorner(1, 1)(0, 0)) << "period.png";  // 文字列を結合する
+    if (laminar) {
+        oss << "../../lyapunov_exponents/beta_" << beta << "nu_" << nu <<"_"<< static_cast<int>(rawData.cwiseAbs().bottomRightCorner(1, 1)(0, 0)) << "period_laminar.png";  // 文字列を結合する
+    } else {
+        oss << "../../lyapunov_exponents/beta_" << beta << "nu_" << nu <<"_"<< static_cast<int>(rawData.cwiseAbs().bottomRightCorner(1, 1)(0, 0)) << "period.png";  // 文字列を結合する
+    }
     std::string plotfname = oss.str(); // 文字列を取得する
     std::cout << "Saving result to " << plotfname << std::endl;
     plt::save(plotfname);
 
     // xをテキストファイルに保存
     oss.str("");
-    oss << "../../lyapunov_exponents/beta_" << beta << "nu_" << nu <<"_dt"<< dt << "_" << static_cast<int>(rawData.cwiseAbs().bottomRightCorner(1, 1)(0, 0)) << "period.txt";
+    if (laminar) {
+        oss << "../../lyapunov_exponents/beta_" << beta << "nu_" << nu <<"_dt"<< dt << "_" << static_cast<int>(rawData.cwiseAbs().bottomRightCorner(1, 1)(0, 0)) << "period_laminar.txt";
+    } else {
+        oss << "../../lyapunov_exponents/beta_" << beta << "nu_" << nu <<"_dt"<< dt << "_" << static_cast<int>(rawData.cwiseAbs().bottomRightCorner(1, 1)(0, 0)) << "period.txt";
+    }
     std::string fname = oss.str(); // 文字列を取得する
     std::cout << "saving as " << fname << std::endl;
     std::ofstream ofs(fname);
