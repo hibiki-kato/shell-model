@@ -47,22 +47,22 @@ int main(){
 
     //make pairs of shells to observe phase difference(num begins from 1)
     std::vector<std::tuple<int, int, double>> sync_pairs;
-    // sync_pairs.push_back(std::make_tuple(4, 7, 2));
-    // sync_pairs.push_back(std::make_tuple(4, 10, 2));
-    // sync_pairs.push_back(std::make_tuple(4, 13, 2));
+    sync_pairs.push_back(std::make_tuple(4, 7, 2));
+    sync_pairs.push_back(std::make_tuple(4, 10, 2));
+    sync_pairs.push_back(std::make_tuple(4, 13, 2));
     sync_pairs.push_back(std::make_tuple(7, 10, 1.1));
     sync_pairs.push_back(std::make_tuple(7, 13, 1.1));
     sync_pairs.push_back(std::make_tuple(10, 13, 3.5E-2));
 
-    // sync_pairs.push_back(std::make_tuple(5, 8, 1.9));
-    // sync_pairs.push_back(std::make_tuple(5, 11, 1.9));
-    // sync_pairs.push_back(std::make_tuple(5, 14, 1.9));
-    // sync_pairs.push_back(std::make_tuple(8, 11, 0.46));
-    // sync_pairs.push_back(std::make_tuple(8, 14, 0.46));
-    // sync_pairs.push_back(std::make_tuple(11, 14, 7E-3));
+    sync_pairs.push_back(std::make_tuple(5, 8, 8));
+    sync_pairs.push_back(std::make_tuple(5, 11, 8));
+    sync_pairs.push_back(std::make_tuple(5, 14, 8));
+    sync_pairs.push_back(std::make_tuple(8, 11, 0.47));
+    sync_pairs.push_back(std::make_tuple(8, 14, 0.47));
+    sync_pairs.push_back(std::make_tuple(11, 14, 7.5E-3));
 
-    // sync_pairs.push_back(std::make_tuple(6, 9, 7.5));
-    // sync_pairs.push_back(std::make_tuple(6, 12, 7.5));
+    // sync_pairs.push_back(std::make_tuple(6, 9, 1.6));
+    // sync_pairs.push_back(std::make_tuple(6, 12, 1.6));
     sync_pairs.push_back(std::make_tuple(9, 12, 0.16));
 
     // sync_pairs.push_back(std::make_tuple(9, 12, 3.2)); // dummy to check all trajectory

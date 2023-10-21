@@ -47,12 +47,12 @@ int main(){
     t=2000;
     latter = 1;
     nu = 0.00018;
-    beta = 0.421;
+    beta = 0.423;
     ddt = 0.01;
-    x_0 = npy2EigenVec<std::complex<double>>("../../initials/beta0.421_nu0.00018_1829period_dt0.01eps0.03.npy");
+    x_0 = npy2EigenVec<std::complex<double>>("../../initials/beta0.423_nu0.00018_1430period_dt0.01eps0.05.npy");
     int num_of_candidates = omp_get_max_threads();
     int skip = 100;
-    double epsilon = 5E-3;
+    double epsilon = 5E-2;
     int threads = omp_get_max_threads();
     std::cout << threads << "threads" << std::endl;
 
