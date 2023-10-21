@@ -30,16 +30,16 @@ std::tuple<Eigen::VectorXd, Eigen::VectorXd, Eigen::VectorXcd> calc_next(ShellMo
 int main(){
     auto start = std::chrono::system_clock::now(); // 計測開始時間
     const double nu = 0.00018;
-    const double beta = 0.421;
+    const double beta = 0.423;
     const std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
     const double dt = 0.01;
     const double t_0 = 0;
     const double t = 5e+4;
     const double latter = 1;
-    const double check = 500;
-    const double progress = 10;
-    int limit = 1e+6; //limitation of trial of stagger and step
-    Eigen::VectorXcd x_0 = npy2EigenVec("../../initials/beta0.421_nu0.00018_804period_dt0.01eps0.005.npy");
+    const double check = 1000;
+    const double progress = 100;
+    int limit = 1e+5; //limitation of trial of stagger and step
+    Eigen::VectorXcd x_0 = npy2EigenVec("../../initials/beta0.423_nu0.00018_1229period_dt0.01eps0.003.npy");
     ShellModel SM(nu, beta, f, dt, t_0, t, latter, x_0);
     Eigen::MatrixXcd Dummy_Laminar(x_0.rows()+1, 1); //dummy matrix to use LongLaminar Class
     LongLaminar LL(nu, beta, f, dt, t_0, t, latter, x_0, Dummy_Laminar, 0.01, 100, check, progress, 8);
@@ -48,21 +48,21 @@ int main(){
     //make pairs of shells to observe phase difference(num begins from 1)
     std::vector<std::tuple<int, int, double>> sync_pairs;
     sync_pairs.push_back(std::make_tuple(4, 7, 2));
-    sync_pairs.push_back(std::make_tuple(4, 10, 2));
-    sync_pairs.push_back(std::make_tuple(4, 13, 2));
-    sync_pairs.push_back(std::make_tuple(7, 10, 1.1));
-    sync_pairs.push_back(std::make_tuple(7, 13, 1.1));
+    sync_pairs.push_back(std::make_tuple(4, 10, 2.1));
+    sync_pairs.push_back(std::make_tuple(4, 13, 2.1));
+    sync_pairs.push_back(std::make_tuple(7, 10, 1.2));
+    sync_pairs.push_back(std::make_tuple(7, 13, 1.2));
     sync_pairs.push_back(std::make_tuple(10, 13, 3.5E-2));
 
-    sync_pairs.push_back(std::make_tuple(5, 8, 8));
-    sync_pairs.push_back(std::make_tuple(5, 11, 8));
-    sync_pairs.push_back(std::make_tuple(5, 14, 8));
+    sync_pairs.push_back(std::make_tuple(5, 8, 1.9));
+    sync_pairs.push_back(std::make_tuple(5, 11, 1.9));
+    sync_pairs.push_back(std::make_tuple(5, 14, 1.9));
     sync_pairs.push_back(std::make_tuple(8, 11, 0.47));
     sync_pairs.push_back(std::make_tuple(8, 14, 0.47));
     sync_pairs.push_back(std::make_tuple(11, 14, 7.5E-3));
 
-    // sync_pairs.push_back(std::make_tuple(6, 9, 1.6));
-    // sync_pairs.push_back(std::make_tuple(6, 12, 1.6));
+    sync_pairs.push_back(std::make_tuple(6, 9, 1.7));
+    sync_pairs.push_back(std::make_tuple(6, 12, 1.7));
     sync_pairs.push_back(std::make_tuple(9, 12, 0.16));
 
     // sync_pairs.push_back(std::make_tuple(9, 12, 3.2)); // dummy to check all trajectory
