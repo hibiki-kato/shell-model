@@ -30,15 +30,15 @@ std::tuple<Eigen::VectorXd, Eigen::VectorXd, Eigen::VectorXcd> calc_next(ShellMo
 int main(){
     auto start = std::chrono::system_clock::now(); // 計測開始時間
     const double nu = 0.00018;
-    const double beta = 0.417;
+    const double beta = 0.421;
     const std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
     const double dt = 0.01;
     const double t_0 = 0;
-    const double t = 1e+5;
+    const double t = 5e+4;
     const double latter = 1;
-    const double check = 2000;
-    const double progress = 100;
-    int limit = 1e+5; //limitation of trial of stagger and step
+    const double check = 400;
+    const double progress = 40;
+    int limit = 1e+6; //limitation of trial of stagger and step
     Eigen::VectorXcd x_0 = npy2EigenVec("../../initials/beta0.417_nu0.00018_13348period_dt0.01eps0.005.npy");
     ShellModel SM(nu, beta, f, dt, t_0, t, latter, x_0);
     Eigen::MatrixXcd Dummy_Laminar(x_0.rows()+1, 1); //dummy matrix to use LongLaminar Class
