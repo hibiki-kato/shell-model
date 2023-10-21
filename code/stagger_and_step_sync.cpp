@@ -30,20 +30,20 @@ std::tuple<Eigen::VectorXd, Eigen::VectorXd, Eigen::VectorXcd> calc_next(ShellMo
 int main(){
     auto start = std::chrono::system_clock::now(); // 計測開始時間
     const double nu = 0.00018;
-    const double beta = 0.42;
+    const double beta = 0.417;
     const std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
     const double dt = 0.01;
     const double t_0 = 0;
-    const double t = 5e+4;
+    const double t = 1e+5;
     const double latter = 1;
-    const double check = 1000;
+    const double check = 2000;
     const double progress = 100;
-    int limit = 1e+4; //limitation of trial of stagger and step
-    Eigen::VectorXcd x_0 = npy2EigenVec("../../initials/beta0.42_nu0.00018_3630period_dt0.01.npy");
+    int limit = 1e+5; //limitation of trial of stagger and step
+    Eigen::VectorXcd x_0 = npy2EigenVec("../../initials/beta0.417_nu0.00018_13348period_dt0.01eps0.005.npy");
     ShellModel SM(nu, beta, f, dt, t_0, t, latter, x_0);
     Eigen::MatrixXcd Dummy_Laminar(x_0.rows()+1, 1); //dummy matrix to use LongLaminar Class
     LongLaminar LL(nu, beta, f, dt, t_0, t, latter, x_0, Dummy_Laminar, 0.01, 100, check, progress, 8);
-    int numThreads = 8;
+    int numThreads = omp_get_max_threads();
 
     //make pairs of shells to observe phase difference(num begins from 1)
     std::vector<std::tuple<int, int, double>> sync_pairs;
@@ -104,7 +104,7 @@ int main(){
         Eigen::VectorXd theta = now.cwiseArg();
         Eigen::VectorXd start_n = n; // preserve n at the start of the loop for stagger and step
         // calculate rotation number
-        // noperturbation at first
+        // no perturbation at first
         for (int j = 0; j < check_steps; j++){
             std::tuple<Eigen::VectorXd, Eigen::VectorXd, Eigen::VectorXcd> next = calc_next(SM, n, theta, now);
             n = std::get<0>(next);
@@ -133,7 +133,7 @@ int main(){
             n = next_n;
             continue;
         }
-        // otherwise, try stagger and step parallelly
+        // otherwise, try stagger and step in parallel
         else{
             /*
              ███    ██    ███     ███ ██████   ██   ████  ██████
@@ -167,7 +167,7 @@ int main(){
                 ShellModel Local_SM = SM; // copy of SM
                 std::vector<std::tuple<int, int, double>> Local_sync_pairs = sync_pairs; // copy of sync_pairs
                 double Local_now_time = Local_SM.get_t_0_();
-                Eigen::VectorXcd Local_x_0 = Local_LL.perturbation_(Local_SM.get_x_0_(), -10, -3);
+                Eigen::VectorXcd Local_x_0 = Local_LL.perturbation_(Local_SM.get_x_0_(), -12, -5);
                 Eigen::VectorXcd Local_now = Local_x_0; // perturbed initial state
                 Eigen::MatrixXcd Local_trajectory = Eigen::MatrixXcd::Zero(Local_now.rows()+1, progress_steps+1); //wide matrix for progress
                 Local_trajectory.topLeftCorner(Local_now.rows(), 1) = Local_now;
