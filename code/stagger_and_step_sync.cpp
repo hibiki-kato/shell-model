@@ -36,33 +36,33 @@ int main(){
     const double t_0 = 0;
     const double t = 5e+4;
     const double latter = 1;
-    const double check = 1500;
+    const double check = 1000;
     const double progress = 100;
-    int limit = 1e+5; //limitation of trial of stagger and step
-    Eigen::VectorXcd x_0 = npy2EigenVec("../../initials/beta0.42_nu0.00018_3830period_dt0.01.npy");
+    int limit = 1e+4; //limitation of trial of stagger and step
+    Eigen::VectorXcd x_0 = npy2EigenVec("../../initials/beta0.42_nu0.00018_3630period_dt0.01.npy");
     ShellModel SM(nu, beta, f, dt, t_0, t, latter, x_0);
     Eigen::MatrixXcd Dummy_Laminar(x_0.rows()+1, 1); //dummy matrix to use LongLaminar Class
     LongLaminar LL(nu, beta, f, dt, t_0, t, latter, x_0, Dummy_Laminar, 0.01, 100, check, progress, 8);
-    int numThreads = 32;
+    int numThreads = 8;
 
     //make pairs of shells to observe phase difference(num begins from 1)
     std::vector<std::tuple<int, int, double>> sync_pairs;
-    // sync_pairs.push_back(std::make_tuple(4, 7, 2));
-    // sync_pairs.push_back(std::make_tuple(4, 10, 2));
-    // sync_pairs.push_back(std::make_tuple(4, 13, 2));
-    // sync_pairs.push_back(std::make_tuple(7, 10, 2));
-    // sync_pairs.push_back(std::make_tuple(7, 13, 1.1));
-    // sync_pairs.push_back(std::make_tuple(10, 13, 3E-2));
+    sync_pairs.push_back(std::make_tuple(4, 7, 2));
+    sync_pairs.push_back(std::make_tuple(4, 10, 2));
+    sync_pairs.push_back(std::make_tuple(4, 13, 2));
+    sync_pairs.push_back(std::make_tuple(7, 10, 1.1));
+    sync_pairs.push_back(std::make_tuple(7, 13, 1.1));
+    sync_pairs.push_back(std::make_tuple(10, 13, 3.5E-2));
 
-    // sync_pairs.push_back(std::make_tuple(5, 8, 2));
-    // sync_pairs.push_back(std::make_tuple(5, 11, 2));
-    // sync_pairs.push_back(std::make_tuple(5, 14, 2));
-    // sync_pairs.push_back(std::make_tuple(8, 11, 0.55));
-    // sync_pairs.push_back(std::make_tuple(8, 14, 0.55));
-    sync_pairs.push_back(std::make_tuple(11, 14, 9E-3));
+    sync_pairs.push_back(std::make_tuple(5, 8, 1.9));
+    sync_pairs.push_back(std::make_tuple(5, 11, 1.9));
+    sync_pairs.push_back(std::make_tuple(5, 14, 1.9));
+    sync_pairs.push_back(std::make_tuple(8, 11, 0.46));
+    sync_pairs.push_back(std::make_tuple(8, 14, 0.46));
+    sync_pairs.push_back(std::make_tuple(11, 14, 7E-3));
 
-    // sync_pairs.push_back(std::make_tuple(6, 9, 1.7));
-    // sync_pairs.push_back(std::make_tuple(6, 12, 1.7));
+    sync_pairs.push_back(std::make_tuple(6, 9, 7.5));
+    sync_pairs.push_back(std::make_tuple(6, 12, 7.5));
     sync_pairs.push_back(std::make_tuple(9, 12, 0.16));
 
     // sync_pairs.push_back(std::make_tuple(9, 12, 3.2)); // dummy to check all trajectory
@@ -102,6 +102,7 @@ int main(){
         trajectory.topLeftCorner(x_0.size(), 1) = now;
         trajectory(now.rows(), 0) = now_time;
         Eigen::VectorXd theta = now.cwiseArg();
+        Eigen::VectorXd start_n = n; // preserve n at the start of the loop for stagger and step
         // calculate rotation number
         // noperturbation at first
         for (int j = 0; j < check_steps; j++){
@@ -150,7 +151,7 @@ int main(){
             double max_duration = check - progress; // max duration of laminar
             double total_perturbation = 0; // total perturbation
             // parallelization doesn't work well without option
-            #pragma omp parallel for num_threads(numThreads) schedule(dynamic) shared(success, max_duration, SM, n, total_perturbation, counter, max_perturbation) firstprivate(LL, sync_pairs, check_steps, progress_steps, numThreads)
+            #pragma omp parallel for num_threads(numThreads) schedule(dynamic) shared(success, max_duration, SM, n, total_perturbation, counter, max_perturbation) firstprivate(LL, sync_pairs, check_steps, progress_steps, numThreads, start_n)
             for (int j = 0; j < limit; j++){
                 if (success){
                     continue;
@@ -166,13 +167,13 @@ int main(){
                 ShellModel Local_SM = SM; // copy of SM
                 std::vector<std::tuple<int, int, double>> Local_sync_pairs = sync_pairs; // copy of sync_pairs
                 double Local_now_time = Local_SM.get_t_0_();
-                Eigen::VectorXcd Local_x_0 = Local_LL.perturbation_(Local_SM.get_x_0_(), -16, -3);
+                Eigen::VectorXcd Local_x_0 = Local_LL.perturbation_(Local_SM.get_x_0_(), -10, -3);
                 Eigen::VectorXcd Local_now = Local_x_0; // perturbed initial state
                 Eigen::MatrixXcd Local_trajectory = Eigen::MatrixXcd::Zero(Local_now.rows()+1, progress_steps+1); //wide matrix for progress
                 Local_trajectory.topLeftCorner(Local_now.rows(), 1) = Local_now;
                 Local_trajectory(Local_now.rows(), 0) = Local_now_time;
                 Eigen::VectorXd Local_theta = Local_now.cwiseArg();
-                Eigen::VectorXd Local_n = n; // It doesn't matter if this is not accurate due to the perturbation, because wrong case won't survive.
+                Eigen::VectorXd Local_n = start_n; // It doesn't matter if this is not accurate due to the perturbation, because wrong case won't survive.
                 Eigen::VectorXd Local_next_n;
                 for (int k = 0; k < check_steps; k++){
                     std::tuple<Eigen::VectorXd, Eigen::VectorXd, Eigen::VectorXcd> Local_next = calc_next(Local_SM, Local_n, Local_theta, Local_now);
@@ -186,8 +187,8 @@ int main(){
                             Local_trajectory(Local_now.rows(), k+1) = Local_now_time;
                         }
                         if (k+1 == progress_steps){
-                                Local_next_n = Local_n; //preserve candidate of n
-                            }
+                            Local_next_n = Local_n; //preserve candidate of n
+                        }
                     }
                     else{
                         #pragma omp critical
@@ -236,11 +237,6 @@ int main(){
                 std::cout << "stagger and step failed" << std::endl;
                 // 成功した分だけcalced_laminarをresize
                 calced_laminar.conservativeResize(x_0.rows()+1, i*progress_steps+1);
-                if (max_duration-SM.get_t_0_() <= 0.1){
-                    std::cout << "nは" << n << std::endl;
-                    std::cout << "thetaは" << SM.get_x_0_().cwiseArg() << std::endl;
-                    std::cout << "角度は" << theta + 2*n*M_PI << std::endl;
-                }
                 break;
             }
         }// end of stagger and step
@@ -249,9 +245,10 @@ int main(){
     // order of max perturbation
     std::cout << "max perturbation is " << max_perturbation << std::endl;
     std::cout << "min perturbation is " << min_perturbation << std::endl;
-    int logged_max_perturbation = static_cast<int>(log10(max_perturbation));
+    int logged_max_perturbation = static_cast<int>(log10(max_perturbation)-0.5) - 1;
     std::cout << "logged max perturbation is " << logged_max_perturbation << std::endl;
-    int logged_min_perturbation = static_cast<int>(log10(min_perturbation));
+    int logged_min_perturbation = static_cast<int>(log10(min_perturbation) - 0.5) -1;
+    std::cout << "logged min perturbation is " << logged_min_perturbation << std::endl;
 
     /*
             █             
