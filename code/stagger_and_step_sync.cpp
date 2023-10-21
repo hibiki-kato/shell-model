@@ -149,9 +149,9 @@ int main(){
             int counter = 0;
             bool success = false; // whether stagger and step succeeded
             double max_duration = check - progress; // max duration of laminar
-            double total_perturbation = 0; // total perturbation
+            Eigen::VectorXcd original_x_0 = SM.get_x_0_(); // log original x_0 for calc overall perturbation
             // parallelization doesn't work well without option
-            #pragma omp parallel for num_threads(numThreads) schedule(dynamic) shared(success, max_duration, SM, n, total_perturbation, counter, max_perturbation) firstprivate(LL, sync_pairs, check_steps, progress_steps, numThreads, start_n)
+            #pragma omp parallel for num_threads(numThreads) schedule(dynamic) shared(success, max_duration, SM, n, counter, max_perturbation, original_x_0) firstprivate(LL, sync_pairs, check_steps, progress_steps, numThreads, start_n)
             for (int j = 0; j < limit; j++){
                 if (success){
                     continue;
@@ -195,7 +195,7 @@ int main(){
                         if (Local_now_time - Local_SM.get_t_0_() > max_duration && success == false){
                             {
                                 max_duration = Local_now_time - Local_SM.get_t_0_();
-                                total_perturbation += (SM.get_x_0_() - Local_x_0).norm();
+                                // (SM.get_x_0_() - Local_x_0).norm(); //perturbation size
                                 SM.set_x_0_(Local_x_0);
                             }
                         }
@@ -216,7 +216,7 @@ int main(){
                 #pragma omp critical
                 if (Local_laminar == true && success == false){
                     {   
-                        double perturbation_size = total_perturbation + (Local_trajectory.topLeftCorner(Local_now.rows(), 1) - SM.get_x_0_()).norm();
+                        double perturbation_size = (Local_trajectory.topLeftCorner(Local_now.rows(), 1) - original_x_0).norm();
                         if (perturbation_size > max_perturbation){
                             max_perturbation = perturbation_size;
                         }

@@ -52,7 +52,7 @@ int main(){
     x_0 = npy2EigenVec<std::complex<double>>("../../initials/beta0.423_nu0.00018_1229period_dt0.01eps0.003.npy");
     int num_of_candidates = omp_get_max_threads();
     int skip = 100;
-    double epsilon = 3E-3;
+    double epsilon = 1E-3;
     int threads = omp_get_max_threads();
     std::cout << threads << "threads" << std::endl;
 
