@@ -22,26 +22,26 @@ int main(){
     std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
     double ddt = 0.01;
     double t_0 = 0;
-    double t = 200;
+    double t = 500;
     double latter = 1;
-    Eigen::VectorXcd x_0 = npy2EigenVec<std::complex<double>>("../../initials/beta0.43_nu0.00018_300period_dt0.01eps0.005.npy");
+    Eigen::VectorXcd x_0 = npy2EigenVec<std::complex<double>>("../../initials/beta0.43_nu0.00018_827period_dt0.01eps0.005.npy");
     ShellModel SM(nu, beta, f, ddt, t_0, t, latter, x_0);
     Eigen::MatrixXcd laminar = SM.get_trajectory_();
-    int numRows = laminar.cols() / 4;
+    int numRows = laminar.cols() / 5;
     Eigen::MatrixXcd laminar_sample(laminar.rows(), numRows);
     for (int i = 0; i < numRows; i++){
-        int colIdx = 4 * i;
+        int colIdx = 5 * i;
         laminar_sample.col(i) = laminar.col(colIdx);
     }
-    // // undo comment out if you want to see laminar sample
-    // std::vector<double> x(laminar_sample.cols()),y(laminar_sample.cols());
-    // for(int i = 0; i < laminar_sample.cols(); i++){
-    //     x[i] = std::abs(laminar_sample(3, i));
-    //     y[i] = std::abs(laminar_sample(4, i));
-    // }
-    // plt::figure();
-    // plt::scatter(x, y);
-    // plt::save("../../laminar_sample.png");
+    // undo comment out if you want to see laminar sample
+    std::vector<double> x(laminar_sample.cols()),y(laminar_sample.cols());
+    for(int i = 0; i < laminar_sample.cols(); i++){
+        x[i] = std::abs(laminar_sample(3, i));
+        y[i] = std::abs(laminar_sample(4, i));
+    }
+    plt::figure();
+    plt::scatter(x, y);
+    plt::save("../../laminar_sample.png");
 
     // set up for search
     t=1000;
@@ -49,10 +49,10 @@ int main(){
     nu = 0.00018;
     beta = 0.43;
     ddt = 0.01;
-    x_0 = npy2EigenVec<std::complex<double>>("../../initials/beta0.43_nu0.00018_300period_dt0.01eps0.005.npy");
+    x_0 = npy2EigenVec<std::complex<double>>("../../initials/beta0.43_nu0.00018_827period_dt0.01eps0.005.npy");
     int num_of_candidates = omp_get_max_threads();
     int skip = 100;
-    double epsilon = 3E-3;
+    double epsilon = 1E-3;
     int threads = omp_get_max_threads();
     std::cout << threads << "threads" << std::endl;
 
