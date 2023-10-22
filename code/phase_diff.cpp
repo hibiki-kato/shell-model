@@ -28,15 +28,15 @@ int shift(double pre_theta, double theta, int rotation_number);
 int main(){
     auto start = std::chrono::system_clock::now(); // 計測開始時間
     double nu = 0.00018;
-    double beta = 0.423;
+    double beta = 0.43;
     std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
     double ddt = 0.01;
     double t_0 = 0;
-    double t = 1000;
+    double t = 500;
 
     double latter = 1;
     int threads = omp_get_max_threads();
-    Eigen::VectorXcd x_0 = npy2EigenVec("../../initials/beta0.423_nu0.00018_1229period_dt0.01eps0.003.npy");
+    Eigen::VectorXcd x_0 = npy2EigenVec("../../initials/beta0.43_nu0.00018_501period_dt0.01eps0.001.npy");
 
     //make pairs of shells to observe phase difference(num begins from 1)
     std::vector<std::pair<int, int>> sync_pairs;
