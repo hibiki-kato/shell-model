@@ -24,7 +24,7 @@ int main(){
     double t_0 = 0;
     double t = 500;
     double latter = 1;
-    Eigen::VectorXcd x_0 = npy2EigenVec<std::complex<double>>("../../initials/beta0.43_nu0.00018_827period_dt0.01eps0.005.npy");
+    Eigen::VectorXcd x_0 = npy2EigenVec<std::complex<double>>("../../initials/beta0.43_nu0.00018_500period_dt0.01eps0.1.npy");
     ShellModel SM(nu, beta, f, ddt, t_0, t, latter, x_0);
     Eigen::MatrixXcd laminar = npy2EigenMat<std::complex<double>>("../../generated_lam/sync_gen_laminar_beta_0.43nu_0.00018_dt0.01_400period1000check100progress10^-6-10^-5perturb_4-7_4-10_4-13_7-10_7-13_10-13_5-8_5-11_5-14_8-11_8-14_11-14_6-9_6-12_9-12.npy");
     int numRows = laminar.cols() / 2;
@@ -49,7 +49,7 @@ int main(){
     nu = 0.00018;
     beta = 0.43;
     ddt = 0.01;
-    x_0 = npy2EigenVec<std::complex<double>>("../../initials/beta0.43_nu0.00018_827period_dt0.01eps0.005.npy");
+    x_0 = npy2EigenVec<std::complex<double>>("../../initials/beta0.43_nu0.00018_516period_dt0.01eps0.001.npy");
     int num_of_candidates = omp_get_max_threads();
     int skip = 100;
     double epsilon = 1E-3;
@@ -65,7 +65,7 @@ int main(){
         std::cout << "現在"  << i+1 << "回" <<std::endl;
         initials.col(0) = LL.get_x_0_();
         for(int j = 1; j < num_of_candidates - 1; j++){
-            initials.col(j) = LL.perturbation_(LL.get_x_0_(), -9, -2);
+            initials.col(j) = LL.perturbation_(LL.get_x_0_(), -9, -1);
         }
         Eigen::VectorXd durations(num_of_candidates);
         #pragma omp parallel for num_threads(threads)
