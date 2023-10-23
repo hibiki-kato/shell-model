@@ -20,9 +20,9 @@
 #include <chrono>
 #include "cnpy/cnpy.h"
 #include "matplotlibcpp.h"
+#include "Eigen_numpy_converter.hpp"
+
 namespace plt = matplotlibcpp;
-void EigenMt2npy(Eigen::MatrixXcd Mat, std::string fname);
-Eigen::VectorXcd npy2EigenVec(const char* fname);
 int shift(double pre_theta, double theta, int rotation_number);
 bool isLaminar(Eigen::VectorXd phases, std::vector<std::tuple<int, int, double>> sync_pairs);
 std::tuple<Eigen::VectorXd, Eigen::VectorXd, Eigen::VectorXcd> calc_next(ShellModel&, Eigen::VectorXd pre_n, Eigen::VectorXd pre_theta, Eigen::VectorXcd previous);
@@ -30,16 +30,16 @@ std::tuple<Eigen::VectorXd, Eigen::VectorXd, Eigen::VectorXcd> calc_next(ShellMo
 int main(){
     auto start = std::chrono::system_clock::now(); // 計測開始時間
     const double nu = 0.00018;
-    const double beta = 0.43;
+    const double beta = 0.417;
     const std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
     const double dt = 0.01;
     const double t_0 = 0;
-    const double t = 1e+4;
+    const double t = 4.5e+4;
     const double latter = 1;
     const double check = 1000;
-    const double progress = 100;
+    const double progress = 200;
     int limit = 1e+5; //limitation of trial of stagger and step
-    Eigen::VectorXcd x_0 = npy2EigenVec("../../initials/beta0.43_nu0.00018_501period_dt0.01eps0.001.npy");
+    Eigen::VectorXcd x_0 = npy2EigenVec<std::complex<double>>("../../initials/beta0.417_nu0.00018_13348period_dt0.01eps0.005.npy");
     ShellModel SM(nu, beta, f, dt, t_0, t, latter, x_0);
     Eigen::MatrixXcd Dummy_Laminar(x_0.rows()+1, 1); //dummy matrix to use LongLaminar Class
     LongLaminar LL(nu, beta, f, dt, t_0, t, latter, x_0, Dummy_Laminar, 0.01, 100, check, progress, 8);
@@ -47,23 +47,23 @@ int main(){
 
     //make pairs of shells to observe phase difference(num begins from 1)
     std::vector<std::tuple<int, int, double>> sync_pairs;
-    // sync_pairs.push_back(std::make_tuple(4, 7, 2.2));
-    // sync_pairs.push_back(std::make_tuple(4, 10, 2.3));
-    // sync_pairs.push_back(std::make_tuple(4, 13, 2.3));
-    // sync_pairs.push_back(std::make_tuple(7, 10, 1.4));
-    // sync_pairs.push_back(std::make_tuple(7, 13, 1.4));
-    // sync_pairs.push_back(std::make_tuple(10, 13, 6E-2));
+    sync_pairs.push_back(std::make_tuple(4, 7, 1.9));
+    sync_pairs.push_back(std::make_tuple(4, 10, 1.9));
+    sync_pairs.push_back(std::make_tuple(4, 13, 1.9));
+    sync_pairs.push_back(std::make_tuple(7, 10, 1.1));
+    sync_pairs.push_back(std::make_tuple(7, 13, 1.1));
+    sync_pairs.push_back(std::make_tuple(10, 13, 3E-2));
 
-    // sync_pairs.push_back(std::make_tuple(5, 8, 8.2));
-    // sync_pairs.push_back(std::make_tuple(5, 11, 8.2));
-    // sync_pairs.push_back(std::make_tuple(5, 14, 8.2));
-    // sync_pairs.push_back(std::make_tuple(8, 11, 0.5));
-    // sync_pairs.push_back(std::make_tuple(8, 14, 0.5));
-    // sync_pairs.push_back(std::make_tuple(11, 14, 1.3E-2));
+    sync_pairs.push_back(std::make_tuple(5, 8, 1.9));
+    sync_pairs.push_back(std::make_tuple(5, 11, 1.9));
+    sync_pairs.push_back(std::make_tuple(5, 14, 1.9));
+    sync_pairs.push_back(std::make_tuple(8, 11, 0.43));
+    sync_pairs.push_back(std::make_tuple(8, 14, 0.43));
+    sync_pairs.push_back(std::make_tuple(11, 14, 6.1E-3));
 
-    // sync_pairs.push_back(std::make_tuple(6, 9, 2));
-    // sync_pairs.push_back(std::make_tuple(6, 12, 2));
-    sync_pairs.push_back(std::make_tuple(9, 12, 0.18));
+    sync_pairs.push_back(std::make_tuple(6, 9, 1.56));
+    sync_pairs.push_back(std::make_tuple(6, 12, 1.56));
+    sync_pairs.push_back(std::make_tuple(9, 12, 0.152));
 
     // sync_pairs.push_back(std::make_tuple(9, 12, 3.2)); // dummy to check all trajectory
 
@@ -167,7 +167,7 @@ int main(){
                 ShellModel Local_SM = SM; // copy of SM
                 std::vector<std::tuple<int, int, double>> Local_sync_pairs = sync_pairs; // copy of sync_pairs
                 double Local_now_time = Local_SM.get_t_0_();
-                Eigen::VectorXcd Local_x_0 = Local_LL.perturbation_(Local_SM.get_x_0_(), -8, -3);
+                Eigen::VectorXcd Local_x_0 = Local_LL.perturbation_(Local_SM.get_x_0_(), -7, -4);
                 Eigen::VectorXcd Local_now = Local_x_0; // perturbed initial state
                 Eigen::MatrixXcd Local_trajectory = Eigen::MatrixXcd::Zero(Local_now.rows()+1, progress_steps+1); //wide matrix for progress
                 Local_trajectory.topLeftCorner(Local_now.rows(), 1) = Local_now;
@@ -300,6 +300,28 @@ int main(){
     std::cout << "\n Saving result to " << filename << std::endl;
     plt::save(filename);
 
+    /*
+      ██████
+     ███ ███
+    ██                                             █
+    ██                                             █
+    ██          █████   ██      █   █████        ██████    █████          █ █████     █ █████   ██      █
+     ██        ██  ███   █     ██  ██   ██         ██     ███  ██         ███  ███    ███  ███   █     ██
+      ███           ██   ██    ██  █     █         █     ██     ██        ██    ██    ██    ██   ██    ██
+        ███         ██   ██   ██  ██     ██        █     ██      █        █     ██    █      █   ██    █
+          ██    ██████    █   ██  █████████        █     ██      █        █      █    █      ██   █   ██
+           ██ ███   ██    ██  █   ██               █     ██      █        █      █    █      ██   ██  ██
+           ██ ██    ██    ██ ██   ██               █     ██      █        █      █    █      █     █  █
+           █  ██    ██     █ ██   ██               █      █     ██        █      █    ██    ██     █ ██
+    ███  ███  ██   ███     ███     ███  ██         ██     ███  ██         █      █    ███  ███     ███
+    ██████     ████  █      ██      ██████          ███    █████          █      █    █ █████       ██
+                                                                                      █             ██
+                                                                                      █             █
+                                                                                      █            ██
+                                                                                      █           ██
+                                                                                      █         ███
+    */
+
     oss.str("");
     oss << "../../generated_lam/sync_gen_laminar_beta_" << beta << "nu_" << nu <<"_dt"<< dt << "_" << reach << "period" << check << "check" << progress << "progress10^" << logged_min_perturbation<<"-10^"<< logged_max_perturbation << "perturb";
     for (const auto& pair : sync_pairs){
@@ -308,7 +330,7 @@ int main(){
     oss << ".npy";
     std::string fname = oss.str(); // 文字列を取得する
     std::cout << "saving as " << fname << std::endl;
-    EigenMt2npy(calced_laminar, fname);
+    EigenMat2npy(calced_laminar, fname);
 
     auto end = std::chrono::system_clock::now();  // 計測終了時間
     int hours = std::chrono::duration_cast<std::chrono::hours>(end-start).count(); //処理に要した時間を変換
@@ -316,25 +338,6 @@ int main(){
     int seconds = std::chrono::duration_cast<std::chrono::seconds>(end-start).count(); //処理に要した時間を変換
     int milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count(); //処理に要した時間を変換
     std::cout << hours << "h " << minutes % 60 << "m " << seconds % 60 << "s " << milliseconds % 1000 << "ms " << std::endl;
-}
-
-Eigen::VectorXcd npy2EigenVec(const char* fname){
-    std::string fname_str(fname);
-    cnpy::NpyArray arr = cnpy::npy_load(fname_str);
-    if (arr.word_size != sizeof(std::complex<double>)) {
-        throw std::runtime_error("Unsupported data type in the npy file.");
-    }
-    std::complex<double>* data = arr.data<std::complex<double>>();
-    Eigen::Map<Eigen::VectorXcd> vec(data, arr.shape[0]);
-    return vec;
-}
-
-void EigenMt2npy(Eigen::MatrixXcd Mat, std::string fname){
-    Eigen::MatrixXcd transposed = Mat.transpose();
-    // map to const mats in memory
-    Eigen::Map<const Eigen::MatrixXcd> MOut(&transposed(0,0), transposed.cols(), transposed.rows());
-    // save to np-arrays files
-    cnpy::npy_save(fname, MOut.data(), {(size_t)transposed.cols(), (size_t)transposed.rows()}, "w");
 }
 
 double shift(double pre_theta, double theta, double rotation_number){
