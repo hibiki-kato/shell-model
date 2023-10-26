@@ -30,18 +30,18 @@ std::tuple<Eigen::VectorXd, Eigen::VectorXd, Eigen::VectorXcd> calc_next(ShellMo
 int main(){
     auto start = std::chrono::system_clock::now(); // 計測開始時間
     const double nu = 0.00018;
-    const double beta = 0.423
+    const double beta = 0.417;
     const std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
     const double dt = 0.01;
     const double t_0 = 0;
-    const double t = 2500;
+    const double t = 70000;
     const double latter = 1;
-    const double check = 2500;
-    const double progress = 2500;
-    int limit = 1e+4; //limitation of trial of stagger and step
+    const double check = 3000;
+    const double progress = 500;
+    int limit = 1e+5; //limitation of trial of stagger and step
     // Eigen::MatrixXcd loaded = npy2EigenMat<std::complex<double>>("../../generated_lam/sync_gen_laminar_beta_0.423nu_0.00018_dt0.01_50000period1000check100progress10^-7-10^-3perturb_4-7_4-10_4-13_7-10_7-13_10-13_5-8_5-11_5-14_8-11_8-14_11-14_6-9_6-12_9-12.npy");
     // Eigen::VectorXcd x_0 = loaded.block(0, t_0*100 - 1, 14, 1);
-    Eigen::VectorXcd x_0 = npy2EigenVec<std::complex<double>>("../../initials/beta0.423_nu0.00018_1297period_dt0.01eps0.005.npy");
+    Eigen::VectorXcd x_0 = npy2EigenVec<std::complex<double>>("../../initials/beta0.417_nu0.00018_5000period_dt0.01_4-7_4-10_4-13_7-10_7-13_10-13_5-8_5-11_5-14_8-11_8-14_11-14_6-9_6-12_9-12.npy");
     ShellModel SM(nu, beta, f, dt, t_0, t, latter, x_0);
     Eigen::MatrixXcd Dummy_Laminar(x_0.rows()+1, 1); //dummy matrix to use LongLaminar Class
     LongLaminar LL(nu, beta, f, dt, t_0, t, latter, x_0, Dummy_Laminar, 0.01, 100, check, progress, 8);
@@ -99,6 +99,7 @@ int main(){
         std::cout << "\r 現在" << SM.get_t_0_() << "時間" << std::flush;
         bool laminar = true; // flag
         double now_time = SM.get_t_0_();
+        
         Eigen::VectorXcd now = SM.get_x_0_();
         Eigen::MatrixXcd trajectory = Eigen::MatrixXcd::Zero(x_0.rows()+1, progress_steps+1); //wide matrix for progress
         trajectory.topLeftCorner(x_0.size(), 1) = now;
@@ -169,7 +170,7 @@ int main(){
                 ShellModel Local_SM = SM; // copy of SM
                 std::vector<std::tuple<int, int, double>> Local_sync_pairs = sync_pairs; // copy of sync_pairs
                 double Local_now_time = Local_SM.get_t_0_();
-                Eigen::VectorXcd Local_x_0 = Local_LL.perturbation_(Local_SM.get_x_0_(), -10, 1);
+                Eigen::VectorXcd Local_x_0 = Local_LL.perturbation_(Local_SM.get_x_0_(), -10, -1);
                 Eigen::VectorXcd Local_now = Local_x_0; // perturbed initial state
                 Eigen::MatrixXcd Local_trajectory = Eigen::MatrixXcd::Zero(Local_now.rows()+1, progress_steps+1); //wide matrix for progress
                 Local_trajectory.topLeftCorner(Local_now.rows(), 1) = Local_now;
@@ -292,6 +293,16 @@ int main(){
     lastPointSettings["marker"] = "o";
     lastPointSettings["markersize"] = "5";
     plt::plot(x_last, y_last, lastPointSettings);
+    // 最初の点を緑でプロット(サイズは大きめ)
+    std::vector<double> x_first(1), y_first(1);
+    x_first[0] = x[0];
+    y_first[0] = y[0];
+    std::map<std::string, std::string> firstPointSettings;
+    firstPointSettings["color"] = "green";
+    firstPointSettings["marker"] = "o";
+    firstPointSettings["markersize"] = "5";
+    plt::plot(x_first, y_first, firstPointSettings);
+
     std::ostringstream oss;
     oss << "../../generated_lam_imag/sync_gen_laminar_beta_" << beta << "nu_" << nu <<"_dt"<< dt << "_" << reach << "period" << check << "check" << progress << "progress10^" << logged_min_perturbation<<"-10^"<< logged_max_perturbation << "perturb";
     for (const auto& pair : sync_pairs){
@@ -333,7 +344,7 @@ int main(){
         oss << ".npy";
         std::string fname = oss.str(); // 文字列を取得する
         std::cout << "saving as " << fname << std::endl;
-        EigenVec2npy(SM.get_x_0_(), fname);
+        EigenVec2npy(calced_laminar.topLeftCorner(calced_laminar.rows()-1, 1).col(0), fname);
     } else{
         oss << "../../generated_lam/sync_gen_laminar_beta_" << beta << "nu_" << nu <<"_dt"<< dt << "_" << reach << "period" << check << "check" << progress << "progress10^" << logged_min_perturbation<<"-10^"<< logged_max_perturbation << "perturb";
          for (const auto& pair : sync_pairs){
