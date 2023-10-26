@@ -19,10 +19,9 @@
 #include <chrono>
 #include "cnpy/cnpy.h"
 #include "matplotlibcpp.h"
+#include "Eigen_numpy_converter.hpp"
+
 namespace plt = matplotlibcpp;
-void EigenMt2npy(Eigen::MatrixXcd Mat, std::string fname);
-Eigen::VectorXcd npy2EigenVec(const char* fname);
-Eigen::MatrixXcd npy2EigenMat(const char* fname);
 int shift(double pre_theta, double theta, int rotation_number);
 
 int main(){
@@ -32,11 +31,11 @@ int main(){
     std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
     double ddt = 0.01;
     double t_0 = 0;
-    double t = 500;
+    double t = 1200;
 
     double latter = 1;
     int threads = omp_get_max_threads();
-    Eigen::VectorXcd x_0 = npy2EigenVec("../../initials/beta0.43_nu0.00018_501period_dt0.01eps0.001.npy");
+    Eigen::VectorXcd x_0 = npy2EigenVec<std::complex<double>>("../../initials/beta0.43_nu0.00018_1200period_dt0.01_4-7_4-10_4-13_7-10_7-13_10-13_5-8_5-11_5-14_8-11_8-14_11-14_6-9_6-12_9-12.npy");
 
     //make pairs of shells to observe phase difference(num begins from 1)
     std::vector<std::pair<int, int>> sync_pairs;
@@ -153,35 +152,6 @@ int main(){
     int seconds = std::chrono::duration_cast<std::chrono::seconds>(end-start).count(); //処理に要した時間を変換
     int milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count(); //処理に要した時間を変換
     std::cout << hours << "h " << minutes % 60 << "m " << seconds % 60 << "s " << milliseconds % 1000 << "ms " << std::endl;
-}
-
-Eigen::VectorXcd npy2EigenVec(const char* fname){
-    std::string fname_str(fname);
-    cnpy::NpyArray arr = cnpy::npy_load(fname_str);
-    if (arr.word_size != sizeof(std::complex<double>)) {
-        throw std::runtime_error("Unsupported data type in the npy file.");
-    }
-    std::complex<double>* data = arr.data<std::complex<double>>();
-    Eigen::Map<Eigen::VectorXcd> vec(data, arr.shape[0]);
-    return vec;
-}
-
-Eigen::MatrixXcd npy2EigenMat(const char* fname){
-    std::string fname_str(fname);
-    cnpy::NpyArray arr = cnpy::npy_load(fname_str);
-    if (arr.word_size != sizeof(std::complex<double>)){
-        throw std::runtime_error("Unsupported data type in the npy file.");
-    }
-    Eigen::Map<const Eigen::MatrixXcd> MatT(arr.data<std::complex<double>>(), arr.shape[1], arr.shape[0]);
-    return MatT.transpose();
-}
-
-void EigenMt2npy(Eigen::MatrixXcd Mat, std::string fname){
-    Eigen::MatrixXcd transposed = Mat.transpose();
-    // map to const mats in memory
-    Eigen::Map<const Eigen::MatrixXcd> MOut(&transposed(0,0), transposed.cols(), transposed.rows());
-    // save to np-arrays files
-    cnpy::npy_save(fname, MOut.data(), {(size_t)transposed.cols(), (size_t)transposed.rows()}, "w");
 }
 
 int shift(double pre_theta, double theta, int rotation_number){

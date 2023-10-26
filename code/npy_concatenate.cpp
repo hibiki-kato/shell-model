@@ -13,25 +13,24 @@
 #include <complex>
 #include "matplotlibcpp.h"
 #include "cnpy/cnpy.h"
+#include "Eigen_numpy_converter.hpp"
+
 namespace plt = matplotlibcpp;
 
-void EigenMt2npy(Eigen::MatrixXcd Mat, std::string fname);
-Eigen::MatrixXcd npy2EigenMat(const char* fname);
-
 int main(){
-    const char* a_name = "../../generated_lam/generated_laminar_beta_0.416nu_0.00018_dt0.01_38100period500check20progresseps0.02.npy";
-    const char* b_name = "../../generated_lam/generated_laminar_beta_0.416nu_0.00018_dt0.01_50000period500check20progresseps0.02.npy";
-    int check_point = 37000; // the last time of a (not equal to time in the file name, usually a nice round number)
+    const char* a_name = "../../generated_lam/sync_gen_laminar_beta_0.423nu_0.00018_dt0.01_50000period1000check100progress10^-7-10^-3perturb_4-7_4-10_4-13_7-10_7-13_10-13_5-8_5-11_5-14_8-11_8-14_11-14_6-9_6-12_9-12.npy";
+    const char* b_name = "../../generated_lam/sync_gen_laminar_beta_0.423nu_0.00018_dt0.01_100000period1000check100progress10^-7-10^-4perturb_4-7_4-10_4-13_7-10_7-13_10-13_5-8_5-11_5-14_8-11_8-14_11-14_6-9_6-12_9-12.npy";
+    int check_point = 50000; // the last time of a (not equal to time in the file name, usually a nice round number)
 
-    Eigen::MatrixXcd a = npy2EigenMat(a_name);
-    Eigen::MatrixXcd b = npy2EigenMat(b_name);
+    Eigen::MatrixXcd a = npy2EigenMat<std::complex<double>>(a_name);
+    Eigen::MatrixXcd b = npy2EigenMat<std::complex<double>>(b_name);
 
     check_point *= 100;
     Eigen::MatrixXcd c(a.rows(), check_point + b.cols());
     c.leftCols(check_point) = a.leftCols(check_point);
     c.rightCols(b.cols()) = b;
     
-     plt::figure_size(1200, 780);
+     plt::figure_size(780, 780);
     // Add graph titlecc
     std::vector<double> x(c.cols()),y(c.cols());
     for(int i=0;i<c.cols();i++){
@@ -44,24 +43,6 @@ int main(){
     std::cout << "Succeed?" << std::endl;
     char none;
     std::cin >> none;
-    EigenMt2npy(c, b_name);
+    EigenMat2npy(c, b_name);
 
-}
-
-void EigenMt2npy(Eigen::MatrixXcd Mat, std::string fname){
-    Eigen::MatrixXcd transposed = Mat.transpose();
-    // map to const mats in memory
-    Eigen::Map<const Eigen::MatrixXcd> MOut(&transposed(0,0), transposed.cols(), transposed.rows());
-    // save to np-arrays files
-    cnpy::npy_save(fname, MOut.data(), {(size_t)transposed.cols(), (size_t)transposed.rows()}, "w");
-}
-
-Eigen::MatrixXcd npy2EigenMat(const char* fname){
-    std::string fname_str(fname);
-    cnpy::NpyArray arr = cnpy::npy_load(fname_str);
-    if (arr.word_size != sizeof(std::complex<double>)){
-        throw std::runtime_error("Unsupported data type in the npy file.");
-    }
-    Eigen::Map<const Eigen::MatrixXcd> MatT(arr.data<std::complex<double>>(), arr.shape[1], arr.shape[0]);
-    return MatT.transpose();
 }
