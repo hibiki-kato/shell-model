@@ -34,14 +34,14 @@ int main(){
     const std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
     const double dt = 0.01;
     const double t_0 = 0;
-    const double t = 70000;
+    const double t = 1000;
     const double latter = 1;
-    const double check = 3000;
-    const double progress = 500;
+    const double check = 1000;
+    const double progress = 1000;
     int limit = 1e+5; //limitation of trial of stagger and step
     // Eigen::MatrixXcd loaded = npy2EigenMat<std::complex<double>>("../../generated_lam/sync_gen_laminar_beta_0.423nu_0.00018_dt0.01_50000period1000check100progress10^-7-10^-3perturb_4-7_4-10_4-13_7-10_7-13_10-13_5-8_5-11_5-14_8-11_8-14_11-14_6-9_6-12_9-12.npy");
     // Eigen::VectorXcd x_0 = loaded.block(0, t_0*100 - 1, 14, 1);
-    Eigen::VectorXcd x_0 = npy2EigenVec<std::complex<double>>("../../initials/beta0.417_nu0.00018_5000period_dt0.01_4-7_4-10_4-13_7-10_7-13_10-13_5-8_5-11_5-14_8-11_8-14_11-14_6-9_6-12_9-12.npy");
+    Eigen::VectorXcd x_0 = npy2EigenVec<std::complex<double>>("../../initials/beta0.41525_nu0.00018_14dim_period.npy");
     ShellModel SM(nu, beta, f, dt, t_0, t, latter, x_0);
     Eigen::MatrixXcd Dummy_Laminar(x_0.rows()+1, 1); //dummy matrix to use LongLaminar Class
     LongLaminar LL(nu, beta, f, dt, t_0, t, latter, x_0, Dummy_Laminar, 0.01, 100, check, progress, 8);
@@ -49,23 +49,23 @@ int main(){
 
     //make pairs of shells to observe phase difference(num begins from 1)
     std::vector<std::tuple<int, int, double>> sync_pairs;
-    sync_pairs.push_back(std::make_tuple(4, 7, 2.3));
-    sync_pairs.push_back(std::make_tuple(4, 10, 2.3));
-    sync_pairs.push_back(std::make_tuple(4, 13, 2.3));
-    sync_pairs.push_back(std::make_tuple(7, 10, 1.5));
-    sync_pairs.push_back(std::make_tuple(7, 13, 1.5));
-    sync_pairs.push_back(std::make_tuple(10, 13, 6.8E-2));
+    sync_pairs.push_back(std::make_tuple(4, 7, 1.9));
+    sync_pairs.push_back(std::make_tuple(4, 10, 1.9));
+    sync_pairs.push_back(std::make_tuple(4, 13, 1.9));
+    sync_pairs.push_back(std::make_tuple(7, 10, 1.1));
+    sync_pairs.push_back(std::make_tuple(7, 13, 1.1));
+    sync_pairs.push_back(std::make_tuple(10, 13, 3E-2));
 
-    sync_pairs.push_back(std::make_tuple(5, 8, 8.1));
-    sync_pairs.push_back(std::make_tuple(5, 11, 8.1));
-    sync_pairs.push_back(std::make_tuple(5, 14, 8.1));
-    sync_pairs.push_back(std::make_tuple(8, 11, 0.45));
-    sync_pairs.push_back(std::make_tuple(8, 14, 0.45));
-    sync_pairs.push_back(std::make_tuple(11, 14, 1.2E-2));
+    sync_pairs.push_back(std::make_tuple(5, 8, 1.9));
+    sync_pairs.push_back(std::make_tuple(5, 11, 1.9));
+    sync_pairs.push_back(std::make_tuple(5, 14, 1.9));
+    sync_pairs.push_back(std::make_tuple(8, 11, 0.43));
+    sync_pairs.push_back(std::make_tuple(8, 14, 0.43));
+    sync_pairs.push_back(std::make_tuple(11, 14, 6.1E-3));
 
-    sync_pairs.push_back(std::make_tuple(6, 9, 2));
-    sync_pairs.push_back(std::make_tuple(6, 12, 2));
-    sync_pairs.push_back(std::make_tuple(9, 12, 0.18));
+    sync_pairs.push_back(std::make_tuple(6, 9, 1.56));
+    sync_pairs.push_back(std::make_tuple(6, 12, 1.56));
+    sync_pairs.push_back(std::make_tuple(9, 12, 0.152));
 
     // sync_pairs.push_back(std::make_tuple(9, 12, 3.2)); // dummy to check all trajectory
 
@@ -170,7 +170,7 @@ int main(){
                 ShellModel Local_SM = SM; // copy of SM
                 std::vector<std::tuple<int, int, double>> Local_sync_pairs = sync_pairs; // copy of sync_pairs
                 double Local_now_time = Local_SM.get_t_0_();
-                Eigen::VectorXcd Local_x_0 = Local_LL.perturbation_(Local_SM.get_x_0_(), -4, -1);
+                Eigen::VectorXcd Local_x_0 = Local_LL.perturbation_(Local_SM.get_x_0_(), -7, 1);
                 Eigen::VectorXcd Local_now = Local_x_0; // perturbed initial state
                 Eigen::MatrixXcd Local_trajectory = Eigen::MatrixXcd::Zero(Local_now.rows()+1, progress_steps+1); //wide matrix for progress
                 Local_trajectory.topLeftCorner(Local_now.rows(), 1) = Local_now;
