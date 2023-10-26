@@ -27,7 +27,7 @@ int shift(double pre_theta, double theta, int rotation_number);
 int main(){
     auto start = std::chrono::system_clock::now(); // 計測開始時間
     double nu = 0.00018;
-    double beta = 0.43;
+    double beta = 0.417;
     std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
     double ddt = 0.01;
     double t_0 = 0;
@@ -142,9 +142,6 @@ int main(){
     std::string plotfname = oss.str(); // 文字列を取得する
     std::cout << "Saving result to " << plotfname << std::endl;
     plt::save(plotfname);
-
-    
-
 
     auto end = std::chrono::system_clock::now();  // 計測終了時間
     int hours = std::chrono::duration_cast<std::chrono::hours>(end-start).count(); //処理に要した時間を変換

@@ -26,7 +26,7 @@ int main(){
     double latter = 1;
     Eigen::VectorXcd x_0 = npy2EigenVec<std::complex<double>>("../../initials/beta0.43_nu0.00018_500period_dt0.01eps0.1.npy");
     ShellModel SM(nu, beta, f, ddt, t_0, t, latter, x_0);
-    Eigen::MatrixXcd laminar = npy2EigenMat<std::complex<double>>("../../generated_lam/sync_gen_laminar_beta_0.43nu_0.00018_dt0.01_400period800check100progress10^-7-10^-5perturb_4-7_4-10_4-13_7-10_7-13_10-13_5-8_5-11_5-14_8-11_8-14_11-14_6-9_6-12_9-12.npy");
+    Eigen::MatrixXcd laminar = npy2EigenMat<std::complex<double>>("../../generated_lam/sync_gen_laminar_beta_0.43nu_0.00018_dt0.01_400period1000check100progress10^-6-10^-5perturb_4-7_4-10_4-13_7-10_7-13_10-13_5-8_5-11_5-14_8-11_8-14_11-14_6-9_6-12_9-12.npy");
     int numRows = laminar.cols() / 2;
     Eigen::MatrixXcd laminar_sample(laminar.rows(), numRows);
     for (int i = 0; i < numRows; i++){
@@ -49,10 +49,10 @@ int main(){
     nu = 0.00018;
     beta = 0.43;
     ddt = 0.01;
-    x_0 = npy2EigenVec<std::complex<double>>("../../initials/beta0.43_nu0.00018_631period_dt0.01eps0.002.npy");
+    x_0 = npy2EigenVec<std::complex<double>>("../../initials/beta_0.43nu_0.00018_dt0.01_400period.npy");
     int num_of_candidates = omp_get_max_threads();
     int skip = 100;
-    double epsilon = 3E-2;
+    double epsilon = 2E-3;
     int threads = omp_get_max_threads();
     std::cout << threads << "threads" << std::endl;
 
