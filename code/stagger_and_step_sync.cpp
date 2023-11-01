@@ -30,18 +30,18 @@ std::tuple<Eigen::VectorXd, Eigen::VectorXd, Eigen::VectorXcd> calc_next(ShellMo
 int main(){
     auto start = std::chrono::system_clock::now(); // 計測開始時間
     const double nu = 0.00018;
-    const double beta = 0.423;
+    const double beta = 0.419;
     const std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
     const double dt = 0.01;
     const double t_0 = 0;
-    const double t = 20000;
+    const double t = 10000;
     const double latter = 1;
-    const double check = 2000;
-    const double progress = 200;
+    const double check = 1500;
+    const double progress = 10;
     int limit = 1e+5; //limitation of trial of stagger and step
     // Eigen::MatrixXcd loaded = npy2EigenMat<std::complex<double>>("../../generated_lam/sync_gen_laminar_beta_0.423nu_0.00018_dt0.01_50000period1000check100progress10^-7-10^-3perturb_4-7_4-10_4-13_7-10_7-13_10-13_5-8_5-11_5-14_8-11_8-14_11-14_6-9_6-12_9-12.npy");
     // Eigen::VectorXcd x_0 = loaded.block(0, t_0*100 - 1, 14, 1);
-    Eigen::VectorXcd x_0 = npy2EigenVec<std::complex<double>>("../initials/beta0.41525_nu0.00018_14dim_period.npy");
+    Eigen::VectorXcd x_0 = npy2EigenVec<std::complex<double>>("../../initials/beta0.419_nu0.00018_2422period_dt0.01eps0.03.npy");
     ShellModel SM(nu, beta, f, dt, t_0, t, latter, x_0);
     Eigen::MatrixXcd Dummy_Laminar(x_0.rows()+1, 1); //dummy matrix to use LongLaminar Class
     LongLaminar LL(nu, beta, f, dt, t_0, t, latter, x_0, Dummy_Laminar, 0.01, 100, check, progress, 8);
@@ -49,22 +49,22 @@ int main(){
 
     //make pairs of shells to observe phase difference(num begins from 1)
     std::vector<std::tuple<int, int, double>> sync_pairs;
-    sync_pairs.push_back(std::make_tuple(4, 7, 2.5));
-    sync_pairs.push_back(std::make_tuple(4, 10, 2.5));
-    sync_pairs.push_back(std::make_tuple(4, 13, 2.5));
-    sync_pairs.push_back(std::make_tuple(7, 10, 1.5));
-    sync_pairs.push_back(std::make_tuple(7, 13, 1.5));
-    sync_pairs.push_back(std::make_tuple(10, 13, 1E-1));
+    sync_pairs.push_back(std::make_tuple(4, 7, 2.2));
+    sync_pairs.push_back(std::make_tuple(4, 10, 2.2));
+    sync_pairs.push_back(std::make_tuple(4, 13, 2.2));
+    sync_pairs.push_back(std::make_tuple(7, 10, 1.4));
+    sync_pairs.push_back(std::make_tuple(7, 13, 1.4));
+    sync_pairs.push_back(std::make_tuple(10, 13, 5E-2));
 
-    sync_pairs.push_back(std::make_tuple(5, 8, 2.5));
-    sync_pairs.push_back(std::make_tuple(5, 11, 2.5));
-    sync_pairs.push_back(std::make_tuple(5, 14, 2.5));
+    sync_pairs.push_back(std::make_tuple(5, 8, 2));
+    sync_pairs.push_back(std::make_tuple(5, 11, 2));
+    sync_pairs.push_back(std::make_tuple(5, 14, 2));
     sync_pairs.push_back(std::make_tuple(8, 11, 0.5));
     sync_pairs.push_back(std::make_tuple(8, 14, 0.5));
-    sync_pairs.push_back(std::make_tuple(11, 14, 2E-2));
+    sync_pairs.push_back(std::make_tuple(11, 14, 1E-2));
 
-    sync_pairs.push_back(std::make_tuple(6, 9, 2.5));
-    sync_pairs.push_back(std::make_tuple(6, 12, 2.5));
+    sync_pairs.push_back(std::make_tuple(6, 9, 2.2));
+    sync_pairs.push_back(std::make_tuple(6, 12, 2.2));
     sync_pairs.push_back(std::make_tuple(9, 12, 0.2));
 
     // sync_pairs.push_back(std::make_tuple(9, 12, 3.2)); // dummy to check all trajectory
@@ -170,7 +170,7 @@ int main(){
                 ShellModel Local_SM = SM; // copy of SM
                 std::vector<std::tuple<int, int, double>> Local_sync_pairs = sync_pairs; // copy of sync_pairs
                 double Local_now_time = Local_SM.get_t_0_();
-                Eigen::VectorXcd Local_x_0 = Local_LL.perturbation_(Local_SM.get_x_0_(), -11, -4);
+                Eigen::VectorXcd Local_x_0 = Local_LL.perturbation_(Local_SM.get_x_0_(), -9, -4);
                 Eigen::VectorXcd Local_now = Local_x_0; // perturbed initial state
                 Eigen::MatrixXcd Local_trajectory = Eigen::MatrixXcd::Zero(Local_now.rows()+1, progress_steps+1); //wide matrix for progress
                 Local_trajectory.topLeftCorner(Local_now.rows(), 1) = Local_now;
@@ -383,7 +383,7 @@ bool isLaminar(Eigen::VectorXd phases, std::vector<std::tuple<int, int, double>>
         // if any pair is not sync, allSync is false
         double phase_diff = std::abs(phases(std::get<0>(pair)-1) - phases(std::get<1>(pair)-1));
         double threshold = std::get<2>(pair);
-        if((2* M_PI > phase_diff && phase_diff > threshold) || (2* M_PI + threshold < phase_diff)){
+        if((threshold < phase_diff && phase_diff < 2* M_PI - threshold) || (2* M_PI + threshold < phase_diff)){
             allSync = false;
             break;
         }
