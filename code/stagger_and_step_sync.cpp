@@ -34,14 +34,14 @@ int main(){
     const std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
     const double dt = 0.01;
     const double t_0 = 0;
-    const double t = 2000;
+    const double t = 10000;
     const double latter = 1;
     const double check = 2000;
-    const double progress =2000;
+    const double progress = 100;
     int limit = 1e+5; //limitation of trial of stagger and step
-    Eigen::MatrixXcd loaded = npy2EigenMat<std::complex<double>>("../../generated_lam/sync_gen_laminar_beta_0.425nu_0.00018_dt0.01_10000period2500check10progress10^-13-10^-10perturb_4-7_4-10_4-13_7-10_7-13_10-13_5-8_5-11_5-14_8-11_8-14_11-14_6-9_6-12_9-12.npy");
-    Eigen::VectorXcd x_0 = loaded.block(0, 5000*100, 14, 1);
-    // Eigen::VectorXcd x_0 = npy2EigenVec<std::complex<double>>("../../initials/beta0.427_nu0.00018_2000period_dt0.01_4-7_4-10_4-13_7-10_7-13_10-13_5-8_5-11_5-14_8-11_8-14_11-14_6-9_6-12_9-12.npy");
+    // Eigen::MatrixXcd loaded = npy2EigenMat<std::complex<double>>("../../generated_lam/sync_gen_laminar_beta_0.425nu_0.00018_dt0.01_10000period2500check10progress10^-13-10^-10perturb_4-7_4-10_4-13_7-10_7-13_10-13_5-8_5-11_5-14_8-11_8-14_11-14_6-9_6-12_9-12.npy");
+    // Eigen::VectorXcd x_0 = loaded.block(0, 3000*100, 14, 1);
+    Eigen::VectorXcd x_0 = npy2EigenVec<std::complex<double>>("../../initials/beta0.427_nu0.00018_2000period_dt0.01_4-7_4-10_4-13_7-10_7-13_10-13_5-8_5-11_5-14_8-11_8-14_11-14_6-9_6-12_9-12.npy");
     ShellModel SM(nu, beta, f, dt, t_0, t, latter, x_0);
     Eigen::MatrixXcd Dummy_Laminar(x_0.rows()+1, 1); //dummy matrix to use LongLaminar Class
     LongLaminar LL(nu, beta, f, dt, t_0, t, latter, x_0, Dummy_Laminar, 0.01, 100, check, progress, 8);
@@ -54,7 +54,7 @@ int main(){
     sync_pairs.push_back(std::make_tuple(4, 13, 2.5));
     sync_pairs.push_back(std::make_tuple(7, 10, 1.8));
     sync_pairs.push_back(std::make_tuple(7, 13, 1.8));
-    sync_pairs.push_back(std::make_tuple(10, 13, 8E-2));
+    sync_pairs.push_back(std::make_tuple(10, 13, 1E-1));
 
     sync_pairs.push_back(std::make_tuple(5, 8, 2.3));
     sync_pairs.push_back(std::make_tuple(5, 11, 2.3));
