@@ -30,18 +30,18 @@ std::tuple<Eigen::VectorXd, Eigen::VectorXd, Eigen::VectorXcd> calc_next(ShellMo
 int main(){
     auto start = std::chrono::system_clock::now(); // 計測開始時間
     const double nu = 0.00018;
-    const double beta = 0.44;
+    const double beta = 0.444;
     const std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
     const double dt = 0.01;
     const double t_0 = 0;
     const double t = 10000;
     const double latter = 1;
-    const double check = 10000;
-    const double progress = 10000;
+    const double check = 5000;
+    const double progress = 500;
     int limit = 1e+5; //limitation of trial of stagger and step
-    Eigen::MatrixXcd loaded = npy2EigenMat<std::complex<double>>("../../generated_lam/sync_gen_laminar_beta_0.44nu_0.00018_dt0.01_3000period2000check100progress10^-1-10^2147483647perturb_4-7_4-10_4-13_7-10_7-13_10-13_5-8_5-11_5-14_8-11_8-14_11-14_6-9_6-12_9-12.npy");
+    Eigen::MatrixXcd loaded = npy2EigenMat<std::complex<double>>("../../generated_lam/sync_gen_laminar_beta_0.444nu_0.00018_dt0.01_3000period2000check1000progress10^-1-10^2147483647perturb_4-7_4-10_4-13_7-10_7-13_10-13_5-8_5-11_5-14_8-11_8-14_11-14_6-9_6-12_9-12.npy");
     Eigen::VectorXcd x_0 = loaded.block(0, 2000*100, 14, 1);
-    // Eigen::VectorXcd x_0 = npy2EigenVec<std::complex<double>>("../../initials/beta0.429_nu0.00018_2500period_dt0.01_4-7_4-10_4-13_7-10_7-13_10-13_5-8_5-11_5-14_8-11_8-14_11-14_6-9_6-12_9-12.npy");
+    // Eigen::VectorXcd x_0 = npy2EigenVec<std::complex<double>>("../../initials/beta0.444_nu0.00018_2000period_dt0.01_4-7_4-10_4-13_7-10_7-13_10-13_5-8_5-11_5-14_8-11_8-14_11-14_6-9_6-12_9-12.npy");
     ShellModel SM(nu, beta, f, dt, t_0, t, latter, x_0);
     Eigen::MatrixXcd Dummy_Laminar(x_0.rows()+1, 1); //dummy matrix to use LongLaminar Class
     LongLaminar LL(nu, beta, f, dt, t_0, t, latter, x_0, Dummy_Laminar, 0.01, 100, check, progress, 8);
