@@ -30,22 +30,22 @@ VectorXd rungeKuttaJacobian(const VectorXd& state, const MatrixXd& jacobian, dou
 int main() {
     auto start = std::chrono::system_clock::now(); // 計測開始時間
     double nu = 0.00018;
-    double beta = 0.43;
+    double beta = 0.44;
     std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
     double dt = 0.01;
     double t_0 = 0;
     double t = 100000;
     double latter = 1;
     int threads = omp_get_max_threads();
-    Eigen::VectorXcd x_0 = npy2EigenVec<std::complex<double>>("../../initials/beta0.469363_nu0.00011815_2000period.npy");
+    Eigen::VectorXcd x_0 = npy2EigenVec<std::complex<double>>("../../initials/beta0.44_nu0.00018_10000period_dt0.01_4-7_4-10_4-13_7-10_7-13_10-13_5-8_5-11_5-14_8-11_8-14_11-14_6-9_6-12_9-12.npy");
     
     ShellModel SM(nu, beta, f, dt, t_0, t, latter, x_0);
     std::cout << "calculating trajectory" << std::endl;
     bool laminar = false;
     Eigen::MatrixXcd rawData = SM.get_trajectory_();
     // データの読み込みをここに記述
-    bool laminar = true;
-    Eigen::MatrixXcd rawData = npy2EigenMat("../../generated_lam/sync_gen_laminar_beta_0.423nu_0.00018_dt0.01_100000period1000check100progress10^-7-10^-4perturb_4-7_4-10_4-13_7-10_7-13_10-13_5-8_5-11_5-14_8-11_8-14_11-14_6-9_6-12_9-12.npy");
+    // bool laminar = true;
+    // Eigen::MatrixXcd rawData = npy2EigenMat("../../generated_lam/sync_gen_laminar_beta_0.423nu_0.00018_dt0.01_100000period1000check100progress10^-7-10^-4perturb_4-7_4-10_4-13_7-10_7-13_10-13_5-8_5-11_5-14_8-11_8-14_11-14_6-9_6-12_9-12.npy");
     
     
     int dim = rawData.rows() - 1;

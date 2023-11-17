@@ -110,10 +110,7 @@ int main(){
         // calculate rotation number
         // no perturbation at first
         for (int j = 0; j < check_steps; j++){
-            std::tuple<Eigen::VectorXd, Eigen::VectorXd, Eigen::VectorXcd> next = calc_next(SM, n, theta, now);
-            n = std::get<0>(next);
-            theta = std::get<1>(next);
-            now = std::get<2>(next);
+            std::tie(n, theta, now) = calc_next(SM, n, theta, now);
             if (isLaminar(theta+n*2*M_PI, sync_pairs)){
                 if (j < progress_steps){
                     now_time += dt;
