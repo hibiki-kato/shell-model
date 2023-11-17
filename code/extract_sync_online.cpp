@@ -41,9 +41,9 @@ int main(){
         int trim = 500; 
         trim *= 100; // when dt = 0.01
         int plotDim[] = {4, 5};
-        int param_num = 8;
-        Eigen::VectorXd nus = Eigen::VectorXd::LinSpaced(param_num, 0.00014, 0.00017);
-        Eigen::VectorXd betas = Eigen::VectorXd::LinSpaced(param_num, 0.417, 0.417);
+        int param_num = 16;
+        Eigen::VectorXd nus = Eigen::VectorXd::LinSpaced(param_num, 0.0001, 0.0002);
+        Eigen::VectorXd betas = Eigen::VectorXd::LinSpaced(param_num, 0.452, 0.452);
         Eigen::VectorXcd x_0 = npy2EigenVec<std::complex<double>>("../../initials/beta0.423_nu0.00018_1229period_dt0.01eps0.003.npy");
         int skip = 100; // plot every skip points
         std::vector<std::tuple<int, int, double>> sync_pairs;
@@ -69,14 +69,15 @@ int main(){
         ShellModel SM = ShellModel(1e-5, 0.5, f, dt, t_0, t, 1.0, x_0);
         std::map<std::string, std::string> plotSettings;
         plotSettings["font.family"] = "Times New Roman";
-        plotSettings["font.size"] = "10";
+        plotSettings["font.size"] = "15";
+        plotSettings["figure.max_open_warning"] = 50; // set max open figures to 50
         plt::rcparams(plotSettings);
 
         int steps = static_cast<int>((t - t_0) / dt + 0.5);
         #pragma omp parallel for num_threads(numThreads) ordered schedule(dynamic) shared(steps, x_0, betas, nus, sync_pairs, plotDim, window, trim) firstprivate(SM)
         for (int i = 0; i < param_num; i++){
             if (omp_get_thread_num() == 0){
-                std::cout << "processing " << i*numThreads << "/" << param_num << std::endl;
+                std::cout << "processing " << i << "/" << param_num << std::endl;
             }
             SM.set_beta_(betas(i));
             SM.set_nu_(nus(i));
@@ -115,6 +116,8 @@ int main(){
                 // plot
                 plt::figure_size(1200, 1200);
                 std::map<std::string, std::string> plotSettings;
+                plotSettings["alpha"] = "0.5";
+                plotSettings["s"] = "0.5";
                 plt::scatter(synced_x, synced_y);
                 plt::xlim(0.0, 0.5);
                 plt::ylim(0.0, 0.5);
@@ -123,12 +126,14 @@ int main(){
 
                 // save
                 std::ostringstream oss;
-                oss << "../../sync/beta_" << SM.get_beta_() << "nu_" << SM.get_nu_() <<"_"<< t-t_0 << "period" <<  static_cast<int>(window/100) <<"window" << static_cast<int>(synced_x.size()) << "sync.png";  // 文字列を結合する
+                oss << "../../sync/beta_" << SM.get_beta_() << "nu_" << SM.get_nu_() <<"_"<< t-t_0 << "period" <<  static_cast<int>(window/100) <<"window" << static_cast<int>(synced_x.size()/100) << "sync.png";  // 文字列を結合する
                 std::string plotfname = oss.str(); // 文字列を取得する
                 if (synced_x.size() > 0){
                     std::cout << "Saving result to " << plotfname << std::endl;
                     plt::save(plotfname);
                 }
+                plt::clf();
+                plt::close();
                 synced_x.clear();
                 synced_y.clear();
             }
