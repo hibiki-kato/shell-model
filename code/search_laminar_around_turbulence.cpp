@@ -27,13 +27,13 @@ int main(){
     double t_0 = 0;
     double t = 20000;
     double latter = 4;
-    Eigen::VectorXcd x_0 = npy2EigenVec("../../initials/beta0.416_nu0.00017520319481270297_step0.01_10000.0period_laminar.npy");
+    Eigen::VectorXcd x_0 = npy2EigenVec("../../initials/beta0.415_nu0.00018_100000period_dt0.01.npy");
     ShellModel SM(nu, beta, f, ddt, t_0, t, latter, x_0);
 
     // set up for search
     int threads = omp_get_max_threads();
     
-    int param_steps = 200;
+    int param_steps = 100;
     double beta_begin = 0.5;
     double beta_end = 0.5;
     double nu_begin = 0.0018;

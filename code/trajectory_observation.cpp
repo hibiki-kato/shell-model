@@ -14,14 +14,14 @@ namespace plt = matplotlibcpp;
 
 int main(){
     auto start = std::chrono::system_clock::now(); // 計測開始時間
-    double nu = 0.00018;
-    double beta = 0.43;
+    double nu = 0.0021;
+    double beta = 0.5;
     std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
-    double ddt = 0.01;
+    double ddt = 0.001;
     double t_0 = 0;
     double t = 1e+5;
     double latter = 1;
-    Eigen::VectorXcd x_0 = npy2EigenVec<std::complex<double>>("../../initials/beta0.41575_nu0.00018_14dim_period.npy");
+    Eigen::VectorXcd x_0 = npy2EigenVec<std::complex<double>>("../../initials/beta0.44_nu0.00018_3period_dt0.01eps0.001.npy");
     ShellModel solver(nu, beta, f, ddt, t_0, t, latter, x_0);
     Eigen::MatrixXcd trajectory = solver.get_trajectory_(); 
     // plot settings
@@ -40,7 +40,7 @@ int main(){
         y[i]=trajectory.cwiseAbs()(4, i);
     }
     std::map<std::string, std::string> keywords;
-    keywords["lw"] = "0.1";
+    keywords["lw"] = "0.01";
     plt::xlim(0.0, 0.4);
     plt::ylim(0.0, 0.4);
     plt::plot(x,y, keywords);

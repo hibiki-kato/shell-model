@@ -27,8 +27,8 @@ bool isSync(double a, double b, double epsilon);
 
 int main(){
     auto start = std::chrono::system_clock::now(); // 計測開始時間
-    double nu = 0.00018;
-    double beta = 0.423;
+    double nu = 1.8e-4;
+    double beta = 0.469363;
     std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
     double dt = 0.01;
     double t_0 = 0;
@@ -36,25 +36,26 @@ int main(){
     double latter = 1;
     int numthreads = omp_get_max_threads();
     int window = 1000; // how long the sync part should be. (sec)
-    window *= 100; // when dt = 0.01 
+    window *= 100; // 100 when dt = 0.01 
+    int trim = 100; // how much to trim from both starts and ends of sync part
 
     //make pairs of shells to observe phase difference(num begins from 1)
     std::vector<std::tuple<int, int, double>> sync_pairs;
 
-    sync_pairs.push_back(std::make_tuple(5, 8, 2.2));
-    sync_pairs.push_back(std::make_tuple(5, 11, 2.2));
-    sync_pairs.push_back(std::make_tuple(5, 14, 2.2));
-    sync_pairs.push_back(std::make_tuple(8, 11, 0.5));
-    sync_pairs.push_back(std::make_tuple(8, 14, 0.5));
-    sync_pairs.push_back(std::make_tuple(11, 14, 1E-2));
+    sync_pairs.push_back(std::make_tuple(5, 8, 2.3));
+    sync_pairs.push_back(std::make_tuple(5, 11, 2.3));
+    sync_pairs.push_back(std::make_tuple(5, 14, 2.3));
+    sync_pairs.push_back(std::make_tuple(8, 11, 0.7));
+    sync_pairs.push_back(std::make_tuple(8, 14, 0.7));
+    sync_pairs.push_back(std::make_tuple(11, 14, 1E-1));
 
-    sync_pairs.push_back(std::make_tuple(6, 9, 2));
-    sync_pairs.push_back(std::make_tuple(6, 12, 2));
-    sync_pairs.push_back(std::make_tuple(9, 12, 0.2));
+    sync_pairs.push_back(std::make_tuple(6, 9, 2.3));
+    sync_pairs.push_back(std::make_tuple(6, 12, 2.3));
+    sync_pairs.push_back(std::make_tuple(9, 12, 3e-1));
 
     // sync_pairs.push_back(std::make_tuple(1, 2, 4)); // dummy to check unextracted trajectory
 
-    Eigen::VectorXcd x_0 = npy2EigenVec("../../initials/beta0.41616_nu0.00018_10000period_dt0.01.npy");
+    Eigen::VectorXcd x_0 = npy2EigenVec("../../initials/beta0.469363_nu0.00011815_2000period.npy");
     ShellModel solver(nu, beta, f, dt, t_0, t, latter, x_0);
     std::cout << "calculating trajectory" << std::endl;
     Eigen::MatrixXcd trajectory = solver.get_trajectory_(); //wide matrix
@@ -99,7 +100,7 @@ int main(){
         else{
             if (counter >= window){
                 //adding synchronized part to synced
-                for (int j = 0 + 500*100; j < counter - 1 - 500*100; j++){
+                for (int j = 0 + trim*100; j < counter - 1 - trim*100; j++){
                     for (int k = 0; k < angles.cols() + 1; k++){
                         synced[k].push_back(trajectory(k, j + i - counter));
                     }
@@ -144,11 +145,11 @@ int main(){
     keywords.insert(std::make_pair("wspace", 0.4)); // also hspace
     std::vector<double> x(synced[0].size()/skip),y(synced[0].size()/skip);
     for (int i = 0; i < x.size(); i++){
-        x[i] = std::abs(synced[14][i*skip]);
-        y[i] = std::abs(synced[0][i*skip]);
+        x[i] = std::abs(synced[3][i*skip]);
+        y[i] = std::abs(synced[4][i*skip]);
     }
-    // plt::xlim(0.0, 0.4);
-    // plt::ylim(0.0, 0.4);
+    plt::xlim(0.0, 0.4);
+    plt::ylim(0.0, 0.4);
     plt::scatter(x, y);
 
     std::ostringstream oss;

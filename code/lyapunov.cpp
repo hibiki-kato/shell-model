@@ -34,7 +34,7 @@ int main() {
     std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
     double dt = 0.01;
     double t_0 = 0;
-    double t = 100000;
+    double t = 1e+5;
     double latter = 1;
     int threads = omp_get_max_threads();
     Eigen::VectorXcd x_0 = npy2EigenVec<std::complex<double>>("../../initials/beta0.44_nu0.00018_10000period_dt0.01_4-7_4-10_4-13_7-10_7-13_10-13_5-8_5-11_5-14_8-11_8-14_11-14_6-9_6-12_9-12.npy");
@@ -45,7 +45,7 @@ int main() {
     Eigen::MatrixXcd rawData = SM.get_trajectory_();
     // データの読み込みをここに記述
     // bool laminar = true;
-    // Eigen::MatrixXcd rawData = npy2EigenMat("../../generated_lam/sync_gen_laminar_beta_0.423nu_0.00018_dt0.01_100000period1000check100progress10^-7-10^-4perturb_4-7_4-10_4-13_7-10_7-13_10-13_5-8_5-11_5-14_8-11_8-14_11-14_6-9_6-12_9-12.npy");
+    // Eigen::MatrixXcd rawData = npy2EigenMat<std::complex<double>>("../../generated_lam/sync_gen_laminar_beta_0.428nu_0.00018_dt0.01_20000period3000check100progress10^-15-10^-12perturb_4-7_4-10_4-13_7-10_7-13_10-13_5-8_5-11_5-14_8-11_8-14_11-14_6-9_6-12_9-12.npy");
     
     
     int dim = rawData.rows() - 1;
