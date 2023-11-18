@@ -35,18 +35,18 @@ int main(){
     std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
         double dt = 0.01;
         double t_0 = 0;
-        double t = 1e+5;
+        double t = 1e+4;
         int numThreads = omp_get_max_threads();
         int window = 1500; // how long the sync part should be. (sec)
         window *= 100; // when dt = 0.01
         int trim = 500; 
         trim *= 100; // when dt = 0.01
         int plotDim[] = {4, 5};
-        int nu_num  = 32;
-        Eigen::VectorXd nus = Eigen::VectorXd::LinSpaced(nu_num, -4, -3);
+        int nu_num  = 960;
+        Eigen::VectorXd nus = Eigen::VectorXd::LinSpaced(nu_num, -6, -3);
         for (auto& nu : nus) nu = std::pow(10, nu);
-        int beta_num = 10;
-        Eigen::VectorXd betas = Eigen::VectorXd::LinSpaced(beta_num, 0.45, 0.46);
+        int beta_num = 1;
+        Eigen::VectorXd betas = Eigen::VectorXd::LinSpaced(beta_num, 0.5, 0.5);
         Eigen::VectorXcd x_0 = npy2EigenVec<std::complex<double>>("../../initials/beta0.423_nu0.00018_1229period_dt0.01eps0.003.npy");
         int skip = 100; // plot every skip points
         std::vector<std::tuple<int, int, double>> sync_pairs;
@@ -78,11 +78,12 @@ int main(){
 
         int steps = static_cast<int>((t - t_0) / dt + 0.5);
         std::atomic<int> progress(0);
-        #pragma omp parallel for num_threads(numThreads) shared(steps, x_0, betas, nus, sync_pairs, plotDim, window, trim, progress) schedule(dynamic) firstprivate(SM)
-        for (int i = 0; i < nu_num; i++) {
-            for (int j = 0; j < beta_num; j++){
-                SM.set_beta_(betas(j));
-                SM.set_nu_(nus(i));
+        #pragma omp parallel num_threads(numThreads) shared(steps, x_0, betas, nus, sync_pairs, plotDim, window, trim, progress)
+        for (int i = 0; i < beta_num; i++) {
+            #pragma omp for schedule(dynamic) firstprivate(SM)
+            for (int j = 0; j < nu_num; j++){
+                SM.set_beta_(betas(i));
+                SM.set_nu_(nus(j));
 
                 Eigen::VectorXd n = Eigen::VectorXd::Zero(x_0.rows());
                 Eigen::VectorXd theta = SM.get_x_0_().cwiseArg();
@@ -138,10 +139,10 @@ int main(){
                         synced_y.clear();
                     }
                 }
-            }
-            progress++;
-            if (omp_get_thread_num() == 0) {
-                    std::cout << "\r processing " << progress  << "/" << nu_num << std::flush;
+                progress++;
+                if (omp_get_thread_num() == 0) {
+                        std::cout << "\r processing " << progress  << "/" << nu_num*beta_num << std::flush;
+                }
             }
         }
 
