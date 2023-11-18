@@ -16,6 +16,7 @@
 #include <cmath>
 #include <utility> // std::pair用
 #include <tuple> // std::tuple用
+#include <atomic>
 #include <omp.h>
 #include <chrono>
 #include "Runge_Kutta.hpp"
@@ -36,14 +37,16 @@ int main(){
         double t_0 = 0;
         double t = 1e+5;
         int numThreads = omp_get_max_threads();
-        int window = 1000; // how long the sync part should be. (sec)
+        int window = 1500; // how long the sync part should be. (sec)
         window *= 100; // when dt = 0.01
         int trim = 500; 
         trim *= 100; // when dt = 0.01
         int plotDim[] = {4, 5};
-        int param_num = 16;
-        Eigen::VectorXd nus = Eigen::VectorXd::LinSpaced(param_num, 0.0001, 0.0002);
-        Eigen::VectorXd betas = Eigen::VectorXd::LinSpaced(param_num, 0.452, 0.452);
+        int nu_num  = 32;
+        Eigen::VectorXd nus = Eigen::VectorXd::LinSpaced(nu_num, -4, -3);
+        for (auto& nu : nus) nu = std::pow(10, nu);
+        int beta_num = 10;
+        Eigen::VectorXd betas = Eigen::VectorXd::LinSpaced(beta_num, 0.45, 0.46);
         Eigen::VectorXcd x_0 = npy2EigenVec<std::complex<double>>("../../initials/beta0.423_nu0.00018_1229period_dt0.01eps0.003.npy");
         int skip = 100; // plot every skip points
         std::vector<std::tuple<int, int, double>> sync_pairs;
@@ -74,68 +77,71 @@ int main(){
         plt::rcparams(plotSettings);
 
         int steps = static_cast<int>((t - t_0) / dt + 0.5);
-        #pragma omp parallel for num_threads(numThreads) ordered schedule(dynamic) shared(steps, x_0, betas, nus, sync_pairs, plotDim, window, trim) firstprivate(SM)
-        for (int i = 0; i < param_num; i++){
-            if (omp_get_thread_num() == 0){
-                std::cout << "processing " << i << "/" << param_num << std::endl;
-            }
-            SM.set_beta_(betas(i));
-            SM.set_nu_(nus(i));
+        std::atomic<int> progress(0);
+        #pragma omp parallel for num_threads(numThreads) shared(steps, x_0, betas, nus, sync_pairs, plotDim, window, trim, progress) schedule(dynamic) firstprivate(SM)
+        for (int i = 0; i < nu_num; i++) {
+            for (int j = 0; j < beta_num; j++){
+                SM.set_beta_(betas(j));
+                SM.set_nu_(nus(i));
 
-            Eigen::VectorXd n = Eigen::VectorXd::Zero(x_0.rows());
-            Eigen::VectorXd theta = SM.get_x_0_().cwiseArg();
-            Eigen::VectorXcd previous = x_0;
-            std::vector<double> x;
-            std::vector<double> y;
+                Eigen::VectorXd n = Eigen::VectorXd::Zero(x_0.rows());
+                Eigen::VectorXd theta = SM.get_x_0_().cwiseArg();
+                Eigen::VectorXcd previous = x_0;
+                std::vector<double> x;
+                std::vector<double> y;
 
-            std::vector<double> synced_x;
-            std::vector<double> synced_y;
-            
-            for (int j = 0; j < steps; j++) {
-                std::tie(n, theta, previous) = calc_next(SM, n, theta, previous);
-                if (isLaminar(theta+2*n*M_PI, sync_pairs)){
-                    x.push_back(std::abs(previous(plotDim[0]-1)));
-                    y.push_back(std::abs(previous(plotDim[1]-1)));
-                }
-                else{
-                    if (x.size() > window){
-                        synced_x.insert(synced_x.end(), x.begin(), x.end());
-                        synced_y.insert(synced_y.end(), y.begin(), y.end());
+                std::vector<double> synced_x;
+                std::vector<double> synced_y;
+                
+                for (int k = 0; k < steps; k++) {
+                    std::tie(n, theta, previous) = calc_next(SM, n, theta, previous);
+                    if (isLaminar(theta+2*n*M_PI, sync_pairs)){
+                        x.push_back(std::abs(previous(plotDim[0]-1)));
+                        y.push_back(std::abs(previous(plotDim[1]-1)));
                     }
-                    x.clear();
-                    y.clear();
+                    else{
+                        if (x.size() > window){
+                            synced_x.insert(synced_x.end(), x.begin(), x.end());
+                            synced_y.insert(synced_y.end(), y.begin(), y.end());
+                        }
+                        x.clear();
+                        y.clear();
+                    }
+                }
+                if (x.size() > window){
+                    synced_x.insert(synced_x.end(), x.begin(), x.end());
+                    synced_y.insert(synced_y.end(), y.begin(), y.end());
+                }
+
+                #pragma omp critical
+                {   
+                    if (synced_x.size() > 0){
+                        // plot
+                        plt::figure_size(1200, 1200);
+                        std::map<std::string, std::string> plotSettings;
+                        plotSettings["alpha"] = "0.01";
+                        plt::scatter(synced_x, synced_y, 0.001);
+                        plt::xlim(0.0, 0.5);
+                        plt::ylim(0.0, 0.5);
+                        plt::xlabel("$|u_" + std::to_string(plotDim[0]) + "|$");
+                        plt::ylabel("$|u_" + std::to_string(plotDim[1]) + "|$");
+
+                        // save
+                        std::ostringstream oss;
+                        oss << "../../sync/beta_" << SM.get_beta_() << "nu_" << SM.get_nu_() <<"_"<< t-t_0 << "period" <<  static_cast<int>(window/100) <<"window" << static_cast<int>(synced_x.size()/100) << "sync.png";  // 文字列を結合する
+                        std::string plotfname = oss.str(); // 文字列を取得する
+                        std::cout << "Saving result to " << plotfname << std::endl;
+                        plt::save(plotfname);
+                        plt::clf();
+                        plt::close();
+                        synced_x.clear();
+                        synced_y.clear();
+                    }
                 }
             }
-            if (x.size() > window){
-                synced_x.insert(synced_x.end(), x.begin(), x.end());
-                synced_y.insert(synced_y.end(), y.begin(), y.end());
-            }
-
-            #pragma omp critical
-            {
-                // plot
-                plt::figure_size(1200, 1200);
-                std::map<std::string, std::string> plotSettings;
-                plotSettings["alpha"] = "0.5";
-                plotSettings["s"] = "0.5";
-                plt::scatter(synced_x, synced_y);
-                plt::xlim(0.0, 0.5);
-                plt::ylim(0.0, 0.5);
-                plt::xlabel("$|u_" + std::to_string(plotDim[0]) + "|$");
-                plt::ylabel("$|u_" + std::to_string(plotDim[1]) + "|$");
-
-                // save
-                std::ostringstream oss;
-                oss << "../../sync/beta_" << SM.get_beta_() << "nu_" << SM.get_nu_() <<"_"<< t-t_0 << "period" <<  static_cast<int>(window/100) <<"window" << static_cast<int>(synced_x.size()/100) << "sync.png";  // 文字列を結合する
-                std::string plotfname = oss.str(); // 文字列を取得する
-                if (synced_x.size() > 0){
-                    std::cout << "Saving result to " << plotfname << std::endl;
-                    plt::save(plotfname);
-                }
-                plt::clf();
-                plt::close();
-                synced_x.clear();
-                synced_y.clear();
+            progress++;
+            if (omp_get_thread_num() == 0) {
+                    std::cout << "\r processing " << progress  << "/" << nu_num << std::flush;
             }
         }
 
