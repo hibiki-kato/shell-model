@@ -35,36 +35,37 @@ int main(){
     std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
         double dt = 0.01;
         double t_0 = 0;
-        double t = 1e+5;
+        double t = 5e+5;
         int numThreads = omp_get_max_threads();
-        int window = 1500; // how long the sync part should be. (sec)
+        int window = 1000; // how long the sync part should be. (sec)
         window *= 100; // when dt = 0.01
         int trim = 500; 
         trim *= 100; // when dt = 0.01
         int plotDim[] = {4, 5};
-        int nu_num  = 96;
-        Eigen::VectorXd nus = Eigen::VectorXd::LinSpaced(nu_num, -5, -3);
+        int nu_num  = 400;
+        Eigen::VectorXd nus = Eigen::VectorXd::LinSpaced(nu_num, -6, -2);
         for (auto& nu : nus) nu = std::pow(10, nu);
+        std::cout << nus << std::endl;
         int beta_num = 100;
-        Eigen::VectorXd betas = Eigen::VectorXd::LinSpaced(beta_num, 0.4, 0.5);
+        Eigen::VectorXd betas = Eigen::VectorXd::LinSpaced(beta_num, 0.45, 0.55);
         Eigen::VectorXcd x_0 = npy2EigenVec<std::complex<double>>("../../initials/beta0.423_nu0.00018_1229period_dt0.01eps0.003.npy");
         int skip = 100; // plot every skip points
         std::vector<std::tuple<int, int, double>> sync_pairs;
 
-        sync_pairs.push_back(std::make_tuple(4, 7, 2.3));
-        sync_pairs.push_back(std::make_tuple(4, 10, 2.3));
-        sync_pairs.push_back(std::make_tuple(4, 13, 2.3));
-        sync_pairs.push_back(std::make_tuple(7, 10, 2));
+        // sync_pairs.push_back(std::make_tuple(4, 7, 2.3));
+        // sync_pairs.push_back(std::make_tuple(4, 10, 2.3));
+        // sync_pairs.push_back(std::make_tuple(4, 13, 2.3));
+        // sync_pairs.push_back(std::make_tuple(7, 10, 2));
         
-        sync_pairs.push_back(std::make_tuple(7, 13, 2));
-        sync_pairs.push_back(std::make_tuple(10, 13, 1E-1));
+        // sync_pairs.push_back(std::make_tuple(7, 13, 2));
+        // sync_pairs.push_back(std::make_tuple(10, 13, 1E-1));
 
-        // sync_pairs.push_back(std::make_tuple(5, 8, 2.3));
-        // sync_pairs.push_back(std::make_tuple(5, 11, 2.3));
-        // sync_pairs.push_back(std::make_tuple(5, 14, 2.3));
-        // sync_pairs.push_back(std::make_tuple(8, 11, 0.7));
-        // sync_pairs.push_back(std::make_tuple(8, 14, 0.7));
-        // sync_pairs.push_back(std::make_tuple(11, 14, 1E-1));
+        sync_pairs.push_back(std::make_tuple(5, 8, 2.3));
+        sync_pairs.push_back(std::make_tuple(5, 11, 2.3));
+        sync_pairs.push_back(std::make_tuple(5, 14, 2.3));
+        sync_pairs.push_back(std::make_tuple(8, 11, 0.7));
+        sync_pairs.push_back(std::make_tuple(8, 14, 0.7));
+        sync_pairs.push_back(std::make_tuple(11, 14, 1E-1));
 
         // sync_pairs.push_back(std::make_tuple(6, 9, 2.3));
         // sync_pairs.push_back(std::make_tuple(6, 12, 2.3));
