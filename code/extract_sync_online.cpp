@@ -42,7 +42,7 @@ int main(){
         int trim = 500; 
         trim *= 100; // when dt = 0.01
         int plotDim[] = {4, 5};
-        int nu_num  = 400;
+        int nu_num  = 200;
         Eigen::VectorXd nus = Eigen::VectorXd::LinSpaced(nu_num, -6, -2);
         for (auto& nu : nus) nu = std::pow(10, nu);
         std::cout << nus << std::endl;
@@ -104,8 +104,8 @@ int main(){
                     }
                     else{
                         if (x.size() > window){
-                            synced_x.insert(synced_x.end(), x.begin(), x.end());
-                            synced_y.insert(synced_y.end(), y.begin(), y.end());
+                            synced_x.insert(synced_x.end(), x.begin()+trim, x.end()-trim);
+                            synced_y.insert(synced_y.end(), y.begin()+trim, y.end()-trim);
                         }
                         x.clear();
                         y.clear();
