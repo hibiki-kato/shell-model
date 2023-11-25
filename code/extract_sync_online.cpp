@@ -35,19 +35,19 @@ int main(){
     std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
         double dt = 0.01;
         double t_0 = 0;
-        double t = 5e+5;
+        double t = 1e+7;
         int numThreads = omp_get_max_threads();
         int window = 1000; // how long the sync part should be. (sec)
         window *= 100; // when dt = 0.01
         int trim = 500; 
         trim *= 100; // when dt = 0.01
         int plotDim[] = {4, 5};
-        int nu_num  = 200;
-        Eigen::VectorXd nus = Eigen::VectorXd::LinSpaced(nu_num, -6, -2);
-        for (auto& nu : nus) nu = std::pow(10, nu);
+        int nu_num  = 1;
+        Eigen::VectorXd nus = Eigen::VectorXd::LinSpaced(nu_num, 0.000254692, 0.000254692);
+        // for (auto& nu : nus) nu = std::pow(10, nu);
         std::cout << nus << std::endl;
-        int beta_num = 100;
-        Eigen::VectorXd betas = Eigen::VectorXd::LinSpaced(beta_num, 0.45, 0.55);
+        int beta_num = 1;
+        Eigen::VectorXd betas = Eigen::VectorXd::LinSpaced(beta_num, 0.502525, 0.502525);
         Eigen::VectorXcd x_0 = npy2EigenVec<std::complex<double>>("../../initials/beta0.423_nu0.00018_1229period_dt0.01eps0.003.npy");
         int skip = 100; // plot every skip points
         std::vector<std::tuple<int, int, double>> sync_pairs;
@@ -56,7 +56,6 @@ int main(){
         // sync_pairs.push_back(std::make_tuple(4, 10, 2.3));
         // sync_pairs.push_back(std::make_tuple(4, 13, 2.3));
         // sync_pairs.push_back(std::make_tuple(7, 10, 2));
-        
         // sync_pairs.push_back(std::make_tuple(7, 13, 2));
         // sync_pairs.push_back(std::make_tuple(10, 13, 1E-1));
 
@@ -67,14 +66,14 @@ int main(){
         sync_pairs.push_back(std::make_tuple(8, 14, 0.7));
         sync_pairs.push_back(std::make_tuple(11, 14, 1E-1));
 
-        // sync_pairs.push_back(std::make_tuple(6, 9, 2.3));
-        // sync_pairs.push_back(std::make_tuple(6, 12, 2.3));
-        // sync_pairs.push_back(std::make_tuple(9, 12, 0.3));
+        sync_pairs.push_back(std::make_tuple(6, 9, 2.3));
+        sync_pairs.push_back(std::make_tuple(6, 12, 2.3));
+        sync_pairs.push_back(std::make_tuple(9, 12, 0.3));
 
         ShellModel SM = ShellModel(1e-5, 0.5, f, dt, t_0, t, 1.0, x_0);
         std::map<std::string, std::string> plotSettings;
         plotSettings["font.family"] = "Times New Roman";
-        plotSettings["font.size"] = "15";
+        plotSettings["font.size"] = "20";
         plotSettings["figure.max_open_warning"] = 50; // set max open figures to 50
         plt::rcparams(plotSettings);
 
@@ -116,17 +115,19 @@ int main(){
                     synced_x.insert(synced_x.end(), x.begin()+trim, x.end()-trim);
                     synced_y.insert(synced_y.end(), y.begin()+trim, y.end()-trim);
                 }
+                x.clear();
+                y.clear();
 
                 #pragma omp critical
                 {   
                     if (synced_x.size() > 0){
                         // plot
-                        plt::figure_size(1200, 1200);
+                        plt::figure_size(1000, 1000);
                         std::map<std::string, std::string> plotSettings;
                         plotSettings["alpha"] = "0.01";
                         plt::scatter(synced_x, synced_y, 0.001);
-                        plt::xlim(0.0, 0.5);
-                        plt::ylim(0.0, 0.5);
+                        plt::xlim(0.0, 0.4);
+                        plt::ylim(0.0, 0.4);
                         plt::xlabel("$|u_" + std::to_string(plotDim[0]) + "|$");
                         plt::ylabel("$|u_" + std::to_string(plotDim[1]) + "|$");
 

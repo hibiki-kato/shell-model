@@ -3,15 +3,16 @@ FROM mcr.microsoft.com/devcontainers/cpp:0-ubuntu-22.04
 RUN apt update && apt-get update && export DEBIAN_FRONTEND=noninteractive \
     && apt install -y \
     build-essential \
+    ninja-build \
     libeigen3-dev \
     libpython3-all-dev \
     python3-numpy \
     python3-matplotlib \
-    msttcorefonts \
+    msttcorefonts -qq\
     ffmpeg
 
     # refresh matplotlib cache
-    # && rm -r ~/.cache/matplotlib
+    # && rm ~/.cache/matplotlib -rf
 
 
 # [Optional] Uncomment this section to install additional vcpkg ports.

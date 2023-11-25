@@ -14,14 +14,14 @@ namespace plt = matplotlibcpp;
 
 int main(){
     auto start = std::chrono::system_clock::now(); // 計測開始時間
-    double nu = 0.0021;
-    double beta = 0.5;
+    double nu = 0.00018;
+    double beta = 0.417;
     std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
-    double ddt = 0.001;
+    double ddt = 0.01;
     double t_0 = 0;
     double t = 1e+5;
-    double latter = 1;
-    Eigen::VectorXcd x_0 = npy2EigenVec<std::complex<double>>("../../initials/beta0.44_nu0.00018_3period_dt0.01eps0.001.npy");
+    double latter = 2;
+    Eigen::VectorXcd x_0 = npy2EigenVec<std::complex<double>>("../../initials/beta0.42_nu0.00018_2500period_dt0.01_4-7_4-10_4-13_7-10_7-13_10-13_5-8_5-11_5-14_8-11_8-14_11-14_6-9_6-12_9-12.npy");
     ShellModel solver(nu, beta, f, ddt, t_0, t, latter, x_0);
     Eigen::MatrixXcd trajectory = solver.get_trajectory_(); 
     // plot settings
@@ -40,22 +40,22 @@ int main(){
         y[i]=trajectory.cwiseAbs()(4, i);
     }
     std::map<std::string, std::string> keywords;
-    keywords["lw"] = "0.01";
-    plt::xlim(0.0, 0.4);
-    plt::ylim(0.0, 0.4);
+    keywords["lw"] = "1";
+    // plt::xlim(0.0, 0.4);
+    // plt::ylim(0.0, 0.4);
     plt::plot(x,y, keywords);
     std::ostringstream oss;
-    oss << "../../traj_images/beta_" << beta << "nu_" << nu <<"_"<< t-t_0 << "period.png";  // 文字列を結合する
+    oss << "../../traj_images/beta_" << beta << "nu_" << nu <<"_"<< static_cast<int>(t-t_0 / latter) << "period.png";  // 文字列を結合する
     std::string plotfname = oss.str(); // 文字列を取得する
     std::cout << "Saving result to " << plotfname << std::endl;
     plt::save(plotfname);
 
     oss.str("");
     //  文字列を取得する
-    oss << "../../beta" << beta << "_nu" << nu <<"_"<< t-t_0 << "period.npy";  // 文字列を結合する
+    oss << "../../beta" << beta << "_nu" << nu <<"_"<< static_cast<int>(t-t_0 / latter) << "period.npy";  // 文字列を結合する
     std::string npyfname = oss.str();
     std::cout << "Saving result to " << npyfname << std::endl;
-    // EigenMat2npy(trajectory, npyfname);
+    EigenMat2npy(trajectory, npyfname);
 
     auto end = std::chrono::system_clock::now();  // 計測終了時間
     int hours = std::chrono::duration_cast<std::chrono::hours>(end-start).count(); //処理に要した時間を変換

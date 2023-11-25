@@ -53,7 +53,7 @@ int main(){
     beta = 0.417;
     nu = 0.00018;
     latter = 1;
-    t = 50000;
+    t = 10000;
     dt = 0.01;
     t_0 = 0;
     // Eigen::MatrixXcd loaded = npy2EigenMat("../../generated_lam/generated_laminar_beta_0.416nu_0.00018_dt0.01_38100period500check20progresseps0.02.npy");
@@ -63,8 +63,8 @@ int main(){
     int skip = 1000;
 
 
-    double check_sec = 5000;
-    double progress_sec = 1000;
+    double check_sec = 2000;
+    double progress_sec = 10;
     int threads = omp_get_max_threads();
     std::cout << threads << "threads" << std::endl;
 

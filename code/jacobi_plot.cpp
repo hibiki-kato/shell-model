@@ -44,15 +44,15 @@ int main() {
     double nu = 0.00001;
     double beta = 0.5;
     std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
-    double dt = 0._01;
+    double dt = 0.01;
     double t_0 = 0;
     double t = 5000;
     double latter = 1;
     int threads = omp_get_max_threads();
     Eigen::VectorXcd dummy = Eigen::VectorXd::Zero(15);
-    int refresh = 5000;
+    int refresh = 1000;
     
-    double repetitions = 1;
+    double repetitions = 100;
     double r = 1E-5;
     ShellModel SM(nu, beta, f, dt, t_0, t,  latter, dummy);
     // データは読み込み必須
@@ -124,7 +124,6 @@ int main() {
         Eigen::EigenSolver<Eigen::MatrixXd> es(jacobian);
         Eigen::VectorXd eigenvalues = es.eigenvalues().real();
         double max_eigenvalue = eigenvalues.cwiseAbs().maxCoeff();
-        std::cout << "max eigenvalue is " << max_eigenvalue << std::endl;
         jacobian /= max_eigenvalue;
         for (int i = 1; i < traj.cols(); i++){
             now += dt;
@@ -192,7 +191,7 @@ int main() {
             oss << "../../animation_frames/jacobi_real-imag_beta_" << beta << "nu_" << nu << "_" << std::setfill('0') << std::setw(6) << counter << ".png";
             counter++;
             std::string plotfname = oss.str(); // 文字列を取得する
-            std::cout << "Saving result to " << plotfname << std::endl;
+            std::cout << "Saving result to " << plotfname << std::flush;
             plt::save(plotfname);
             oss.str("");
         }
