@@ -28,34 +28,41 @@ bool isSync(double a, double b, double epsilon);
 int main(){
     auto start = std::chrono::system_clock::now(); // 計測開始時間
     double nu = 1.8e-4;
-    double beta = 0.469363;
+    double beta = 0.417;
     std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
     double dt = 0.01;
     double t_0 = 0;
-    double t = 1e+6;
+    double t = 5e+5;
     double latter = 1;
     int numthreads = omp_get_max_threads();
     int window = 1000; // how long the sync part should be. (sec)
     window *= 100; // 100 when dt = 0.01 
-    int trim = 100; // how much to trim from both starts and ends of sync part
+    int trim = 500; // how much to trim from both starts and ends of sync part
 
     //make pairs of shells to observe phase difference(num begins from 1)
     std::vector<std::tuple<int, int, double>> sync_pairs;
 
-    sync_pairs.push_back(std::make_tuple(5, 8, 2.3));
-    sync_pairs.push_back(std::make_tuple(5, 11, 2.3));
-    sync_pairs.push_back(std::make_tuple(5, 14, 2.3));
-    sync_pairs.push_back(std::make_tuple(8, 11, 0.7));
-    sync_pairs.push_back(std::make_tuple(8, 14, 0.7));
-    sync_pairs.push_back(std::make_tuple(11, 14, 1E-1));
+    // sync_pairs.push_back(std::make_tuple(4, 7, 2.3));
+        // sync_pairs.push_back(std::make_tuple(4, 10, 2.3));
+        // sync_pairs.push_back(std::make_tuple(4, 13, 2.3));
+        // sync_pairs.push_back(std::make_tuple(7, 10, 2));
+        // sync_pairs.push_back(std::make_tuple(7, 13, 2));
+        // sync_pairs.push_back(std::make_tuple(10, 13, 1E-1));
 
-    sync_pairs.push_back(std::make_tuple(6, 9, 2.3));
-    sync_pairs.push_back(std::make_tuple(6, 12, 2.3));
-    sync_pairs.push_back(std::make_tuple(9, 12, 3e-1));
+        sync_pairs.push_back(std::make_tuple(5, 8, 2.3));
+        sync_pairs.push_back(std::make_tuple(5, 11, 2.3));
+        sync_pairs.push_back(std::make_tuple(5, 14, 2.3));
+        sync_pairs.push_back(std::make_tuple(8, 11, 0.7));
+        sync_pairs.push_back(std::make_tuple(8, 14, 0.7));
+        sync_pairs.push_back(std::make_tuple(11, 14, 1E-1));
+
+        sync_pairs.push_back(std::make_tuple(6, 9, 2.3));
+        sync_pairs.push_back(std::make_tuple(6, 12, 2.3));
+        sync_pairs.push_back(std::make_tuple(9, 12, 0.3));    
 
     // sync_pairs.push_back(std::make_tuple(1, 2, 4)); // dummy to check unextracted trajectory
 
-    Eigen::VectorXcd x_0 = npy2EigenVec("../../initials/beta0.469363_nu0.00011815_2000period.npy");
+    Eigen::VectorXcd x_0 = npy2EigenVec("../../initials/beta0.417_nu0.00018_5000period_dt0.01_5-8_5-11_5-14_8-11_8-14_11-14_6-9_6-12_9-12.npy");
     ShellModel solver(nu, beta, f, dt, t_0, t, latter, x_0);
     std::cout << "calculating trajectory" << std::endl;
     Eigen::MatrixXcd trajectory = solver.get_trajectory_(); //wide matrix
@@ -135,21 +142,21 @@ int main(){
     int skip = 1; // plot every skip points
     std::map<std::string, std::string> plotSettings;
     plotSettings["font.family"] = "Times New Roman";
-    plotSettings["font.size"] = "10";
+    plotSettings["font.size"] = "15";
     plt::rcparams(plotSettings);
     // Set the size of output image = 1200x780 pixels
-    plt::figure_size(1200, 600);
+    plt::figure_size(1500, 600);
     
     std::map<std::string, double> keywords;
-    keywords.insert(std::make_pair("hspace", 0.6)); // also right, top, bottom
-    keywords.insert(std::make_pair("wspace", 0.4)); // also hspace
     std::vector<double> x(synced[0].size()/skip),y(synced[0].size()/skip);
     for (int i = 0; i < x.size(); i++){
-        x[i] = std::abs(synced[3][i*skip]);
-        y[i] = std::abs(synced[4][i*skip]);
+        x[i] = std::abs(synced[14][i*skip]);
+        y[i] = std::abs(synced[0][i*skip]);
     }
-    plt::xlim(0.0, 0.4);
-    plt::ylim(0.0, 0.4);
+    // plt::xlim(0.0, 0.4);
+    plt::ylim(0.5, 1.2);
+    plt::xlabel("$t [sec]$");
+    plt::ylabel("$|U_{1}|$");
     plt::scatter(x, y);
 
     std::ostringstream oss;
@@ -193,7 +200,7 @@ int main(){
             matrix(i, j) = synced[i][j];
         }
     }
-    EigenMt2npy(matrix, fname);
+    // EigenMt2npy(matrix, fname);
 
     auto end = std::chrono::system_clock::now();  // 計測終了時間
     int hours = std::chrono::duration_cast<std::chrono::hours>(end-start).count(); //処理に要した時間を変換

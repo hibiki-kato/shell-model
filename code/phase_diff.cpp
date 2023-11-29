@@ -27,36 +27,36 @@ int shift(double pre_theta, double theta, int rotation_number);
 int main(){
     auto start = std::chrono::system_clock::now(); // 計測開始時間
     double nu = 0.00018;
-    double beta = 0.444;
+    double beta = 0.417;
     std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
     double ddt = 0.01;
     double t_0 = 0;
-    double t = 5000;
+    double t = 1e+5;
 
     double latter = 1;
     int threads = omp_get_max_threads();
-    Eigen::VectorXcd x_0 = npy2EigenVec<std::complex<double>>("../../initials/beta0.444_nu0.00018_2000period_dt0.01_4-7_4-10_4-13_7-10_7-13_10-13_5-8_5-11_5-14_8-11_8-14_11-14_6-9_6-12_9-12.npy");
+    Eigen::VectorXcd x_0 = npy2EigenVec<std::complex<double>>("../../initials/beta0.417_nu0.00018_5000period_dt0.01_5-8_5-11_5-14_8-11_8-14_11-14_6-9_6-12_9-12.npy");
 
     //make pairs of shells to observe phase difference(num begins from 1)
     std::vector<std::pair<int, int>> sync_pairs;
 
-    sync_pairs.push_back(std::make_pair(4, 7));
-    sync_pairs.push_back(std::make_pair(4, 10));
-    sync_pairs.push_back(std::make_pair(4, 13));
-    sync_pairs.push_back(std::make_pair(7, 10));
-    sync_pairs.push_back(std::make_pair(7, 13));
-    sync_pairs.push_back(std::make_pair(10, 13));
+    // sync_pairs.push_back(std::make_pair(4, 7));
+    // sync_pairs.push_back(std::make_pair(4, 10));
+    // sync_pairs.push_back(std::make_pair(4, 13));
+    // sync_pairs.push_back(std::make_pair(7, 10));
+    // sync_pairs.push_back(std::make_pair(7, 13));
+    // sync_pairs.push_back(std::make_pair(10, 13));
 
-    sync_pairs.push_back(std::make_pair(5, 8));
-    sync_pairs.push_back(std::make_pair(5, 11));
-    sync_pairs.push_back(std::make_pair(5, 14));
-    sync_pairs.push_back(std::make_pair(8, 11));
-    sync_pairs.push_back(std::make_pair(8, 14));
-    sync_pairs.push_back(std::make_pair(11, 14));
+    // sync_pairs.push_back(std::make_pair(5, 8));
+    // sync_pairs.push_back(std::make_pair(5, 11));
+    // sync_pairs.push_back(std::make_pair(5, 14));
+    // sync_pairs.push_back(std::make_pair(8, 11));
+    // sync_pairs.push_back(std::make_pair(8, 14));
+    // sync_pairs.push_back(std::make_pair(11, 14));
 
     sync_pairs.push_back(std::make_pair(6, 9));
-    sync_pairs.push_back(std::make_pair(6, 12));
-    sync_pairs.push_back(std::make_pair(9, 12));
+    // sync_pairs.push_back(std::make_pair(6, 12));
+    // sync_pairs.push_back(std::make_pair(9, 12));
 
     ShellModel solver(nu, beta, f, ddt, t_0, t, latter, x_0);
     std::cout << "calculating trajectory" << std::endl;
@@ -107,7 +107,7 @@ int main(){
     plotSettings["font.size"] = "10";
     plt::rcparams(plotSettings);
     // Set the size of output image = 1200x780 pixels
-    plt::figure_size(800, 300*sync_pairs.size());
+    plt::figure_size(1200, 400*sync_pairs.size());
     
     std::map<std::string, double> keywords;
     keywords.insert(std::make_pair("hspace", 0.6)); // also right, top, bottom
@@ -128,9 +128,10 @@ int main(){
             y[i] = diff(i*skip);
         }
         plt::subplot(sync_pairs.size(), 1, counter);
-        plt::plot(x,y);
-        plt::xlabel("Time");
-        plt::ylabel("$|U_{" + std::to_string(pair.first) + "}-U_{" + std::to_string(pair.second) + "}|$");
+        plt::scatter(x,y);
+        plt::xlabel("t [sec]");
+        plt::ylabel("$|\\phi_" + std::to_string(pair.first) + "-\\phi_" + std::to_string(pair.second) + "|$");
+
     }
 
     std::ostringstream oss;
