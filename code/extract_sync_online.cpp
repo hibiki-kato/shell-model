@@ -35,20 +35,20 @@ int main(){
     std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
         double dt = 0.01;
         double t_0 = 0;
-        double t = 1e+7;
+        double t = 1e+6;
         int numThreads = omp_get_max_threads();
         int window = 1000; // how long the sync part should be. (sec)
         window *= 100; // when dt = 0.01
         int trim = 500; 
         trim *= 100; // when dt = 0.01
         int plotDim[] = {4, 5};
-        int nu_num  = 1;
-        Eigen::VectorXd nus = Eigen::VectorXd::LinSpaced(nu_num, 0.00026007, 0.00026007);
-        // for (auto& nu : nus) nu = std::pow(10, nu);
+        int nu_num  = 160;
+        Eigen::VectorXd nus = Eigen::VectorXd::LinSpaced(nu_num, -5, -2);
+        for (auto& nu : nus) nu = std::pow(10, nu);
         std::cout << nus << std::endl;
-        int beta_num = 1;
-        Eigen::VectorXd betas = Eigen::VectorXd::LinSpaced(beta_num, 0.50101, 0.50101);
-        Eigen::VectorXcd x_0 = npy2EigenVec<std::complex<double>>("../../initials/beta0.417_nu0.00018_5000period_dt0.01_5-8_5-11_5-14_8-11_8-14_11-14_6-9_6-12_9-12.npy");
+        int beta_num = 100;
+        Eigen::VectorXd betas = Eigen::VectorXd::LinSpaced(beta_num, 0.48, 0.52);
+        Eigen::VectorXcd x_0 = npy2EigenVec<std::complex<double>>("../../initials/beta0.423_nu0.00018_1229period_dt0.01eps0.003.npy");
         int skip = 100; // plot every skip points
         std::vector<std::tuple<int, int, double>> sync_pairs;
 
