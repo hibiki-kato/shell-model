@@ -1,5 +1,7 @@
 FROM mcr.microsoft.com/devcontainers/cpp:0-ubuntu-22.04
 
+ENV OS_NAME=Linux
+
 RUN apt update && apt-get update && export DEBIAN_FRONTEND=noninteractive \
     && apt install -y \
     build-essential \
