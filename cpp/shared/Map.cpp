@@ -164,33 +164,34 @@ Eigen::MatrixXd PoincareMap::get(){
 */
 
 KostelichMap::KostelichMap(KMparams input_params, long long input_n, long long input_dump, Eigen::VectorXd input_x_0){
-    double alpha = input_params.alpha;
-    double sigma = input_params.sigma;
-    long long n = input_n;
-    long long dump = input_dump;
-    Eigen::VectorXd x_0 = input_x_0;
+    alpha = input_params.alpha;
+    sigma = input_params.sigma;
+    n = input_n;
+    dump = input_dump;
+    x_0 = input_x_0;
 }
-KostelichMap::~KostelichMap(){};
+KostelichMap::~KostelichMap(){}
 
 Eigen::MatrixXd KostelichMap::get_trajectory(){
-    Eigen::MatrixXd trajectory(2, n);
+    Eigen::MatrixXd trajectory(2, n+1);
     trajectory.col(0) = x_0;
     for (long long i = 0; i < dump; ++i){
-        trajectory.col(0) = kostelich_map(trajectory.col(0));
+        trajectory.col(0) = map(trajectory.col(0));
     }
-    for (long long i = 1; i < n; ++i){
-        trajectory.col(i) = kostelich_map(trajectory.col(i-1));
+    for (long long i = 0; i < n; ++i){
+        trajectory.col(i+1) = map(trajectory.col(i));
     }
     return trajectory;
 }
 
-Eigen::VectorXd KostelichMap::kostelich_map(const Eigen::VectorXd& state){
+Eigen::VectorXd KostelichMap::map(const Eigen::VectorXd& state){
     Eigen::VectorXd output(2);
     output(0) = 3 * state(0);
     output(0) -= std::floor(output(0));
 
     output(1) = state(1) - sigma*std::sin(2*M_PI*state(1)) + alpha * (1 - std::cos(2*M_PI*state(0)));
     output(1) -= std::floor(output(1));
+    return output;
 }
 
 /*
@@ -215,16 +216,27 @@ Eigen::VectorXd KostelichMap::kostelich_map(const Eigen::VectorXd& state){
 */
 
 PGMap::PGMap(PGparams input_params, long long input_n, long long input_dump, Eigen::VectorXd input_x_0){
-    double a = input_params.a;
-    double a_prime = input_params.a_prime;
-    double omega = input_params.omega;
-    long long n = input_n;
-    long long dump = input_dump;
-    Eigen::VectorXd x_0 = input_x_0;
+    a = input_params.a;
+    a_prime = input_params.a_prime;
+    omega = input_params.omega;
+    n = input_n;
+    dump = input_dump;
+    x_0 = input_x_0;
 }
 PGMap::~PGMap(){}
-Eigen::MatrixXd PGMap::get_trajectory();
-Eigen::VectorXd PGMap::PG_map(const Eigen::VectorXd& state){
+Eigen::MatrixXd PGMap::get_trajectory(){
+    Eigen::MatrixXd trajectory(2, n+1);
+    trajectory.col(0) = x_0;
+    for (long long i = 0; i < dump; ++i){
+        trajectory.col(0) = map(trajectory.col(0));
+    }
+    for (long long i = 0; i < n; ++i){
+        trajectory.col(i+1) = map(trajectory.col(i));
+    }
+    return trajectory;
+
+}
+Eigen::VectorXd PGMap::map(const Eigen::VectorXd& state){
     Eigen::VectorXd output(2);
     output(0) = (1-omega) * tent_map(state(0), a) + omega * tent_map(state(1), a_prime);
     output(1) = omega * tent_map(state(0), a) + (1-omega) * tent_map(state(1), a_prime);

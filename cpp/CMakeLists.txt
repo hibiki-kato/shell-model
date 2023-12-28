@@ -34,7 +34,7 @@ else()
 endif()
 
 #ライブラリを作成
-add_library(cnpy "cnpy/cnpy.cpp")
+add_library(cnpy "shared/cnpy/cnpy.cpp")
 target_link_libraries(${EXECUTABLE} PUBLIC z cnpy Python::Python Python::NumPy)
 
 #キャッシュなし
