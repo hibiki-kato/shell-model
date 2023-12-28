@@ -19,20 +19,19 @@
 #include <atomic>
 #include <omp.h>
 #include <chrono>
-#include "Runge_Kutta.hpp"
+#include "shared/Flow.hpp"
+#include "shared/myFunc.hpp"
 #include "cnpy/cnpy.h"
-#include "matplotlibcpp.h"
-#include "Eigen_numpy_converter.hpp"
+#include "shared/matplotlibcpp.h"
+#include "shared/Eigen_numpy_converter.hpp"
 
 namespace plt = matplotlibcpp;
-double shift(double pre_theta, double theta, double rotation_number);
 bool isLaminar(Eigen::VectorXd phases, std::vector<std::tuple<int, int, double>> sync_pairs);
 std::tuple<Eigen::VectorXd, Eigen::VectorXd, Eigen::VectorXcd> calc_next(ShellModel& SM, Eigen::VectorXd pre_n, Eigen::VectorXd pre_theta, Eigen::VectorXcd previous);
-bool isSync(double a, double b, double epsilon);
 
 int main(){
     auto start = std::chrono::system_clock::now(); // 計測開始時間
-    std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
+    params.f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
         double dt = 0.01;
         double t_0 = 0;
         double t = 1e+6;
@@ -150,31 +149,13 @@ int main(){
             }
         }
 
-        auto end = std::chrono::system_clock::now();  // 計測終了時間
-        int hours = std::chrono::duration_cast<std::chrono::hours>(end-start).count(); //処理に要した時間を変換
-        int minutes = std::chrono::duration_cast<std::chrono::minutes>(end-start).count(); //処理に要した時間を変換
-        int seconds = std::chrono::duration_cast<std::chrono::seconds>(end-start).count(); //処理に要した時間を変換
-        int milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count(); //処理に要した時間を変換
-        std::cout << hours << "h " << minutes % 60 << "m " << seconds % 60 << "s " << milliseconds % 1000 << "ms " << std::endl;
+        myfunc::duration(start)
     }
-
-double shift(double pre_theta, double theta, double rotation_number){
-    //forward
-    if ((theta - pre_theta) < -M_PI){
-        rotation_number += 1;
-    }
-    //backward
-    else if ((theta - pre_theta) > M_PI){
-        rotation_number -= 1;
-    }
-
-    return rotation_number;
-}
 
 bool isLaminar(Eigen::VectorXd phases, std::vector<std::tuple<int, int, double>> sync_pairs){
     bool allSync = true; // flag 
     for (const auto& pair : sync_pairs){
-        if(!isSync(phases(std::get<0>(pair) - 1), phases(std::get<1>(pair) - 1), std::get<2>(pair))){
+        if(!myfunc::isSync(phases(std::get<0>(pair) - 1), phases(std::get<1>(pair) - 1), std::get<2>(pair), 0)){
             allSync = false;
             break;
         }
@@ -187,35 +168,7 @@ std::tuple<Eigen::VectorXd, Eigen::VectorXd, Eigen::VectorXcd> calc_next(ShellMo
     Eigen::VectorXd theta = now.cwiseArg();
     Eigen::VectorXd n = pre_n;
     for(int i; i < theta.size(); i++){
-        n(i) = shift(pre_theta(i), theta(i), pre_n(i));
+        n(i) = myfunc::shift(pre_theta(i), theta(i), pre_n(i));
     }
     return std::make_tuple(n, theta, now);
-}
-
-/**
- * @brief given 2 angles, check if they are in sync
- * 
- * @param a : angle 1
- * @param b  : angle 2
- * @param epsilon : tolerance
- * @return true : sync
- * @return false : not sync
- */
-bool isSync(double a, double b, double epsilon) {
-    int n = 0;
-    double lowerBound = 2 * n * M_PI - epsilon;
-    double upperBound = 2 * n * M_PI + epsilon;
-    
-    while (lowerBound <= std::abs(a - b)) {
-        if (lowerBound <= std::abs(a - b) && std::abs(a - b) <= upperBound) {
-            // std::cout << std::abs(a-b) << std::endl;
-            return true;
-        }
-        n++;
-        lowerBound = 2 * n * M_PI - epsilon;
-        upperBound = 2 * n * M_PI + epsilon;
-    }
-    
-    return false;
-    
 }

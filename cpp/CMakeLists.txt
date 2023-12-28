@@ -6,9 +6,10 @@ set(CMAKE_CXX_COMPILER g++)
 set(CMAKE_CXX_STANDARD 23)
 set(EXECUTABLE exe)
 add_executable(${EXECUTABLE} 
-    lyapunov.cpp
-    ShellModel.cpp
-    LongLaminar.cpp
+    jacobi_plot.cpp
+    shared/myFunc.cpp
+    shared/Flow.cpp
+    shared/Map.cpp
 )
 
 # message(STATUS "CMAKE_VERSION:${CMAKE_VERSION}" )

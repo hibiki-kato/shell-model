@@ -1,3 +1,16 @@
+                                                      █                                     █
+█████                            █                    █     ██                              █         ██
+█    █                                                █     ██                              █         ██
+█    █   ███   █████ ███   ███   █  █ ███   ███    ████    ████  ███      █   █  █████   ████   ███  ████  ███
+█    █  ██  █  ██  ██  █  █  ██  █  ██  █  ██  █  ██  █     ██  ██  █     █   █  ██  █  ██  █  █  ██  ██  ██  █
+█████   █   █  █   █   ██     █  █  █   █  █   █  █   █     ██  █   ██    █   █  █   ██ █   █      █  ██  █   █
+█   █   █████  █   █   ██  ████  █  █   █  █████  █   █     ██  █    █    █   █  █   ██ █   █   ████  ██  █████
+█   ██  █      █   █   ██ █   █  █  █   █  █      █   █     ██  █   ██    █   █  █   ██ █   █  █   █  ██  █
+█    █  ██  █  █   █   ██ █  ██  █  █   █  ██  █  ██  █     ██  ██  █     █   █  ██  █  ██  █  █  ██  ██  ██  █
+█    ██  ████  █   █   ██ █████  █  █   █   ████   ████      ██  ███       ████  █████   ████  █████   ██  ████
+                                                                                 █
+                                                                                 █
+                                                                                 █
 #include <iostream>
 #include <iomanip>
 #include <fstream>
@@ -10,25 +23,27 @@
 #include <chrono>
 #include <random>
 #include <omp.h>
-#include "Runge_Kutta.hpp"
-#include "matplotlibcpp.h"
+#include "shared/Flow.hpp"
+#include "shared/myFunc.hpp"
+#include "shared/matplotlibcpp.h"
 #include "cnpy/cnpy.h"
 namespace plt = matplotlibcpp;
-Eigen::VectorXcd npy2EigenVec(const char* fname);
+Eigen::VectorXcd npy2EigenVec<std::complex<double>>(const char* fname);
 
 int main(){
     auto start = std::chrono::system_clock::now(); // 計測開始時間
     
     // generating laminar sample
-    double nu = 0.00001;
-    double beta = 0.5;
-    std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
-    double ddt = 0.001;
+    SMparams params;
+    params.nu = 0.00001;
+    params.beta = 0.5;
+    params.f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
+    double dt =001;
     double t_0 = 0;
     double t = 20000;
-    double latter = 4;
-    Eigen::VectorXcd x_0 = npy2EigenVec("../../initials/beta0.415_nu0.00018_100000period_dt0.01.npy");
-    ShellModel SM(nu, beta, f, ddt, t_0, t, latter, x_0);
+    double dump =;
+    Eigen::VectorXcd x_0 = npy2EigenVec<std::complex<double>>("../../initials/beta0.415_nu0.00018_100000period_dt0.01.npy");
+    ShellModel SM(params, dt, t_0, t, dump, dummy);
 
     // set up for search
     int threads = omp_get_max_threads();
@@ -131,15 +146,10 @@ int main(){
             }
         }
     }
-    auto end = std::chrono::system_clock::now();  // 計測終了時間
-    int hours = std::chrono::duration_cast<std::chrono::hours>(end-start).count(); //処理に要した時間を変換
-    int minutes = std::chrono::duration_cast<std::chrono::minutes>(end-start).count(); //処理に要した時間を変換
-    int seconds = std::chrono::duration_cast<std::chrono::seconds>(end-start).count(); //処理に要した時間を変換
-    int milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count(); //処理に要した時間を変換
-    std::cout << hours << "h " << minutes % 60 << "m " << seconds % 60 << "s " << milliseconds % 1000 << "ms " << std::endl;
+    myfunc::duration(start);
 }
 
-Eigen::VectorXcd npy2EigenVec(const char* fname){
+Eigen::VectorXcd npy2EigenVec<std::complex<double>>(const char* fname){
     std::string fname_str(fname);
     cnpy::NpyArray arr = cnpy::npy_load(fname_str);
     if (arr.word_size != sizeof(std::complex<double>)) {

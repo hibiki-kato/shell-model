@@ -15,25 +15,27 @@
 #include <complex>
 #include <cmath>
 #include <utility> // std::pair用
-#include "Runge_Kutta.hpp"
+#include "shared/Flow.hpp"
+#include "shared/myFunc.hpp"
 #include <chrono>
 #include "cnpy/cnpy.h"
-#include "matplotlibcpp.h"
+#include "shared/matplotlibcpp.h"
 namespace plt = matplotlibcpp;
 void EigenMt2npy(Eigen::MatrixXcd Mat, std::string fname);
-Eigen::VectorXcd npy2EigenVec(const char* fname);
+Eigen::VectorXcd npy2EigenVec<std::complex<double>>(const char* fname);
 int shift(double pre_theta, double theta, int rotation_number);
 bool isSync(double a, double b, double epsilon);
 
 int main(){
     auto start = std::chrono::system_clock::now(); // 計測開始時間
-    double nu = 1.8e-4;
-    double beta = 0.417;
-    std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
+    SMparams params;
+    params.nu = 1.8e-4;
+    params.beta = 0.417;
+    params.f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
     double dt = 0.01;
     double t_0 = 0;
     double t = 5e+5;
-    double latter = 1;
+    double dump = 1;
     int numthreads = omp_get_max_threads();
     int window = 1000; // how long the sync part should be. (sec)
     window *= 100; // 100 when dt = 0.01 
@@ -63,7 +65,7 @@ int main(){
 
     // sync_pairs.push_back(std::make_tuple(1, 2, 4)); // dummy to check unextracted trajectory
 
-    Eigen::VectorXcd x_0 = npy2EigenVec("../../initials/beta0.417_nu0.00018_5000period_dt0.01_5-8_5-11_5-14_8-11_8-14_11-14_6-9_6-12_9-12.npy");
+    Eigen::VectorXcd x_0 = npy2EigenVec<std::complex<double>>("../../initials/beta0.417_nu0.00018_5000period_dt0.01_5-8_5-11_5-14_8-11_8-14_11-14_6-9_6-12_9-12.npy");
     ShellModel solver(nu, beta, f, dt, t_0, t, latter, x_0);
     std::cout << "calculating trajectory" << std::endl;
     Eigen::MatrixXcd trajectory = solver.get_trajectory_(); //wide matrix
@@ -161,7 +163,7 @@ int main(){
     plt::scatter(x, y);
 
     std::ostringstream oss;
-    oss << "../../sync/sync_beta_" << beta << "nu_" << nu <<"_"<< t-t_0 << "period" <<  window <<"window";
+    oss << "../../sync/sync_beta" << params.beta << "nu" << params.nu <<"_"<< t-t_0 << "period" <<  window <<"window";
     for (const auto& pair : sync_pairs){
         oss << "_" << std::get<0>(pair) << "-" << std::get<1>(pair);
     }
@@ -187,7 +189,7 @@ int main(){
     */
         // reset oss
     oss.str("");
-    oss << "../../sync/npy/sync_beta_" << beta << "nu_" << nu <<"_"<< t-t_0 << "period" <<  window <<"window";
+    oss << "../../sync/npy/sync_beta" << params.beta << "nu" << params.nu <<"_"<< t-t_0 << "period" <<  window <<"window";
     for (const auto& pair : sync_pairs){
         oss << "_" << std::get<0>(pair) << "-" << std::get<1>(pair);
     }
@@ -203,15 +205,10 @@ int main(){
     }
     // EigenMt2npy(matrix, fname);
 
-    auto end = std::chrono::system_clock::now();  // 計測終了時間
-    int hours = std::chrono::duration_cast<std::chrono::hours>(end-start).count(); //処理に要した時間を変換
-    int minutes = std::chrono::duration_cast<std::chrono::minutes>(end-start).count(); //処理に要した時間を変換
-    int seconds = std::chrono::duration_cast<std::chrono::seconds>(end-start).count(); //処理に要した時間を変換
-    int milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count(); //処理に要した時間を変換
-    std::cout << hours << "h " << minutes % 60 << "m " << seconds % 60 << "s " << milliseconds % 1000 << "ms " << std::endl;
+    myfunc::duration(start);
 }
 
-Eigen::VectorXcd npy2EigenVec(const char* fname){
+Eigen::VectorXcd npy2EigenVec<std::complex<double>>(const char* fname){
     std::string fname_str(fname);
     cnpy::NpyArray arr = cnpy::npy_load(fname_str);
     if (arr.word_size != sizeof(std::complex<double>)) {

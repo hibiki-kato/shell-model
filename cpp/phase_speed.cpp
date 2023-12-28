@@ -1,3 +1,16 @@
+                                                      █                                     █
+█████                            █                    █     ██                              █         ██
+█    █                                                █     ██                              █         ██
+█    █   ███   █████ ███   ███   █  █ ███   ███    ████    ████  ███      █   █  █████   ████   ███  ████  ███
+█    █  ██  █  ██  ██  █  █  ██  █  ██  █  ██  █  ██  █     ██  ██  █     █   █  ██  █  ██  █  █  ██  ██  ██  █
+█████   █   █  █   █   ██     █  █  █   █  █   █  █   █     ██  █   ██    █   █  █   ██ █   █      █  ██  █   █
+█   █   █████  █   █   ██  ████  █  █   █  █████  █   █     ██  █    █    █   █  █   ██ █   █   ████  ██  █████
+█   ██  █      █   █   ██ █   █  █  █   █  █      █   █     ██  █   ██    █   █  █   ██ █   █  █   █  ██  █
+█    █  ██  █  █   █   ██ █  ██  █  █   █  ██  █  ██  █     ██  ██  █     █   █  ██  █  ██  █  █  ██  ██  ██  █
+█    ██  ████  █   █   ██ █████  █  █   █   ████   ████      ██  ███       ████  █████   ████  █████   ██  ████
+                                                                                 █
+                                                                                 █
+                                                                                 █
 /**
  * @file phase.cpp
  * @author Hibiki Kato
@@ -15,27 +28,29 @@
 #include <complex>
 #include <cmath>
 #include <utility> //pair用
-#include "Runge_Kutta.hpp"
+#include "shared/Flow.hpp"
+#include "shared/myFunc.hpp"
 #include <chrono>
 #include "cnpy/cnpy.h"
-#include "matplotlibcpp.h"
+#include "shared/matplotlibcpp.h"
 namespace plt = matplotlibcpp;
 void EigenMt2npy(Eigen::MatrixXcd Mat, std::string fname);
-Eigen::VectorXcd npy2EigenVec(const char* fname);
+Eigen::VectorXcd npy2EigenVec<std::complex<double>>(const char* fname);
 int shift(double pre_theta, double theta, int rotation_number);
 
 int main(){
     auto start = std::chrono::system_clock::now(); // 計測開始時間
-    double nu = 0.00018;
-    double beta = 0.4165;
-    std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
-    double ddt = 0.01;
+    SMparams params;
+    params.nu = 0.00018;
+    params.beta = 0.4165;
+    params.f =double>(1.0,1.0) * 5.0 * 0.001;
+    double dt =.01;
     double t_0 = 0;
     double t = 2E+3;
-    double latter = 1;
+    double dump =
     int numthreads = omp_get_max_threads();
 
-    Eigen::VectorXcd x_0 = npy2EigenVec("../../initials/beta0.4163_nu0.00018_10000period_dt0.01.npy");
+    Eigen::VectorXcd x_0 = npy2EigenVec<std::complex<double>>("../../initials/beta0.4163_nu0.00018_10000period_dt0.01.npy");
     ShellModel solver(nu, beta, f, ddt, t_0, t, latter, x_0);
     Eigen::MatrixXcd trajectory = solver.get_trajectory_();
     std::cout << "calculating trajectory" << std::endl;
@@ -160,20 +175,15 @@ int main(){
     plt::subplots_adjust(keywords);
 
     std::ostringstream oss;
-    oss << "../../phase_speed/beta_" << beta << "nu_" << nu <<"_"<< t-t_0 << "period.png";  // 文字列を結合する
+    oss << "../../phase_speed/beta" << params.beta << "nu" << params.nu <<"_"<< t-t_0 << "period.png";  // 文字列を結合する
     std::string plotfname = oss.str(); // 文字列を取得する
     std::cout << "Saving result to " << plotfname << std::endl;
     plt::save(plotfname);
 
-    auto end = std::chrono::system_clock::now();  // 計測終了時間
-    int hours = std::chrono::duration_cast<std::chrono::hours>(end-start).count(); //処理に要した時間を変換
-    int minutes = std::chrono::duration_cast<std::chrono::minutes>(end-start).count(); //処理に要した時間を変換
-    int seconds = std::chrono::duration_cast<std::chrono::seconds>(end-start).count(); //処理に要した時間を変換
-    int milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count(); //処理に要した時間を変換
-    std::cout << hours << "h " << minutes % 60 << "m " << seconds % 60 << "s " << milliseconds % 1000 << "ms " << std::endl;
+    myfunc::duration(start);
 }
 
-Eigen::VectorXcd npy2EigenVec(const char* fname){
+Eigen::VectorXcd npy2EigenVec<std::complex<double>>(const char* fname){
     std::string fname_str(fname);
     cnpy::NpyArray arr = cnpy::npy_load(fname_str);
     if (arr.word_size != sizeof(std::complex<double>)) {

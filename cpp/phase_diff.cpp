@@ -1,3 +1,16 @@
+                                                      █                                     █
+█████                            █                    █     ██                              █         ██
+█    █                                                █     ██                              █         ██
+█    █   ███   █████ ███   ███   █  █ ███   ███    ████    ████  ███      █   █  █████   ████   ███  ████  ███
+█    █  ██  █  ██  ██  █  █  ██  █  ██  █  ██  █  ██  █     ██  ██  █     █   █  ██  █  ██  █  █  ██  ██  ██  █
+█████   █   █  █   █   ██     █  █  █   █  █   █  █   █     ██  █   ██    █   █  █   ██ █   █      █  ██  █   █
+█   █   █████  █   █   ██  ████  █  █   █  █████  █   █     ██  █    █    █   █  █   ██ █   █   ████  ██  █████
+█   ██  █      █   █   ██ █   █  █  █   █  █      █   █     ██  █   ██    █   █  █   ██ █   █  █   █  ██  █
+█    █  ██  █  █   █   ██ █  ██  █  █   █  ██  █  ██  █     ██  ██  █     █   █  ██  █  ██  █  █  ██  ██  ██  █
+█    ██  ████  █   █   ██ █████  █  █   █   ████   ████      ██  ███       ████  █████   ████  █████   ██  ████
+                                                                                 █
+                                                                                 █
+                                                                                 █
 /**
  * @file phase_diff.cpp
  * @author Hibiki Kato
@@ -15,25 +28,27 @@
 #include <complex>
 #include <cmath>
 #include <utility> // std::pair用
-#include "Runge_Kutta.hpp"
+#include "shared/Flow.hpp"
+#include "shared/myFunc.hpp"
 #include <chrono>
 #include "cnpy/cnpy.h"
-#include "matplotlibcpp.h"
-#include "Eigen_numpy_converter.hpp"
+#include "shared/matplotlibcpp.h"
+#include "shared/Eigen_numpy_converter.hpp"
 
 namespace plt = matplotlibcpp;
 int shift(double pre_theta, double theta, int rotation_number);
 
 int main(){
     auto start = std::chrono::system_clock::now(); // 計測開始時間
-    double nu = 0.00018;
-    double beta = 0.5;
-    std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
-    double ddt = 0.01;
+    SMparams params;
+    params.nu = 0.00018;
+    params.beta = 0.5;
+    params.f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
+    double dt =.01;
     double t_0 = 0;
     double t = 1e+5;
 
-    double latter = 1;
+    double dump =
     int threads = omp_get_max_threads();
     Eigen::VectorXcd x_0 = npy2EigenVec<std::complex<double>>("../../initials/beta0.417_nu0.00018_5000period_dt0.01_5-8_5-11_5-14_8-11_8-14_11-14_6-9_6-12_9-12.npy");
 
@@ -138,7 +153,7 @@ int main(){
     }
 
     std::ostringstream oss;
-    oss << "../../phase_diff/beta_" << beta << "nu_" << nu <<"_"<< t-t_0 << "period";
+    oss << "../../phase_diff/beta" << params.beta << "nu" << params.nu <<"_"<< t-t_0 << "period";
     for (const auto& pair : sync_pairs){
         oss << "_" << std::get<0>(pair) << "-" << std::get<1>(pair);
     }
@@ -147,12 +162,7 @@ int main(){
     std::cout << "Saving result to " << plotfname << std::endl;
     plt::save(plotfname);
 
-    auto end = std::chrono::system_clock::now();  // 計測終了時間
-    int hours = std::chrono::duration_cast<std::chrono::hours>(end-start).count(); //処理に要した時間を変換
-    int minutes = std::chrono::duration_cast<std::chrono::minutes>(end-start).count(); //処理に要した時間を変換
-    int seconds = std::chrono::duration_cast<std::chrono::seconds>(end-start).count(); //処理に要した時間を変換
-    int milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count(); //処理に要した時間を変換
-    std::cout << hours << "h " << minutes % 60 << "m " << seconds % 60 << "s " << milliseconds % 1000 << "ms " << std::endl;
+    myfunc::duration(start);
 }
 
 int shift(double pre_theta, double theta, int rotation_number){

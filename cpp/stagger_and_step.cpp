@@ -1,3 +1,16 @@
+                                                      █                                     █
+█████                            █                    █     ██                              █         ██
+█    █                                                █     ██                              █         ██
+█    █   ███   █████ ███   ███   █  █ ███   ███    ████    ████  ███      █   █  █████   ████   ███  ████  ███
+█    █  ██  █  ██  ██  █  █  ██  █  ██  █  ██  █  ██  █     ██  ██  █     █   █  ██  █  ██  █  █  ██  ██  ██  █
+█████   █   █  █   █   ██     █  █  █   █  █   █  █   █     ██  █   ██    █   █  █   ██ █   █      █  ██  █   █
+█   █   █████  █   █   ██  ████  █  █   █  █████  █   █     ██  █    █    █   █  █   ██ █   █   ████  ██  █████
+█   ██  █      █   █   ██ █   █  █  █   █  █      █   █     ██  █   ██    █   █  █   ██ █   █  █   █  ██  █
+█    █  ██  █  █   █   ██ █  ██  █  █   █  ██  █  ██  █     ██  ██  █     █   █  ██  █  ██  █  █  ██  ██  ██  █
+█    ██  ████  █   █   ██ █████  █  █   █   ████   ████      ██  ███       ████  █████   ████  █████   ██  ████
+                                                                                 █
+                                                                                 █
+                                                                                 █
 /**
  * @file stagger_and_step.cpp
  * @author Hibiki Kato
@@ -14,14 +27,15 @@
 #include <eigen3/Eigen/Dense>
 #include <complex>
 #include <cmath>
-#include "Runge_Kutta.hpp"
+#include "shared/Flow.hpp"
+#include "shared/myFunc.hpp"
 #include <chrono>
 #include <random>
 #include <omp.h>
-#include "matplotlibcpp.h"
+#include "shared/matplotlibcpp.h"
 #include "cnpy/cnpy.h"
 namespace plt = matplotlibcpp;
-Eigen::VectorXcd npy2EigenVec(const char* fname);
+Eigen::VectorXcd npy2EigenVec<std::complex<double>>(const char* fname);
 void EigenMt2npy(Eigen::MatrixXcd Mat, std::string fname);
 Eigen::MatrixXcd npy2EigenMat(const char* fname);
 
@@ -30,17 +44,18 @@ int main(){
     auto start = std::chrono::system_clock::now(); // 計測開始時間
     // generating laminar sample for detection
     // !DO NOT CHANGE!
-    double nu = 0.00018;
-    double beta = 0.417;
-    std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
+    SMparams params;
+    params.nu = 0.00018;
+    params.beta = 0.417;
+    params.f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
     double dt = 0.01;
     double t_0 = 0;
     double t = 5000;
-    double latter = 20;
-    Eigen::VectorXcd x_0 = npy2EigenVec("../../initials/beta0.417_nu0.00018_10000period_dt0.01eps0.005.npy");
+    double dump = 20;
+    Eigen::VectorXcd x_0 = npy2EigenVec<std::complex<double>>("../../initials/beta0.417_nu0.00018_10000period_dt0.01eps0.005.npy");
 
     //generating laminar sample for detection
-    ShellModel SM(nu, beta, f, dt, t_0, t, latter, x_0);
+    ShellModel SM(params, dt, t_0, t, latter, x_0);
 
     Eigen::MatrixXcd laminar = SM.get_trajectory_();
     int numCols = laminar.cols() / 10;
@@ -58,7 +73,7 @@ int main(){
     t_0 = 0;
     // Eigen::MatrixXcd loaded = npy2EigenMat("../../generated_lam/generated_laminar_beta_0.416nu_0.00018_dt0.01_38100period500check20progresseps0.02.npy");
     // x_0 = loaded.block(0, t_0*100 - 1, 14, 1);
-    x_0 = npy2EigenVec("../../initials/beta0.417_nu0.00018_13348period_dt0.01eps0.005.npy");
+    x_0 = npy2EigenVec<std::complex<double>>("../../initials/beta0.417_nu0.00018_13348period_dt0.01eps0.005.npy");
     double epsilon=1E-1; // 4~5E-2 is appropriate
     int skip = 1000;
 
@@ -82,26 +97,21 @@ int main(){
 
     plt::plot(x,y);
     std::ostringstream oss;
-    oss << "../../generated_lam_imag/generated_laminar_beta_" << beta << "nu_" << nu <<"_"<< reach << "period.png";  // 文字列を結合する
+    oss << "../../generated_lam_imag/generated_laminar_beta" << params.beta << "nu" << params.nu <<"_"<< reach << "period.png";  // 文字列を結合する
     std::string filename = oss.str(); // 文字列を取得する
     std::cout << "\n Saving result to " << filename << std::endl;
     plt::save(filename);
 
     oss.str("");
-    oss << "../../generated_lam/generated_laminar_beta_" << beta << "nu_" << nu <<"_dt"<< dt << "_" << reach << "period" << check_sec << "check" << progress_sec << "progress" << "eps" << epsilon << ".npy";
+    oss << "../../generated_lam/generated_laminar_beta" << params.beta << "nu" << params.nu <<"_dt"<< dt << "_" << reach << "period" << check_sec << "check" << progress_sec << "progress" << "eps" << epsilon << ".npy";
     std::string fname = oss.str(); // 文字列を取得する
     std::cout << "saving as " << fname << std::endl;
     EigenMt2npy(calced_laminar, fname);
 
-    auto end = std::chrono::system_clock::now();  // 計測終了時間
-    int hours = std::chrono::duration_cast<std::chrono::hours>(end-start).count(); //処理に要した時間を変換
-    int minutes = std::chrono::duration_cast<std::chrono::minutes>(end-start).count(); //処理に要した時間を変換
-    int seconds = std::chrono::duration_cast<std::chrono::seconds>(end-start).count(); //処理に要した時間を変換
-    int milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count(); //処理に要した時間を変換
-    std::cout << hours << "h " << minutes % 60 << "m " << seconds % 60 << "s " << milliseconds % 1000 << "ms " << std::endl;
+    myfunc::duration(start);
 }
 
-Eigen::VectorXcd npy2EigenVec(const char* fname){
+Eigen::VectorXcd npy2EigenVec<std::complex<double>>(const char* fname){
     std::string fname_str(fname);
     cnpy::NpyArray arr = cnpy::npy_load(fname_str);
     if (arr.word_size != sizeof(std::complex<double>)) {

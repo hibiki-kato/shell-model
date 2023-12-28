@@ -1,3 +1,16 @@
+                                                      █                                     █
+█████                            █                    █     ██                              █         ██
+█    █                                                █     ██                              █         ██
+█    █   ███   █████ ███   ███   █  █ ███   ███    ████    ████  ███      █   █  █████   ████   ███  ████  ███
+█    █  ██  █  ██  ██  █  █  ██  █  ██  █  ██  █  ██  █     ██  ██  █     █   █  ██  █  ██  █  █  ██  ██  ██  █
+█████   █   █  █   █   ██     █  █  █   █  █   █  █   █     ██  █   ██    █   █  █   ██ █   █      █  ██  █   █
+█   █   █████  █   █   ██  ████  █  █   █  █████  █   █     ██  █    █    █   █  █   ██ █   █   ████  ██  █████
+█   ██  █      █   █   ██ █   █  █  █   █  █      █   █     ██  █   ██    █   █  █   ██ █   █  █   █  ██  █
+█    █  ██  █  █   █   ██ █  ██  █  █   █  ██  █  ██  █     ██  ██  █     █   █  ██  █  ██  █  █  ██  ██  ██  █
+█    ██  ████  █   █   ██ █████  █  █   █   ████   ████      ██  ███       ████  █████   ████  █████   ██  ████
+                                                                                 █
+                                                                                 █
+                                                                                 █
 /**
  * @file stagger_and_step_sync.cpp
  * @author Hibiki Kato
@@ -16,11 +29,12 @@
 #include <cmath>
 #include <utility> // std::pair用
 #include <tuple>
-#include "Runge_Kutta.hpp"
+#include "shared/Flow.hpp"
+#include "shared/myFunc.hpp"
 #include <chrono>
 #include "cnpy/cnpy.h"
-#include "matplotlibcpp.h"
-#include "Eigen_numpy_converter.hpp"
+#include "shared/matplotlibcpp.h"
+#include "shared/Eigen_numpy_converter.hpp"
 
 namespace plt = matplotlibcpp;
 int shift(double pre_theta, double theta, int rotation_number);
@@ -29,13 +43,14 @@ std::tuple<Eigen::VectorXd, Eigen::VectorXd, Eigen::VectorXcd> calc_next(ShellMo
 
 int main(){
     auto start = std::chrono::system_clock::now(); // 計測開始時間
-    const double nu = 0.00018;
-    const double beta = 0.417;
-    const std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
+    const SMparams params;
+    params.nu = 0.00018;
+    const params.beta = 0.417;
+    const params.f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
     const double dt = 0.01;
     const double t_0 = 30000;
     const double t = 50000;
-    const double latter = 1;
+    const double dump = 1;
     const double check = 6000;
     const double progress = 500;
     const int perturb_min = -13;
@@ -44,7 +59,7 @@ int main(){
     Eigen::MatrixXcd loaded = npy2EigenMat<std::complex<double>>("../../generated_lam/sync_gen_laminar_beta_0.417nu_0.00018_dt0.01_53000period5000check500progress10^-14-10^-5perturb_5-8_5-11_5-14_8-11_8-14_11-14_6-9_6-12_9-12.npy");
     Eigen::VectorXcd x_0 = loaded.block(0, t_0*100, 14, 1);
     // Eigen::VectorXcd x_0 = npy2EigenVec<std::complex<double>>("../../initials/beta0.417_nu0.00018_9-12.npy");
-    ShellModel SM(nu, beta, f, dt, t_0, t, latter, x_0);
+    ShellModel SM(params, dt, t_0, t, latter, x_0);
     Eigen::MatrixXcd Dummy_Laminar(x_0.rows()+1, 1); //dummy matrix to use LongLaminar Class
     LongLaminar LL(nu, beta, f, dt, t_0, t, latter, x_0, Dummy_Laminar, 0.01, 100, check, progress, 8);
     int numThreads = omp_get_max_threads();
@@ -304,7 +319,7 @@ int main(){
     plt::plot(x_first, y_first, firstPointSettings);
 
     std::ostringstream oss;
-    oss << "../../generated_lam_imag/sync_gen_laminar_beta_" << beta << "nu_" << nu <<"_dt"<< dt << "_" << reach << "period" << check << "check" << progress << "progress10^" << logged_min_perturbation<<"-10^"<< logged_max_perturbation << "perturb";
+    oss << "../../generated_lam_imag/sync_gen_laminar_beta" << params.beta << "nu" << params.nu <<"_dt"<< dt << "_" << reach << "period" << check << "check" << progress << "progress10^" << logged_min_perturbation<<"-10^"<< logged_max_perturbation << "perturb";
     for (const auto& pair : sync_pairs){
         oss << "_" << std::get<0>(pair) << "-" << std::get<1>(pair);
     }
@@ -346,7 +361,7 @@ int main(){
         std::cout << "saving as " << fname << std::endl;
         EigenVec2npy(calced_laminar.topLeftCorner(calced_laminar.rows()-1, 1).col(0), fname);
     } else{
-        oss << "../../generated_lam/sync_gen_laminar_beta_" << beta << "nu_" << nu <<"_dt"<< dt << "_" << reach << "period" << check << "check" << progress << "progress10^" << logged_min_perturbation<<"-10^"<< logged_max_perturbation << "perturb";
+        oss << "../../generated_lam/sync_gen_laminar_beta" << params.beta << "nu" << params.nu <<"_dt"<< dt << "_" << reach << "period" << check << "check" << progress << "progress10^" << logged_min_perturbation<<"-10^"<< logged_max_perturbation << "perturb";
          for (const auto& pair : sync_pairs){
             oss << "_" << std::get<0>(pair) << "-" << std::get<1>(pair);
         }
@@ -356,12 +371,7 @@ int main(){
         EigenMat2npy(calced_laminar, fname);
     }
 
-    auto end = std::chrono::system_clock::now();  // 計測終了時間
-    int hours = std::chrono::duration_cast<std::chrono::hours>(end-start).count(); //処理に要した時間を変換
-    int minutes = std::chrono::duration_cast<std::chrono::minutes>(end-start).count(); //処理に要した時間を変換
-    int seconds = std::chrono::duration_cast<std::chrono::seconds>(end-start).count(); //処理に要した時間を変換
-    int milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count(); //処理に要した時間を変換
-    std::cout << hours << "h " << minutes % 60 << "m " << seconds % 60 << "s " << milliseconds % 1000 << "ms " << std::endl;
+    myfunc::duration(start);
 }
 
 double shift(double pre_theta, double theta, double rotation_number){

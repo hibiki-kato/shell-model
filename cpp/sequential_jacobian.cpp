@@ -1,3 +1,16 @@
+                                                      █                                     █
+█████                            █                    █     ██                              █         ██
+█    █                                                █     ██                              █         ██
+█    █   ███   █████ ███   ███   █  █ ███   ███    ████    ████  ███      █   █  █████   ████   ███  ████  ███
+█    █  ██  █  ██  ██  █  █  ██  █  ██  █  ██  █  ██  █     ██  ██  █     █   █  ██  █  ██  █  █  ██  ██  ██  █
+█████   █   █  █   █   ██     █  █  █   █  █   █  █   █     ██  █   ██    █   █  █   ██ █   █      █  ██  █   █
+█   █   █████  █   █   ██  ████  █  █   █  █████  █   █     ██  █    █    █   █  █   ██ █   █   ████  ██  █████
+█   ██  █      █   █   ██ █   █  █  █   █  █      █   █     ██  █   ██    █   █  █   ██ █   █  █   █  ██  █
+█    █  ██  █  █   █   ██ █  ██  █  █   █  ██  █  ██  █     ██  ██  █     █   █  ██  █  ██  █  █  ██  ██  ██  █
+█    ██  ████  █   █   ██ █████  █  █   █   ████   ████      ██  ███       ████  █████   ████  █████   ██  ████
+                                                                                 █
+                                                                                 █
+                                                                                 █
 /**
  * @file random_jacobian.cpp
  * @author Hibiki Kato
@@ -20,10 +33,11 @@
 #include <omp.h>
 #include <eigen3/Eigen/Dense>
 #include <eigen3/Eigen/Core>
-#include "Runge_Kutta.hpp"
+#include "shared/Flow.hpp"
+#include "shared/myFunc.hpp"
 #include "cnpy/cnpy.h"
-#include "matplotlibcpp.h"
-#include "Eigen_numpy_converter.hpp"
+#include "shared/matplotlibcpp.h"
+#include "shared/Eigen_numpy_converter.hpp"
 namespace plt = matplotlibcpp;
 
 // 関数プロトタイプ
@@ -34,19 +48,20 @@ Eigen::VectorXd rungeKuttaJacobian(const Eigen::VectorXd& state, const Eigen::Ma
 // メイン関数
 int main() {
     auto start = std::chrono::system_clock::now(); // 計測開始時間
-    double nu = 1e-5;
-    double beta = 0.5;
-    std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
+    SMparams params;
+    params.nu = 1e-5;
+    params.beta = 0.5;
+    params.f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
     double dt = 0.01;
     double t_0 = 0;
     double t = 10000;
-    double latter = 1;
+    double dump =
     int threads = omp_get_max_threads();
     Eigen::VectorXcd dummy = Eigen::VectorXd::Zero(15);
     
     int repetitions = 100;
     double r = 1E-5;
-    ShellModel SM(nu, beta, f, dt, t_0, t, latter, dummy);
+    ShellModel SM(params, dt, t_0, t, latter, dummy);
     // データは読み込み必須
     Eigen::MatrixXcd rawData = npy2EigenMat<std::complex<double>>("../../beta0.5_nu1e-05_10000period.npy");
     // パラメータの設定（例）
@@ -164,7 +179,7 @@ int main() {
     keywords.insert(std::make_pair("wspace", 0.5)); // also hspace
     plt::subplots_adjust(keywords);
 
-    oss << "../../traj_images/jacobian_beta_" << beta << "nu_" << nu <<"_"<< t-t_0 << "period"<<repetitions << "repeat.png";  // 文字列を結合する
+    oss << "../../traj_images/jacobian_beta" << params.beta << "nu" << params.nu <<"_"<< t-t_0 << "period"<<repetitions << "repeat.png";  // 文字列を結合する
     std::string plotfname = oss.str(); // 文字列を取得する
     std::cout << "Saving result to " << plotfname << std::endl;
     plt::save(plotfname);
@@ -216,17 +231,12 @@ int main() {
     plt::ylabel("Ratio among shells");
     plt::legend();
 
-    oss << "../../error_dominant_shell/jacobian_beta_" << beta << "nu_" << nu <<"_"<< t-t_0 << "period"<<repetitions << "repeat.png";  // 文字列を結合する
+    oss << "../../error_dominant_shell/jacobian_beta" << params.beta << "nu" << params.nu <<"_"<< t-t_0 << "period"<<repetitions << "repeat.png";  // 文字列を結合する
     std::string plotfname1 = oss.str(); // 文字列を取得する
     std::cout << "Saving result to " << plotfname1 << std::endl;
     plt::save(plotfname1);
 
-    auto end = std::chrono::system_clock::now();  // 計測終了時間
-    int hours = std::chrono::duration_cast<std::chrono::hours>(end-start).count(); //処理に要した時間を変換
-    int minutes = std::chrono::duration_cast<std::chrono::minutes>(end-start).count(); //処理に要した時間を変換
-    int seconds = std::chrono::duration_cast<std::chrono::seconds>(end-start).count(); //処理に要した時間を変換
-    int milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count(); //処理に要した時間を変換
-    std::cout << hours << "h " << minutes % 60 << "m " << seconds % 60 << "s " << milliseconds % 1000 << "ms " << std::endl;
+    myfunc::duration(start);
     return 0;
 }
 
@@ -336,7 +346,7 @@ Eigen::MatrixXcd npy2EigenMat(const char* fname){
     return MatT.transpose();
 }
 
-Eigen::VectorXcd npy2EigenVec(const char* fname){
+Eigen::VectorXcd npy2EigenVec<std::complex<double>>(const char* fname){
     std::string fname_str(fname);
     cnpy::NpyArray arr = cnpy::npy_load(fname_str);
     if (arr.word_size != sizeof(std::complex<double>)) {

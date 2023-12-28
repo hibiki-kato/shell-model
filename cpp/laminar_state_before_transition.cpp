@@ -1,17 +1,31 @@
+                                                      █                                     █
+█████                            █                    █     ██                              █         ██
+█    █                                                █     ██                              █         ██
+█    █   ███   █████ ███   ███   █  █ ███   ███    ████    ████  ███      █   █  █████   ████   ███  ████  ███
+█    █  ██  █  ██  ██  █  █  ██  █  ██  █  ██  █  ██  █     ██  ██  █     █   █  ██  █  ██  █  █  ██  ██  ██  █
+█████   █   █  █   █   ██     █  █  █   █  █   █  █   █     ██  █   ██    █   █  █   ██ █   █      █  ██  █   █
+█   █   █████  █   █   ██  ████  █  █   █  █████  █   █     ██  █    █    █   █  █   ██ █   █   ████  ██  █████
+█   ██  █      █   █   ██ █   █  █  █   █  █      █   █     ██  █   ██    █   █  █   ██ █   █  █   █  ██  █
+█    █  ██  █  █   █   ██ █  ██  █  █   █  ██  █  ██  █     ██  ██  █     █   █  ██  █  ██  █  █  ██  ██  ██  █
+█    ██  ████  █   █   ██ █████  █  █   █   ████   ████      ██  ███       ████  █████   ████  █████   ██  ████
+                                                                                 █
+                                                                                 █
+                                                                                 █
 #include <iostream>
 #include <fstream>
 #include <iomanip>
 #include <eigen3/Eigen/Dense>
 #include <complex>
 #include <cmath>
-#include "Runge_Kutta.hpp"
+#include "shared/Flow.hpp"
+#include "shared/myFunc.hpp"
 #include <chrono>
 #include <omp.h>
 #include "cnpy/cnpy.h"
-#include "matplotlibcpp.h"
+#include "shared/matplotlibcpp.h"
 namespace plt = matplotlibcpp;
 Eigen::MatrixXd loc_max(Eigen::MatrixXd traj_abs, int obs_dim);
-Eigen::VectorXcd npy2EigenVec(const char* fname);
+Eigen::VectorXcd npy2EigenVec<std::complex<double>>(const char* fname);
 Eigen::MatrixXd poincare_section(Eigen::MatrixXd traj_abs, int cut_dim, double cut_value);
 void EigenMt2npy(Eigen::MatrixXcd Mat, std::string fname);
 
@@ -19,15 +33,16 @@ int main(){
     auto start = std::chrono::system_clock::now(); // timer start
     
     // generating laminar sample
-    double nu = 0.00017520319481270297;
-    double beta = 0.416;
-    std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
-    double ddt = 0.01;
+    SMparams params;
+    params.nu = 0.00017520319481270297;
+    params.beta = 0.416;
+    params.f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
+    double dt = 0.01;
     double t_0 = 0;
     double t = 10000;
-    double latter = 20;
-    Eigen::VectorXcd x_0 = npy2EigenVec("../initials/beta0.416_nu0.00017520319481270297_step0.01_10000.0period_laminar.npy");
-    ShellModel SM(nu, beta, f, ddt, t_0, t, latter, x_0);
+    double dump = 20;
+    Eigen::VectorXcd x_0 = npy2EigenVec<std::complex<double>>("../initials/beta0.416_nu0.00017520319481270297_step0.01_10000.0period_laminar.npy");
+    ShellModel SM(params, dt, t_0, t, dump, dummy);
     Eigen::MatrixXcd laminar = SM.get_trajectory_();
     int numRows = laminar.cols() / 10;
     Eigen::MatrixXcd laminar_sample(laminar.rows(), numRows);
@@ -116,7 +131,7 @@ int main(){
     std::cout << hours << "h " << minutes % 60 << "m " << seconds % 60 << "s " << milliseconds % 1000 << "ms " << std::endl;
 }
 
-Eigen::VectorXcd npy2EigenVec(const char* fname){
+Eigen::VectorXcd npy2EigenVec<std::complex<double>>(const char* fname){
     std::string fname_str(fname);
     cnpy::NpyArray arr = cnpy::npy_load(fname_str);
     if (arr.word_size != sizeof(std::complex<double>)) {

@@ -1,4 +1,18 @@
-#include "Runge_Kutta.hpp"
+                                                      █                                     █
+█████                            █                    █     ██                              █         ██
+█    █                                                █     ██                              █         ██
+█    █   ███   █████ ███   ███   █  █ ███   ███    ████    ████  ███      █   █  █████   ████   ███  ████  ███
+█    █  ██  █  ██  ██  █  █  ██  █  ██  █  ██  █  ██  █     ██  ██  █     █   █  ██  █  ██  █  █  ██  ██  ██  █
+█████   █   █  █   █   ██     █  █  █   █  █   █  █   █     ██  █   ██    █   █  █   ██ █   █      █  ██  █   █
+█   █   █████  █   █   ██  ████  █  █   █  █████  █   █     ██  █    █    █   █  █   ██ █   █   ████  ██  █████
+█   ██  █      █   █   ██ █   █  █  █   █  █      █   █     ██  █   ██    █   █  █   ██ █   █  █   █  ██  █
+█    █  ██  █  █   █   ██ █  ██  █  █   █  ██  █  ██  █     ██  ██  █     █   █  ██  █  ██  █  █  ██  ██  ██  █
+█    ██  ████  █   █   ██ █████  █  █   █   ████   ████      ██  ███       ████  █████   ████  █████   ██  ████
+                                                                                 █
+                                                                                 █
+                                                                                 █
+#include "shared/Flow.hpp"
+#include "shared/myFunc.hpp"
 #include <eigen3/Eigen/Dense>
 #include <complex>
 #include <cmath>
@@ -92,8 +106,6 @@ bool LongLaminar::isLaminarPoint_(Eigen::VectorXcd state){
     int row_start = 0;
     int row_end = 9;
     Eigen::VectorXd distance = (laminar.middleRows(row_start, row_end).cwiseAbs() - state.middleRows(row_start, row_end).replicate(1, laminar.cols()).cwiseAbs()).colwise().norm();
-
-
     return (distance.array() < epsilon).any();
 }
 
@@ -104,23 +116,6 @@ bool LongLaminar::isLaminarTrajectory_(Eigen::MatrixXcd trajectory){
         }
     }
     return true;
-}
-Eigen::VectorXcd LongLaminar::perturbation_(Eigen::VectorXcd state, int s_min, int s_max){   
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_real_distribution<double> s(-1, 1);
-    std::uniform_real_distribution<double> dis(s_min, s_max);
-
-    Eigen::VectorXd unit = Eigen::VectorXd::Ones(state.rows());
-    for(int i = 0; i < state.rows(); i++){
-        unit(i) = s(gen);
-    }
-
-    Eigen::VectorXcd u = state.cwiseProduct(unit);
-    u /= u.norm();
-
-    return (u.array() * std::pow(10, dis(gen)) + state.array()).matrix();
-
 }
 
 std::vector<double> LongLaminar::laminar_duration_(const Eigen::MatrixXcd& trajectory){
@@ -259,12 +254,4 @@ std::vector<double> LongLaminar::laminar_duration_logged_(const Eigen::MatrixXcd
         }
     }
     return durations;
-}
-
-void LongLaminar::EigenVecXcd2npy(Eigen::VectorXcd Vec, std::string fname){
-    std::vector<std::complex<double>> x(Vec.size());
-    for(int i=0;i<Vec.size();i++){
-        x[i]=Vec(i);
-    }
-    cnpy::npy_save(fname, &x[0], {(size_t)Vec.size()}, "w");
 }

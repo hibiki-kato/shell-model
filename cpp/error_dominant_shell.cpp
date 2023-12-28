@@ -9,76 +9,79 @@
  * 
  */
 #include <iostream>
-#include <fstream>
 #include <sstream>
 #include <eigen3/Eigen/Dense>
 #include <complex>
 #include <cmath>
-#include "Runge_Kutta.hpp"
 #include <chrono>
 #include <random>
 #include "cnpy/cnpy.h"
-#include "matplotlibcpp.h"
+#include "shared/Flow.hpp"
+#include "shared/myFunc.hpp"
+#include "shared/Eigen_numpy_converter.hpp"
+#include "shared/matplotlibcpp.h"
 namespace plt = matplotlibcpp;
-
-void EigenVec2npy(Eigen::VectorXd Vec, std::string fname);
-Eigen::VectorXcd npy2EigenVec(const char* fname);
-Eigen::VectorXcd perturbation(Eigen::VectorXcd state,  std::vector<int> dim, int s_min = -1, int s_max = -1);
 
 int main(){
     auto start = std::chrono::system_clock::now(); // 計測開始時間
     
-    double nu = 0.00001;
-    double beta = 0.5;
-    std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
-    double ddt = 0.01;
+    SMparams params;
+    params.nu = 1e-5;
+    params.beta = 0.5;
+    params.f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
+    double dt = 0.01;
     double t_0 = 0;
     double t = 400;
-    double latter = 1;
-    Eigen::VectorXcd x_0 = npy2EigenVec("../../initials/beta0.5_nu1e-05_15dim_period.npy");
-    ShellModel SM(nu, beta, f, ddt, t_0, t, latter, x_0);
-    std::vector<int> perturbed_dim = {13}; // perturbed shell(number begins from 1)
-    int threads = omp_get_max_threads();
-    int repetitions = 10000;
-    std::cout << threads << "threads" << std::endl;
-    std::ostringstream oss;
+    double dump = 0;
+    Eigen::VectorXcd x_0 = npy2EigenVec<std::complex<double>>("../../initials/beta0.5_nu1e-05_15dim_period.npy");
+    ShellModel SM(params, dt, t_0, t, dump, x_0);
+    int perturbed_dim = 13;
+    int repetitions = 1000;
+    double epsilon = 1e-5;
+    int numThreads = omp_get_max_threads();
+    std::cout << numThreads << "threads" << std::endl;
     
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<double> s(-1, 1);
+    Eigen::VectorXd time(SM.steps + 1); //　時間を格納するベクトル
+    Eigen::MatrixXd errors(x_0.size(), SM.steps + 1);// 各試行の誤差を格納する行列
     int counter = 0; // just for progress bar
-    Eigen::VectorXd time;
-    Eigen::MatrixXd errors(x_0.size(), SM.get_steps_() + 1);
-    Eigen::VectorXd total;
-    #pragma omp parallel for num_threads(threads)
+    #pragma omp parallel for num_threads(numThreads) schedule(dynamic) firstprivate(SM, perturbed_dim, repetitions) shared(errors, time, counter)
     for(int i = 0; i < repetitions; i++){
-        // progress bar
-        if(omp_get_thread_num() == 0)
-        {
-        std::cout << "\r processing..." << counter * threads << "/" << repetitions << std::flush;
-        counter++;
+        SM.x_0 = myfunc::multi_scale_perturbation(SM.x_0, -1, 0); // 初期値をランダムに与える
+        // ある程度まともな値になるように初期値を更新
+        for (int j = 0; j < 1e+5; j++) {
+            SM.x_0 = SM.rk4(SM.x_0);
         }
-        ShellModel SM_origin = SM;
-        //1からx_0.size()のベクトルの作成
-        std::vector<int> range(x_0.size());
-        std::iota(range.begin(), range.end(), 1); // iota: 連番を作成する
-        SM_origin.set_x_0_(perturbation(SM_origin.get_x_0_(), range, -1, 0)); // 初期値をランダムに与える
-        ShellModel SM_another = SM;
-        Eigen::VectorXcd perturbed_x_0 = perturbation(SM_origin.get_x_0_(), perturbed_dim, -3, -3); // create perturbed init value
-        SM_another.set_x_0_(perturbed_x_0); // set above
-        
-        Eigen::MatrixXcd origin = SM_origin.get_trajectory_();
-        Eigen::MatrixXcd another = SM_another.get_trajectory_();
-        
+
+        // ここから本番
+        //まずは元の軌道を計算
+        Eigen::MatrixXcd origin = SM.get_trajectory();
+
+        // 初期値の指定した変数にだけ摂動を与える
+        SM.x_0(perturbed_dim - 1) += epsilon * std::complex<double>(s(gen), s(gen));
+        Eigen::MatrixXcd another = SM.get_trajectory();
+
+        #pragma atomic
+        counter++; // just for progress bar
         #pragma omp critical
-        errors += (origin.topRows(origin.rows() - 1) - another.topRows(another.rows() - 1)).cwiseAbs2() / repetitions;
+        {
+            errors += (origin.topRows(origin.rows() - 1) - another.topRows(another.rows() - 1)).cwiseAbs2() / repetitions;
+            std::cout << "\r processing..." << counter << "/" << repetitions << std::flush;
+        }
         if (i == 0) {
             time = origin.bottomRows(1).cwiseAbs().row(0);
         }
     }
-    total = errors.colwise().sum();
+
     // calculate error ratio of each shell
-    // for (int i = 0; i < errors.cols(); i++) {
-    //     errors.col(i) /= total(i);
-    // }
-    
+    Eigen::VectorXd total = errors.colwise().sum();
+    for (int i = 0; i < errors.cols(); i++) {
+        errors.col(i) /= total(i);
+    }
+    // // else
+    // errors = errors.cwiseSqrt();
     /*
                 █              
         █████   █          █   
@@ -102,73 +105,18 @@ int main(){
         Eigen::VectorXd ith_shell = errors.row(i);
         std::vector<double> error_vec(ith_shell.data(), ith_shell.data() + ith_shell.size());
         plt::subplot(15, 1, i+1);
-        plt::yscale("log");
         // plt::ylim(0, 1);
         plt::plot(time_vec, error_vec);
+        // plt::yscale("log");
         plt::xlabel("time");
-        
-        std::stringstream ss;
-        ss << i+1;
-        if (i+1 == 1) {
-            ss << "st";
-        } else if (i+1 == 2) {
-            ss << "nd";
-        } else if (i+1 == 3) {
-            ss << "rd";
-        } else {
-            ss << "th";
-        }
-        ss << " Shell";
-        plt::ylabel(ss.str());
+        plt::ylabel(myfunc::ordinal_suffix(i+1) + " Shell");
         error_vec.clear();
     }
 
-    oss << "../../error_dominant_shell/beta_" << beta << "nu_" << nu << "error"<< t / latter <<"period" << repetitions << "repeat.png";  // 文字列を結合する
+    std::ostringstream oss;
+    oss << "../../error_dominant_shell/beta_" << params.beta << "nu_" << params.nu << "error"<< t -t_0 <<"period" << repetitions << "repeat.png";  // 文字列を結合する
     std::string plotfname = oss.str(); // 文字列を取得する
     std::cout << "Saving result to " << plotfname << std::endl;
     plt::save(plotfname);
-
-    auto end = std::chrono::system_clock::now();  // 計測終了時間
-    int hours = std::chrono::duration_cast<std::chrono::hours>(end-start).count(); //処理に要した時間を変換
-    int minutes = std::chrono::duration_cast<std::chrono::minutes>(end-start).count(); //処理に要した時間を変換
-    int seconds = std::chrono::duration_cast<std::chrono::seconds>(end-start).count(); //処理に要した時間を変換
-    int milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count(); //処理に要した時間を変換
-    std::cout << hours << "h " << minutes % 60 << "m " << seconds % 60 << "s " << milliseconds % 1000 << "ms " << std::endl;
-}
-
-Eigen::VectorXcd npy2EigenVec(const char* fname){
-    std::string fname_str(fname);
-    cnpy::NpyArray arr = cnpy::npy_load(fname_str);
-    if (arr.word_size != sizeof(std::complex<double>)) {
-        throw std::runtime_error("Unsupported data type in the npy file.");
-    }
-    std::complex<double>* data = arr.data<std::complex<double>>();
-    Eigen::Map<Eigen::VectorXcd> vec(data, arr.shape[0]);
-    return vec;
-}
-
-void EigenMt2npy(Eigen::MatrixXd Mat, std::string fname){
-    Eigen::MatrixXd transposed = Mat.transpose();
-    // map to const mats in memory
-    Eigen::Map<const Eigen::MatrixXd> MOut(&transposed(0,0), transposed.cols(), transposed.rows());
-    // save to npy file
-    cnpy::npy_save(fname, MOut.data(), {(size_t)transposed.cols(), (size_t)transposed.rows()}, "w");
-}
-
-Eigen::VectorXcd perturbation(Eigen::VectorXcd state, std::vector<int> dim, int s_min, int s_max){
-    Eigen::VectorXcd perturbed = state;
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_real_distribution<double> s(-1, 1);
-    std::uniform_real_distribution<double> dis(s_min, s_max);
-
-    for(int shell : dim){
-        std::complex<double> complex_perturbation = state(shell-1) * s(gen) * std::pow(10, dis(gen)); //元の値 * (-1, 1)の一様分布 * 10^(指定の範囲から一様分布に従い選ぶ)を摂動として与える
-        // if (dim.size() < state.size()){
-        //     std::cout << "perturbation to" << shell << "shell is " << complex_perturbation << std::endl;
-        // }
-        perturbed(shell-1) += complex_perturbation;
-    }
-
-    return perturbed;
+    myfunc::duration(start);
 }

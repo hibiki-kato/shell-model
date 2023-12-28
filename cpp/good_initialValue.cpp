@@ -1,3 +1,16 @@
+                                                      █                                     █
+█████                            █                    █     ██                              █         ██
+█    █                                                █     ██                              █         ██
+█    █   ███   █████ ███   ███   █  █ ███   ███    ████    ████  ███      █   █  █████   ████   ███  ████  ███
+█    █  ██  █  ██  ██  █  █  ██  █  ██  █  ██  █  ██  █     ██  ██  █     █   █  ██  █  ██  █  █  ██  ██  ██  █
+█████   █   █  █   █   ██     █  █  █   █  █   █  █   █     ██  █   ██    █   █  █   ██ █   █      █  ██  █   █
+█   █   █████  █   █   ██  ████  █  █   █  █████  █   █     ██  █    █    █   █  █   ██ █   █   ████  ██  █████
+█   ██  █      █   █   ██ █   █  █  █   █  █      █   █     ██  █   ██    █   █  █   ██ █   █  █   █  ██  █
+█    █  ██  █  █   █   ██ █  ██  █  █   █  ██  █  ██  █     ██  ██  █     █   █  ██  █  ██  █  █  ██  ██  ██  █
+█    ██  ████  █   █   ██ █████  █  █   █   ████   ████      ██  ███       ████  █████   ████  █████   ██  ████
+                                                                                 █
+                                                                                 █
+                                                                                 █
 #include <iostream>
 #include <iomanip>
 #include <fstream>
@@ -5,27 +18,29 @@
 #include <eigen3/Eigen/Dense>
 #include <complex>
 #include <cmath>
-#include "Runge_Kutta.hpp"
-#include "Eigen_numpy_converter.hpp"
+#include "shared/Flow.hpp"
+#include "shared/myFunc.hpp"
+#include "shared/Eigen_numpy_converter.hpp"
 #include <chrono>
 #include <random>
 #include <omp.h>
-#include "matplotlibcpp.h"
+#include "shared/matplotlibcpp.h"
 #include "cnpy/cnpy.h"
 namespace plt = matplotlibcpp;
 
 int main(){
     auto start = std::chrono::system_clock::now(); // 計測開始時間
     // generating laminar sample !DO NOT CHANGE!
-    double nu = 0.00018;
-    double beta = 0.43;
-    std::complex<double> f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
-    double ddt = 0.01;
+    SMparams params;
+    params.nu = 0.00018;
+    params.beta = 0.43;
+    params.f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
+    double dt = 0.01;
     double t_0 = 0;
     double t = 500;
-    double latter = 1;
+    double dump = 1;
     Eigen::VectorXcd x_0 = npy2EigenVec<std::complex<double>>("../../initials/beta0.43_nu0.00018_500period_dt0.01eps0.1.npy");
-    ShellModel SM(nu, beta, f, ddt, t_0, t, latter, x_0);
+    ShellModel SM(params, dt, t_0, t, dump, dummy);
     Eigen::MatrixXcd laminar = npy2EigenMat<std::complex<double>>("../../generated_lam/sync_gen_laminar_beta_0.43nu_0.00018_dt0.01_400period1000check100progress10^-6-10^-5perturb_4-7_4-10_4-13_7-10_7-13_10-13_5-8_5-11_5-14_8-11_8-14_11-14_6-9_6-12_9-12.npy");
     int numRows = laminar.cols() / 2;
     Eigen::MatrixXcd laminar_sample(laminar.rows(), numRows);
@@ -109,14 +124,9 @@ int main(){
     keywords1.insert(std::make_pair("lw", "0.1"));
     plt::plot(x2,y2, keywords1);
     oss.str("");
-    oss << "../../traj_images/beta_" << beta << "nu_" << nu <<"_"<< static_cast<int>(longest+0.5) << "period_dt" << ddt <<"eps" << epsilon <<".png";  // 文字列を結合する
+    oss << "../../traj_images/beta" << params.beta << "nu" << params.nu <<"_"<< static_cast<int>(longest+0.5) << "period_dt" << ddt <<"eps" << epsilon <<".png";  // 文字列を結合する
     std::cout << "saving as" << oss.str() << std::endl;
     plt::save(oss.str());
 
-    auto end = std::chrono::system_clock::now();  // 計測終了時間
-    int hours = std::chrono::duration_cast<std::chrono::hours>(end-start).count(); //処理に要した時間を変換
-    int minutes = std::chrono::duration_cast<std::chrono::minutes>(end-start).count(); //処理に要した時間を変換
-    int seconds = std::chrono::duration_cast<std::chrono::seconds>(end-start).count(); //処理に要した時間を変換
-    int milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count(); //処理に要した時間を変換
-    std::cout << hours << "h " << minutes % 60 << "m " << seconds % 60 << "s " << milliseconds % 1000 << "ms " << std::endl;
+    myfunc::duration(start);
 }

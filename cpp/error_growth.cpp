@@ -1,91 +1,152 @@
 #include <iostream>
-#include <fstream>
 #include <sstream>
 #include <eigen3/Eigen/Dense>
 #include <complex>
 #include <cmath>
-#include "Runge_Kutta.hpp"
 #include <chrono>
-#include <random>
 #include "cnpy/cnpy.h"
-#include "matplotlibcpp.h"
+#include "shared/Flow.hpp"
+#include "shared/myFunc.hpp"
+#include "shared/Eigen_numpy_converter.hpp"
+#include "shared/matplotlibcpp.h"
 namespace plt = matplotlibcpp;
-void EigenVec2npy(Eigen::VectorXd Vec, std::string fname);
-Eigen::VectorXcd npy2EigenVec(const char* fname);
-Eigen::VectorXcd perturbation(Eigen::VectorXcd state,  std::vector<int> dim, int s_min = -1, int s_max = -1);
-
 
 int main(){
     auto start = std::chrono::system_clock::now(); // 計測開始時間
-    
-    double nu = 1e-5;
-    double beta = 0.5;
-    std::complex<double> f = std::complex<double>(1.0,0.0) * 5.0 * 0.001;
-    double ddt = 0.01;
+    SMparams params;
+    params.nu = 4e-5;
+    params.beta = 0.5;
+    params.f = std::complex<double>(1.0,0.0) * 5.0 * 0.001;
+    double dt = 0.001;
     double t_0 = 0;
     double t = 400;
-    double latter = 1;
-    Eigen::VectorXcd x_0 = npy2EigenVec("../../initials/beta0.5_nu1e-05_15dim_period.npy");
-    ShellModel SM(nu, beta, f, ddt, t_0, t, latter, x_0);
-    std::vector<int> perturbed_dim = {13};
-    int threads = omp_get_max_threads();
+    double dump = 0;
+    Eigen::VectorXcd x_0 = npy2EigenVec<std::complex<double>>("../initials/beta0.5_nu1e-05_15dim_period.npy", true);
+    ShellModel SM(params, dt, t_0, t, dump, x_0);
+    int perturbed_dim = 13;
+    int numThreads = omp_get_max_threads();
+    double epsilon = 1e-5;
     int repetitions = 1000;
-    int sampling = 100; // sampling rate of 
-    std::cout << threads << "threads" << std::endl;
-    std::ostringstream oss;
-    
+    int sampling_rate = 1000; // sampling rate for error growth rate
+    std::cout << numThreads << "threads" << std::endl;
+
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<double> s(-1, 1);
+    Eigen::VectorXd time(SM.steps + 1); //　時間を格納するベクトル
+    Eigen::MatrixXd errors(x_0.size(), SM.steps + 1);// 各試行の誤差を格納する行列
     int counter = 0; // just for progress bar
-    Eigen::VectorXd average_errors(SM.get_steps_()+1);
-    Eigen::VectorXd time(SM.get_steps_()-6);
-    #pragma omp parallel for num_threads(threads) schedule(dynamic) shared(average_errors, time) firstprivate(SM, counter)
+
+    /*
+                   █
+     ████          █              ██
+    ██   █         █              ██
+    █    ██  ███   █   ███        █ █  ██   █  ███   ███  ███    ████   ███
+    █       █  ██  █  ██  █      ██ █   █  ██ ██  █  ██  █  ██  ██  █  ██  █
+    █           █  █  █          █  ██  █  █  █   █  █       █  █   █  █   █
+    █        ████  █  █         ██   █  ██ █  █████  █    ████  █   █  █████
+    █    ██ █   █  █  █         ██████   ███  █      █   █   █  █   █  █
+    ██   █  █  ██  █  ██  █     █    ██  ██   ██  █  █   █  ██  ██  █  ██  █
+     ████   █████  █   ███     ██     █  ██    ████  █   █████   ████   ████
+                                                                    █
+                                                                █   █
+                                                                 ███
+    */
+
+    #pragma omp parallel for num_threads(numThreads) schedule(dynamic) firstprivate(SM, perturbed_dim, repetitions) shared(errors, time, counter)
     for(int i = 0; i < repetitions; i++){
-        if(omp_get_thread_num() == 0)
-        {
-        std::cout << "\r processing..." << counter * threads << "/" << repetitions << std::flush;
-        counter++;
+        SM.x_0 = myfunc::multi_scale_perturbation(SM.x_0, -1, 0); // 初期値をランダムに与える
+        // ある程度まともな値になるように初期値を更新
+        for (int j = 0; j < 1e+5; j++) {
+            SM.x_0 = SM.rk4(SM.x_0);
         }
-        ShellModel SM_origin = SM;
-        //1からx_0.size()のベクトルの作成
-        std::vector<int> range(x_0.size());
-        std::iota(range.begin(), range.end(), 1); // iota: 連番を作成する
-        ShellModel SM_another = SM;
-        Eigen::VectorXcd perturbed_x_0 = SM_another.get_x_0_();
-        perturbed_x_0(12) += 1e-5;
-         // create perturbed init value
-        SM_another.set_x_0_(perturbed_x_0); // set above
-        
-        Eigen::MatrixXcd origin = SM_origin.get_trajectory_();
-        Eigen::MatrixXcd another = SM_another.get_trajectory_();
-        Eigen::VectorXd errors = (origin.topRows(origin.rows() - 1) - another.topRows(another.rows() - 1)).cwiseAbs2().colwise().sum().cwiseSqrt();
+
+        // ここから本番
+        //まずは元の軌道を計算
+        Eigen::MatrixXcd origin = SM.get_trajectory();
+
+        // 初期値の指定した変数にだけ摂動を与える
+        SM.x_0(perturbed_dim - 1) += epsilon * std::complex<double>(s(gen), s(gen));
+        Eigen::MatrixXcd another = SM.get_trajectory();
+
+        #pragma atomic
+        counter++; // just for progress bar
         #pragma omp critical
         {
-            average_errors += errors / repetitions;
-            SM.set_x_0_(another.block(0, another.cols()-1, another.rows()-1, 1)); // set another's last state as next initial value
+            errors += (origin.topRows(origin.rows() - 1) - another.topRows(another.rows() - 1)).cwiseAbs2() / repetitions;
+            std::cout << "\r processing..." << counter << "/" << repetitions << std::flush;
         }
-        if (i==0){
-            time = origin.row(15).cwiseAbs().segment(1, time.size()+1);
+        if (i == 0) {
+            time = origin.bottomRows(1).cwiseAbs().row(0);
         }
     }
 
-    // EigenVec2npy(average_errors, "../../test.npy");
+    /*
+                                     █                                                █                                            █
+     ████                            █  █                    ███        ████          █                                        ██  █                    ██
+    ██  ██                           █                      ██  █      ██   █         █                                        ██  █                    ██
+    █    █   ███   █████ ███  █████  █  █  █ ███   ████     ██  █      █    ██  ███   █   ███       ████  ███  ███  ██  ██  █ ████ █████     ███  ███  ████  ███
+    ██      █  ██  ██  ██  █  ██  █  █  █  ██  █  ██  █      ███       █       █  ██  █  ██  █     ██  █  ██  ██  █  █  ██  █  ██  ██  █     ██  █  ██  ██  ██  █
+     ████       █  █   █   ██ █   ██ █  █  █   █  █   █      ██        █           █  █  █         █   █  █   █   ██ █  ██  █  ██  █   █     █       █  ██  █   █
+        ██   ████  █   █   ██ █   ██ █  █  █   █  █   █     █  █ █     █        ████  █  █         █   █  █   █    █ █ █ █ ██  ██  █   █     █    ████  ██  █████
+    █    █  █   █  █   █   ██ █   ██ █  █  █   █  █   █     █  ███     █    ██ █   █  █  █         █   █  █   █   ██ ███  ██   ██  █   █     █   █   █  ██  █
+    ██  ██  █  ██  █   █   ██ ██  █  █  █  █   █  ██  █     █   ██     ██   █  █  ██  █  ██  █     ██  █  █   ██  █   ██  ██   ██  █   █     █   █  ██  ██  ██  █
+     ████   █████  █   █   ██ █████  █  █  █   █   ████      ██████     ████   █████  █   ███       ████  █    ███    █   ██    ██ █   █     █   █████   ██  ████
+                              █                       █                                                █
+                              █                   █   █                                            █   █
+                              █                    ███                                              ███
+    */
 
-    Eigen::VectorXd average_error_growth_rates = (average_errors.tail(average_errors.size() - 2).array().log() - average_errors.head(average_errors.size() - 2).array().log()) / (SM.get_ddt_()*2);
-    // Eigen::VectorXd average_error_growth_rates = (average_errors.tail(average_errors.size() - 6).array().log() - 9*average_errors.segment(5, average_errors.size() - 6).array().log() + 45*average_errors.segment(4, average_errors.size() - 6).array().log() - 45*average_errors.segment(2, average_errors.size() - 6).array().log() + 9*average_errors.segment(1, average_errors.size() - 6).array().log() - average_errors.head(average_errors.size() - 6)).array().log() / (60*ddt);
-    Eigen::VectorXd average_errors_resized = average_errors.segment(1, average_errors.size() - 6);
-    std::cout << average_error_growth_rates << std::endl;
-    std::vector<double> errors_(average_errors_resized.data(), average_errors_resized.data() + average_errors_resized.size());
-    std::vector<double> error_growth_rates_(average_error_growth_rates.data(), average_error_growth_rates.data() + average_error_growth_rates.size());
-    std::vector<double> time_(time.data(), time.data()+time.size());
+    Eigen::VectorXd average_errors = errors.colwise().sum().array().sqrt();
 
-    std::cout << errors_.size() << "   "  << error_growth_rates_.size() << " " << time_.size()<<  std::endl;
+    // sampling
+    int sampling_num = average_errors.size() / sampling_rate;
+    Eigen::VectorXd sampled_time(sampling_num);
+    Eigen::VectorXd sampled_errors(sampling_num);
+    for (int i = 0; i < sampling_num; i++) {
+        sampled_time(i) = time(sampling_rate * i);
+        sampled_errors(i) = average_errors(sampling_rate * i);
+    }
 
+    // error growth rate
+    Eigen::VectorXd growth_rate = (sampled_errors.tail(sampled_errors.size() - 2).array().log() - sampled_errors.head(sampled_errors.size() - 2).array().log()) / (SM.dt*sampling_rate*2);
+    // Eigen::VectorXd growth_rate = (sampled_errors.tail(sampled_errors.size() - 6).array().log() - 9*sampled_errors.segment(5, sampled_errors.size() - 6).array().log() + 45*sampled_errors.segment(4, sampled_errors.size() - 6).array().log() - 45*sampled_errors.segment(2, sampled_errors.size() - 6).array().log() + 9*sampled_errors.segment(1, sampled_errors.size() - 6).array().log() - sampled_errors.head(sampled_errors.size() - 6)).array().log() / (60*ddt);
+    std::cout << "here" << std::endl;
+    /*
+            █
+    ██████  █         ██  ██  █
+    █    █  █         ██  ██
+    █    ██ █   ███  ████████ █  █ ███   ████
+    █    ██ █  ██  █  ██  ██  █  ██  █  ██  █
+    ██████  █  █   ██ ██  ██  █  █   █  █   █
+    █       █  █    █ ██  ██  █  █   █  █   █
+    █       █  █   ██ ██  ██  █  █   █  █   █
+    █       █  ██  █  ██  ██  █  █   █  ██  █
+    █       █   ███    ██  ██ █  █   █   ████
+                                            █
+                                        █   █
+                                         ███
+    */
+
+    std::vector<double> error_vec(sampled_errors.data(), sampled_errors.data() + sampled_errors.size());
+    std::vector<double> growth_rate_vec(growth_rate.data(), growth_rate.data() + growth_rate.size());
+    std::vector<double> time_vec(sampled_time.data(), sampled_time.data() + sampled_time.size());
+    // error_vecとtime_vecの先頭と末尾を削除
+    error_vec.erase(error_vec.begin());
+    error_vec.pop_back();
+    time_vec.erase(time_vec.begin());
+    time_vec.pop_back();
+    //check the size
+    // std::cout << error_vec.size() << "   "  << growth_rate_vec.size() << " " << time_vec.size()<<  std::endl;
+
+    std::ostringstream oss;
     // エラー : エラー成長率
     plt::figure_size(1000, 1000);
     plt::xscale("log");
     plt::xlabel("E");
     plt::ylabel("E'/E");
-    plt::scatter(errors_, error_growth_rates_);
-    oss << "../../error_growth/beta_" << beta << "nu_" << nu << "error"<< t / latter <<"period" << repetitions << "repeat.png";  // 文字列を結合する
+    plt::scatter(error_vec, growth_rate_vec);
+    oss << "../../error_growth/error-rate_beta" << params.beta << "nu" << params.nu << "t" << t << "repeat" << repetitions << "sampling" << sampling_rate << ".png";  // 文字列を結合する
     std::string plotfname = oss.str(); // 文字列を取得する
     std::cout << "Saving result to " << plotfname << std::endl;
     plt::save(plotfname);
@@ -94,11 +155,11 @@ int main(){
     // エラー : 時間
     plt::figure_size(1000, 1000);
     // plt::xscale("log");
-    plt::scatter(time_, errors_);
+    plt::scatter(time_vec, error_vec);
     plt::xlabel("t");
     plt::ylabel("E");
     oss.str("");
-    oss << "../../error_growth/error_beta_" << beta << "nu_" << nu << "error"<< t / latter <<"period" << repetitions << "repeat.png";  // 文字列を結合する
+    oss << "../../error_growth/time-error_beta" << params.beta << "nu" << params.nu << "t" << t << "repeat" << repetitions << "sampling" << sampling_rate << ".png";  // 文字列を結合する
     std::string plotfname1 = oss.str(); // 文字列を取得する
     std::cout << "Saving result to " << plotfname1 << std::endl;
     plt::save(plotfname1);
@@ -107,61 +168,14 @@ int main(){
     // エラー成長率 : 時間
     plt::figure_size(1000, 1000);
     // plt::xscale("log");
-    plt::scatter(time_, error_growth_rates_);
+    plt::scatter(time_vec, growth_rate_vec);
     plt::xlabel("t");
     plt::ylabel("E'/E");
     oss.str("");
-    oss << "../../error_growth/error_rate_beta_" << beta << "nu_" << nu << "error"<< t / latter <<"period" << repetitions << "repeat.png";  // 文字列を結合する
+    oss << "../../error_growth/time-rate_beta" << params.beta << "nu" << params.nu << "t" << t << "repeat" << repetitions << "sampling" << sampling_rate << ".png";  // 文字列を結合する
     std::string plotfname2 = oss.str(); // 文字列を取得する
     std::cout << "Saving result to " << plotfname2 << std::endl;
     plt::save(plotfname2);
 
-    auto end = std::chrono::system_clock::now();  // 計測終了時間
-    int hours = std::chrono::duration_cast<std::chrono::hours>(end-start).count(); //処理に要した時間を変換
-    int minutes = std::chrono::duration_cast<std::chrono::minutes>(end-start).count(); //処理に要した時間を変換
-    int seconds = std::chrono::duration_cast<std::chrono::seconds>(end-start).count(); //処理に要した時間を変換
-    int milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count(); //処理に要した時間を変換
-    std::cout << hours << "h " << minutes % 60 << "m " << seconds % 60 << "s " << milliseconds % 1000 << "ms " << std::endl;
-}
-
-Eigen::VectorXcd npy2EigenVec(const char* fname){
-    std::string fname_str(fname);
-    cnpy::NpyArray arr = cnpy::npy_load(fname_str);
-    if (arr.word_size != sizeof(std::complex<double>)) {
-        throw std::runtime_error("Unsupported data type in the npy file.");
-    }
-    std::complex<double>* data = arr.data<std::complex<double>>();
-    Eigen::Map<Eigen::VectorXcd> vec(data, arr.shape[0]);
-    return vec;
-}
-
-void EigenMt2npy(Eigen::MatrixXd Mat, std::string fname){
-    Eigen::MatrixXd transposed = Mat.transpose();
-    // map to const mats in memory
-    Eigen::Map<const Eigen::MatrixXd> MOut(&transposed(0,0), transposed.cols(), transposed.rows());
-    // save to npy file
-    cnpy::npy_save(fname, MOut.data(), {(size_t)transposed.cols(), (size_t)transposed.rows()}, "w");
-}
-
-Eigen::VectorXcd perturbation(Eigen::VectorXcd state, std::vector<int> dim, int s_min, int s_max){
-    Eigen::VectorXcd perturbed = state;
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_real_distribution<double> s(-1, 1);
-    std::uniform_real_distribution<double> dis(s_min, s_max);
-
-    Eigen::VectorXd unit = Eigen::VectorXd::Ones(state.rows());
-    for(int shell : dim){
-        perturbed(shell-1) += state(shell-1) * s(gen) * std::pow(10, dis(gen)); //元の値 * (-1, 1)の一様分布 * 10^(指定の範囲から一様分布に従い選ぶ)　を雪道として与える
-    }
-
-    return perturbed;
-}
-
-void EigenVec2npy(Eigen::VectorXd Vec, std::string fname){
-    std::vector<double> x(Vec.size());
-    for(int i=0;i<Vec.size();i++){
-        x[i]=Vec(i);
-    }
-    cnpy::npy_save(fname, &x[0], {(size_t)Vec.size()}, "w");
+    myfunc::duration(start);
 }

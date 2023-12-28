@@ -1,3 +1,16 @@
+                                                      █                                     █
+█████                            █                    █     ██                              █         ██
+█    █                                                █     ██                              █         ██
+█    █   ███   █████ ███   ███   █  █ ███   ███    ████    ████  ███      █   █  █████   ████   ███  ████  ███
+█    █  ██  █  ██  ██  █  █  ██  █  ██  █  ██  █  ██  █     ██  ██  █     █   █  ██  █  ██  █  █  ██  ██  ██  █
+█████   █   █  █   █   ██     █  █  █   █  █   █  █   █     ██  █   ██    █   █  █   ██ █   █      █  ██  █   █
+█   █   █████  █   █   ██  ████  █  █   █  █████  █   █     ██  █    █    █   █  █   ██ █   █   ████  ██  █████
+█   ██  █      █   █   ██ █   █  █  █   █  █      █   █     ██  █   ██    █   █  █   ██ █   █  █   █  ██  █
+█    █  ██  █  █   █   ██ █  ██  █  █   █  ██  █  ██  █     ██  ██  █     █   █  ██  █  ██  █  █  ██  ██  ██  █
+█    ██  ████  █   █   ██ █████  █  █   █   ████   ████      ██  ███       ████  █████   ████  █████   ██  ████
+                                                                                 █
+                                                                                 █
+                                                                                 █
 #include <iostream>
 #include <eigen3/Eigen/Dense>
 #include "cnpy/cnpy.h"
@@ -25,15 +38,6 @@ void rungeKutta4(Vector3d& x, double sigma, double rho, double beta, double dt) 
     x += dt / 6.0 * (k1 + 2.0 * k2 + 2.0 * k3 + k4);
 }
 
-// npyで保存するための
-void EigenMt2npy(Eigen::MatrixXd Mat, std::string fname){
-    Eigen::MatrixXd transposed = Mat.transpose();
-    // map to const mats in memory
-    Eigen::Map<const Eigen::MatrixXd> MOut(&transposed(0,0), transposed.cols(), transposed.rows());
-    // save to np-arrays files
-    cnpy::npy_save(fname, MOut.data(), {(size_t)transposed.cols(), (size_t)transposed.rows()}, "w");
-}
-
 int main() {
     // 初期条件とパラメータ
     double sigma = 10.0;
@@ -53,8 +57,4 @@ int main() {
         rungeKutta4(x, sigma, rho, beta, dt);
         Mat.col(i) = x;
     }
-
-    EigenMt2npy(Mat, "../../lorenz.npy");
-    return 0;
-}
 
