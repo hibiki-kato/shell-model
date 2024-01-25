@@ -1,15 +1,17 @@
 *.o
 *.out
 *.npy
+
+.vscode/
+turbulent_laminar_search/
+/cpp/build/**
+legacy/
+
 !initials/*
 !average_time_para/*
 !max_time_para/*
 !distribution/*
+!.gitkeep
 
-.vscode/
 *.DS_Store
 *.ipynb_checkpoints
-turbulent_laminar_search/
-
-build/
-legacy/
