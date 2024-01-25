@@ -37,7 +37,7 @@ int main(){
     Eigen::VectorXd betas = Eigen::VectorXd::LinSpaced(param_steps, beta_begin, beta_end);
     Eigen::VectorXd nus = Eigen::VectorXd::LinSpaced(param_steps, nu_begin, nu_end);
 
-    std::ostringstream oss;
+     std::ostringstream oss;
     oss << "../../bif_data/bif_" << beta_begin <<"to"<< beta_end << "_nu" << nu_begin <<"to" << nu_end << "_" << param_steps << "steps_period" << t-t_0 << "_dump"<< dump << ".txt";  // 文字列を結合する
     std::string fname = oss.str();
     std::ofstream file(fname);

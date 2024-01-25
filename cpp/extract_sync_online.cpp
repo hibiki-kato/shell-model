@@ -21,7 +21,6 @@
 #include <chrono>
 #include "shared/Flow.hpp"
 #include "shared/myFunc.hpp"
-#include "cnpy/cnpy.h"
 #include "shared/matplotlibcpp.h"
 #include "shared/Eigen_numpy_converter.hpp"
 
@@ -31,23 +30,26 @@ std::tuple<Eigen::VectorXd, Eigen::VectorXd, Eigen::VectorXcd> calc_next(ShellMo
 
 int main(){
     auto start = std::chrono::system_clock::now(); // 計測開始時間
+    SMparams params;
+    params.nu = 0.00018;
+    params.beta = 0.417;
     params.f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
         double dt = 0.01;
         double t_0 = 0;
-        double t = 1e+6;
-        int numThreads = omp_get_max_threads();
-        int window = 1000; // how long the sync part should be. (sec)
+        double t = 5e+6;
+        int numThreads = 1;
+        int window = 3000; // how long the sync part should be. (sec)
         window *= 100; // when dt = 0.01
-        int trim = 500; 
+        int trim = 1500; 
         trim *= 100; // when dt = 0.01
         int plotDim[] = {4, 5};
-        int nu_num  = 160;
-        Eigen::VectorXd nus = Eigen::VectorXd::LinSpaced(nu_num, -5, -2);
-        for (auto& nu : nus) nu = std::pow(10, nu);
-        std::cout << nus << std::endl;
-        int beta_num = 100;
-        Eigen::VectorXd betas = Eigen::VectorXd::LinSpaced(beta_num, 0.48, 0.52);
-        Eigen::VectorXcd x_0 = npy2EigenVec<std::complex<double>>("../../initials/beta0.423_nu0.00018_1229period_dt0.01eps0.003.npy");
+        int nu_num  = 1;
+        Eigen::VectorXd nus = Eigen::VectorXd::LinSpaced(nu_num, 1.8e-4, 1.8e-4);
+        // for (auto& nu : nus) nu = std::pow(10, nu);
+        // std::cout << nus << std::endl;
+        int beta_num = 1;
+        Eigen::VectorXd betas = Eigen::VectorXd::LinSpaced(beta_num, 0.417, 0.417);
+        Eigen::VectorXcd x_0 = npy2EigenVec<std::complex<double>>("../initials/beta0.417_nu0.00018_5000period_dt0.01_5-8_5-11_5-14_8-11_8-14_11-14_6-9_6-12_9-12.npy", true);
         int skip = 100; // plot every skip points
         std::vector<std::tuple<int, int, double>> sync_pairs;
 
@@ -69,11 +71,11 @@ int main(){
         sync_pairs.push_back(std::make_tuple(6, 12, 2.3));
         sync_pairs.push_back(std::make_tuple(9, 12, 0.3));
 
-        ShellModel SM = ShellModel(1e-5, 0.5, f, dt, t_0, t, 1.0, x_0);
+        ShellModel SM = ShellModel(params, dt, t_0, t, 1.0, x_0);
         std::map<std::string, std::string> plotSettings;
         plotSettings["font.family"] = "Times New Roman";
-        plotSettings["font.size"] = "20";
-        plotSettings["figure.max_open_warning"] = 50; // set max open figures to 50
+        plotSettings["font.size"] = "25";
+        // plotSettings["figure.max_open_warning"] = 0; // set max open figures to 50
         plt::rcparams(plotSettings);
 
         int steps = static_cast<int>((t - t_0) / dt + 0.5);
@@ -83,10 +85,10 @@ int main(){
             #pragma omp for schedule(dynamic) firstprivate(SM)
             for (int j = 0; j < nu_num; j++){
                 SM.set_beta_(betas(i));
-                SM.set_nu_(nus(j));
+                SM.nu = nus(j);
 
                 Eigen::VectorXd n = Eigen::VectorXd::Zero(x_0.rows());
-                Eigen::VectorXd theta = SM.get_x_0_().cwiseArg();
+                Eigen::VectorXd theta = SM.x_0.cwiseArg();
                 Eigen::VectorXcd previous = x_0;
                 std::vector<double> x;
                 std::vector<double> y;
@@ -119,20 +121,19 @@ int main(){
 
                 #pragma omp critical
                 {   
+                    std::cout << "synced_x.size() = " << synced_x.size() << std::endl;
+                    std::cout << "synced_y.size() = " << synced_y.size() << std::endl;
                     if (synced_x.size() > 0){
                         // plot
                         plt::figure_size(1000, 1000);
-                        std::map<std::string, std::string> plotSettings;
-                        plotSettings["alpha"] = "0.01";
-                        plt::scatter(synced_x, synced_y, 0.001);
+                        plt::scatter(synced_x, synced_y);
                         plt::xlim(0.0, 0.4);
                         plt::ylim(0.0, 0.4);
                         plt::xlabel("$|u_" + std::to_string(plotDim[0]) + "|$");
                         plt::ylabel("$|u_" + std::to_string(plotDim[1]) + "|$");
-
                         // save
                         std::ostringstream oss;
-                        oss << "../../sync/beta_" << SM.get_beta_() << "nu_" << SM.get_nu_() <<"_"<< t-t_0 << "period" <<  static_cast<int>(window/100) <<"window" << static_cast<int>(synced_x.size()/100) << "sync.png";  // 文字列を結合する
+                        oss << "../../sync/beta_" << SM.beta << "nu_" << SM.nu <<"_"<< t-t_0 << "period" <<  static_cast<int>(window/100) <<"window" << static_cast<int>(synced_x.size()/100) << "sync.png";  // 文字列を結合する
                         std::string plotfname = oss.str(); // 文字列を取得する
                         std::cout << "Saving result to " << plotfname << std::endl;
                         plt::save(plotfname);
@@ -149,7 +150,7 @@ int main(){
             }
         }
 
-        myfunc::duration(start)
+        myfunc::duration(start);
     }
 
 bool isLaminar(Eigen::VectorXd phases, std::vector<std::tuple<int, int, double>> sync_pairs){
@@ -164,7 +165,7 @@ bool isLaminar(Eigen::VectorXd phases, std::vector<std::tuple<int, int, double>>
 }
 
 std::tuple<Eigen::VectorXd, Eigen::VectorXd, Eigen::VectorXcd> calc_next(ShellModel& SM, Eigen::VectorXd pre_n, Eigen::VectorXd pre_theta, Eigen::VectorXcd previous){
-    Eigen::VectorXcd now = SM.rk4_(previous);
+    Eigen::VectorXcd now = SM.rk4(previous);
     Eigen::VectorXd theta = now.cwiseArg();
     Eigen::VectorXd n = pre_n;
     for(int i; i < theta.size(); i++){

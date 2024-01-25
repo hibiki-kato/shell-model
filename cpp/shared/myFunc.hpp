@@ -16,6 +16,7 @@
 namespace myfunc{
     std::string ordinal_suffix(int n);
     void duration(std::chrono::time_point<std::chrono::system_clock> start);
+    int count_mesh(const Eigen::MatrixXd& trajectory, int n, std::vector<std::tuple<int, double, double>> intervals);
 
     template <typename Vector>
     Vector multi_scale_perturbation(Vector state, int s_min, int s_max){
@@ -47,3 +48,14 @@ namespace myfunc{
         return (unit.array() * std::pow(10, expo(gen)) + state.array()).matrix();
     }
 }
+
+struct VectorHash {
+        size_t operator()(const std::vector<int>& v) const {
+            std::hash<int> hasher;
+            size_t seed = 0;
+            for (int i : v) {
+                seed ^= hasher(i) + 0x9e3779b9 + (seed<<6) + (seed>>2);
+            }
+            return seed;
+        }
+    };

@@ -6,7 +6,7 @@ set(CMAKE_CXX_COMPILER g++)
 set(CMAKE_CXX_STANDARD 23)
 set(EXECUTABLE exe)
 add_executable(${EXECUTABLE} 
-    jacobi_plot.cpp
+    energy_spectrum.cpp
     shared/myFunc.cpp
     shared/Flow.cpp
     shared/Map.cpp
@@ -25,6 +25,14 @@ if($ENV{OS_NAME} STREQUAL "Darwin")
     find_package (Python 3.10 REQUIRED COMPONENTS Interpreter Development NumPy)
     link_directories(/opt/homebrew/lib)
     include_directories(/opt/homebrew/include ${Python_INCLUDE_DIRS})
+else if($ENV{OS_NAME} STREQUAL "Wisteria")
+    message("Build in Wisteria")
+    find_package (Python 3 REQUIRED COMPONENTS Interpreter Development NumPy)
+    link_directories(C:/Users/ryuji/anaconda3/libs)
+    include_directories(C:/Users/ryuji/anaconda3/include)
+    find_package
+
+    target_link_libraries(${EXECUTABLE} PUBLIC z cnpy)
 else()
     message("Build in Linux")
     find_package (Python 3 REQUIRED COMPONENTS Interpreter Development NumPy)

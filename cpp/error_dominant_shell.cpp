@@ -15,7 +15,6 @@
 #include <cmath>
 #include <chrono>
 #include <random>
-#include "cnpy/cnpy.h"
 #include "shared/Flow.hpp"
 #include "shared/myFunc.hpp"
 #include "shared/Eigen_numpy_converter.hpp"
@@ -33,7 +32,7 @@ int main(){
     double t_0 = 0;
     double t = 400;
     double dump = 0;
-    Eigen::VectorXcd x_0 = npy2EigenVec<std::complex<double>>("../../initials/beta0.5_nu1e-05_15dim_period.npy");
+    Eigen::VectorXcd x_0 = npy2EigenVec<std::complex<double>>("");
     ShellModel SM(params, dt, t_0, t, dump, x_0);
     int perturbed_dim = 13;
     int repetitions = 1000;

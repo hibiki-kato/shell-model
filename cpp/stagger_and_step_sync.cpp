@@ -37,24 +37,22 @@
 #include "shared/Eigen_numpy_converter.hpp"
 
 namespace plt = matplotlibcpp;
-int shift(double pre_theta, double theta, int rotation_number);
-bool isLaminar(Eigen::VectorXd phases, std::vector<std::tuple<int, int, double>> sync_pairs);
 std::tuple<Eigen::VectorXd, Eigen::VectorXd, Eigen::VectorXcd> calc_next(ShellModel&, Eigen::VectorXd pre_n, Eigen::VectorXd pre_theta, Eigen::VectorXcd previous);
-
+bool isLaminar(Eigen::VectorXd phases, std::vector<std::tuple<int, int, double>> sync_pairs);
 int main(){
     auto start = std::chrono::system_clock::now(); // 計測開始時間
-    const SMparams params;
+    SMparams params;
     params.nu = 0.00018;
-    const params.beta = 0.417;
-    const params.f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
-    const double dt = 0.01;
-    const double t_0 = 30000;
-    const double t = 50000;
-    const double dump = 1;
-    const double check = 6000;
-    const double progress = 500;
-    const int perturb_min = -13;
-    const int perturb_max = -5;
+    params.beta = 0.417;
+    params.f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
+    double dt = 0.01;
+    double t_0 = 30000;
+    double t = 50000;
+    double dump = 1;
+    double check = 6000;
+    double progress = 500;
+    int perturb_min = -13;
+    int perturb_max = -5;
     int limit = 1e+5; //limitation of trial of stagger and step
     Eigen::MatrixXcd loaded = npy2EigenMat<std::complex<double>>("../../generated_lam/sync_gen_laminar_beta_0.417nu_0.00018_dt0.01_53000period5000check500progress10^-14-10^-5perturb_5-8_5-11_5-14_8-11_8-14_11-14_6-9_6-12_9-12.npy");
     Eigen::VectorXcd x_0 = loaded.block(0, t_0*100, 14, 1);
@@ -95,7 +93,7 @@ int main(){
       ███  █        █  █    █  █    █  █   ██  █            █  █    █  █    █     ██     █    █   ██  █    █
         ██ █    █████  █    █  █    █  ██████  █        █████  █    █  █    █      ███   █    ██████  █    █
         ██ █    █   █  █    █  █    █  █       █        █   █  █    █  █    █        ██  █    █       █    █
-        █  ██   █   █  ██  ██  ██  ██  ██      █        █   █  █    █  ██  ██        ██  ██   ██      ██   █
+        █  ██   █   █  ██  ██  ██  ██  ██      █         █   █  █    █  ██  ██        ██  ██   ██      ██   █
     █████   ███ █████   █████   █████   ████   █        █████  █    █   ███ █     ████    ███  ████   █████
                             █       █                                                                █
                            ██      ██                                                                █
@@ -374,19 +372,6 @@ int main(){
     myfunc::duration(start);
 }
 
-double shift(double pre_theta, double theta, double rotation_number){
-    //forward
-    if ((theta - pre_theta) < -M_PI){
-        rotation_number += 1;
-    }
-    //backward
-    else if ((theta - pre_theta) > M_PI){
-        rotation_number -= 1;
-    }
-
-    return rotation_number;
-}
-
 bool isLaminar(Eigen::VectorXd phases, std::vector<std::tuple<int, int, double>> sync_pairs){
     bool allSync = true; // flag 
     for (const auto& pair : sync_pairs){
@@ -402,7 +387,7 @@ bool isLaminar(Eigen::VectorXd phases, std::vector<std::tuple<int, int, double>>
 }
 
 std::tuple<Eigen::VectorXd, Eigen::VectorXd, Eigen::VectorXcd> calc_next(ShellModel& SM, Eigen::VectorXd pre_n, Eigen::VectorXd pre_theta, Eigen::VectorXcd previous){
-    Eigen::VectorXcd now = SM.rk4_(previous);
+    Eigen::VectorXcd now = SM.rk4(previous);
     Eigen::VectorXd theta = now.cwiseArg();
     Eigen::VectorXd n = pre_n;
     for(int i; i < theta.size(); i++){

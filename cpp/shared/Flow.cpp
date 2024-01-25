@@ -13,6 +13,78 @@
 #include <complex>
 #include <cmath>
 #include <random>
+/*
+██                   ██                                    ███      ████
+██                   ██                                  ████      ███████
+██                   ██                                 ███       ██    ██
+██                   ██                                 ██        ██    ██
+██          █████    ██     ████    ██ ████   ████████  █               ██
+██         ███████   ██    ███████  ████████       ██  ██ ████         ███
+██        ██    ███  ██   ██    ██  ██    ██      ███  ████████      ████
+██        ██     ██  ██   ██     █  ██    ██      ██   ███   ██       ████
+██        ██     ██  ██   ████████  ██    ██     ██    ██     ██        ██
+██        ██     ██  ██   ██        ██    ██    ██     ██     ██         █
+██        ██     ██  ██   ██        ██    ██   ███     ██     ██  ██     █
+██        ██    ███  ██   ██        ██    ██   ██       ██   ██   ██    ██
+████████   ███████   ██    ███████  ██    ██  ███       ███████    ███████
+█████████   █████    ██     █████   ██    ██  ████████    ████      ████
+*/
+
+Lorenz63::Lorenz63(Lorenz63params input_params, double input_dt, double input_t_0, double input_t, double input_dump, Eigen::VectorXd input_x_0){
+    dt = input_dt;
+    t_0 = input_t_0;
+    t = input_t;
+    dump = input_dump;
+    x_0 = input_x_0;
+    //parameters
+    sigma = input_params.sigma;
+    rho = input_params.rho;
+    beta = input_params.beta;
+    steps = static_cast<long long>((t - t_0) / dt + 0.5);
+    dump_steps = static_cast<long long>(dump / dt + 0.5);
+}
+Lorenz63::~Lorenz63(){
+}
+
+Eigen::MatrixXd Lorenz63::get_trajectory(){
+    Eigen::MatrixXd trajectory(4, steps+1);
+    //set initial point
+    trajectory.topLeftCorner(3, 1) = x_0;
+    //renew x_0 (dump)
+    for (long long i = 0; i < dump_steps; i++){
+        trajectory.topLeftCorner(3, 1) = Lorenz63::rk4(trajectory.topLeftCorner(3, 1));
+    }
+    double time = t_0;
+    trajectory(3, 0) = time;
+    //solve
+    for(long long i = 0; i < steps; i++){
+        time += dt;
+        trajectory.block(0, i+1, 3, 1) = Lorenz63::rk4(trajectory.block(0, i, 3, 1));
+        trajectory(3, i+1) = time;
+    }
+    return trajectory;
+}
+Eigen::VectorXd Lorenz63::rk4(const Eigen::VectorXd& present){
+    Eigen::VectorXd k1 = dt * lorenz63(present);
+    Eigen::VectorXd k2 = dt * lorenz63(present + k1 / 2);
+    Eigen::VectorXd k3 = dt * lorenz63(present + k2 / 2);
+    Eigen::VectorXd k4 = dt * lorenz63(present + k3);
+    return present + (k1 + 2 * k2 + 2 * k3 + k4) / 6;
+}
+Eigen::VectorXd Lorenz63::lorenz63(const Eigen::VectorXd& state){
+    Eigen::VectorXd dt_x(3);
+    dt_x(0) = sigma * (state(1) - state(0));
+    dt_x(1) = rho * state(0) - state(1) - state(0) * state(2);
+    dt_x(2) = state(0) * state(1) - beta * state(2);
+    return dt_x;
+}
+Eigen::MatrixXd Lorenz63::jacobian_matrix(const Eigen::VectorXd& state){
+    Eigen::MatrixXd jacobian(3, 3);
+    jacobian.row(0) = Eigen::Vector3d(-sigma, sigma, 0.0);
+    jacobian.row(1) = Eigen::Vector3d(rho - state(2), -1.0, -state(0));
+    jacobian.row(2) = Eigen::Vector3d(state(1), state(0), -beta);
+    return jacobian;
+}
 
 /*
   █████    ██                  ██   ██   ███        ███                     █             ██
@@ -247,7 +319,7 @@ CoupledRossler::CoupledRossler(CRparams input_params, double input_dt, double in
     
     steps = static_cast<long long>((t - t_0) / dt+ 0.5);
     dump_steps = static_cast<long long>(dump / dt + 0.5);
- }
+}
 //destructor
 CoupledRossler::~CoupledRossler(){
 }
@@ -344,12 +416,10 @@ namespace myfunc{
     Eigen::VectorXd rungeKuttaJacobian(const Eigen::VectorXd& state, const Eigen::MatrixXd& jacobian, double dt){
         Eigen::VectorXd k1, k2, k3, k4;
         Eigen::VectorXd nextState;
-        
         k1 = dt * computeDerivativeJacobian(state, jacobian);
         k2 = dt * computeDerivativeJacobian(state + 0.5 * k1, jacobian);
         k3 = dt * computeDerivativeJacobian(state + 0.5 * k2, jacobian);
         k4 = dt * computeDerivativeJacobian(state + k3, jacobian);
-
         nextState = state + (k1 + 2.0 * k2 + 2.0 * k3 + k4) / 6.0;
         return nextState;
     }

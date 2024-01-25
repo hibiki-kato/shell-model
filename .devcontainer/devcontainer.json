@@ -1,7 +1,7 @@
 // For format details, see https://aka.ms/devcontainer.json. For config options, see the
 // README at: https://github.com/devcontainers/templates/tree/main/src/cpp
 {
-	"name": "C++",
+	"name": "SM",
 	"build": {
 		"dockerfile": "Dockerfile"
 	},
@@ -31,7 +31,14 @@
 				"MS-CEINTL.vscode-language-pack-ja",
 				"ms-vscode.makefile-tools",
 				"GitHub.copilot",
-				"cschlosser.doxdocgen"
+				"cschlosser.doxdocgen",
+				"ms-python.vscode-pylance",
+				"ms-python.python",
+				"donjayamanne.python-environment-manager",
+				"donjayamanne.python-extension-pack",
+				"ms-toolsai.vscode-jupyter-slideshow",
+				"ms-toolsai.vscode-jupyter-cell-tags",
+				"ms-toolsai.jupyter"
 			]
 		}
 	}

@@ -1,16 +1,3 @@
-                                                      █                                     █
-█████                            █                    █     ██                              █         ██
-█    █                                                █     ██                              █         ██
-█    █   ███   █████ ███   ███   █  █ ███   ███    ████    ████  ███      █   █  █████   ████   ███  ████  ███
-█    █  ██  █  ██  ██  █  █  ██  █  ██  █  ██  █  ██  █     ██  ██  █     █   █  ██  █  ██  █  █  ██  ██  ██  █
-█████   █   █  █   █   ██     █  █  █   █  █   █  █   █     ██  █   ██    █   █  █   ██ █   █      █  ██  █   █
-█   █   █████  █   █   ██  ████  █  █   █  █████  █   █     ██  █    █    █   █  █   ██ █   █   ████  ██  █████
-█   ██  █      █   █   ██ █   █  █  █   █  █      █   █     ██  █   ██    █   █  █   ██ █   █  █   █  ██  █
-█    █  ██  █  █   █   ██ █  ██  █  █   █  ██  █  ██  █     ██  ██  █     █   █  ██  █  ██  █  █  ██  ██  ██  █
-█    ██  ████  █   █   ██ █████  █  █   █   ████   ████      ██  ███       ████  █████   ████  █████   ██  ████
-                                                                                 █
-                                                                                 █
-                                                                                 █
 /**
  * @file phase_diff.cpp
  * @author Hibiki Kato
@@ -27,28 +14,25 @@
 #include <eigen3/Eigen/Dense>
 #include <complex>
 #include <cmath>
+#include <chrono>
 #include <utility> // std::pair用
 #include "shared/Flow.hpp"
 #include "shared/myFunc.hpp"
-#include <chrono>
-#include "cnpy/cnpy.h"
 #include "shared/matplotlibcpp.h"
 #include "shared/Eigen_numpy_converter.hpp"
 
 namespace plt = matplotlibcpp;
-int shift(double pre_theta, double theta, int rotation_number);
 
 int main(){
     auto start = std::chrono::system_clock::now(); // 計測開始時間
     SMparams params;
-    params.nu = 0.00018;
-    params.beta = 0.5;
+    params.nu = 0.000176;
+    params.beta = 0.416;
     params.f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
     double dt =.01;
     double t_0 = 0;
     double t = 1e+5;
-
-    double dump =
+    double dump = 1e+5;
     int threads = omp_get_max_threads();
     Eigen::VectorXcd x_0 = npy2EigenVec<std::complex<double>>("../../initials/beta0.417_nu0.00018_5000period_dt0.01_5-8_5-11_5-14_8-11_8-14_11-14_6-9_6-12_9-12.npy");
 
@@ -73,9 +57,9 @@ int main(){
     // sync_pairs.push_back(std::make_pair(6, 12));
     // sync_pairs.push_back(std::make_pair(9, 12));
 
-    ShellModel solver(nu, beta, f, ddt, t_0, t, latter, x_0);
+    ShellModel SM(params, dt, t_0, t, dump, x_0);
     std::cout << "calculating trajectory" << std::endl;
-    Eigen::MatrixXcd trajectory = solver.get_trajectory_(); //wide matrix
+    Eigen::MatrixXcd trajectory = SM.get_trajectory(); //wide matrix
     // Eigen::MatrixXcd trajectory = npy2EigenMat<std::complex<double>>("../../generated_lam/sync_gen_laminar_beta_0.43nu_0.00018_dt0.01_5000period3000check100progress10^-8-10^-5perturb_4-7_4-10_4-13_7-10_7-13_10-13_5-8_5-11_5-14_8-11_8-14_11-14_6-9_6-12_9-12.npy"); //wide matrix
     // Eigen::MatrixXcd trajectory = trajectory_.leftCols(500000);
     Eigen::MatrixXd angles = trajectory.topRows(trajectory.rows()-1).cwiseArg().transpose(); //tall matrix
@@ -90,7 +74,7 @@ int main(){
                 continue;
             }
             //　unwrapされた角度と回転数を返す
-            int  n= shift(angles(j-1, i), angles(j, i), rotation_number);
+            int  n= myfunc::shift(angles(j-1, i), angles(j, i), rotation_number);
             // 一個前の角度に回転数を加える
             angles(j-1, i) += rotation_number * 2 * M_PI;
             // 回転数を更新
@@ -163,17 +147,4 @@ int main(){
     plt::save(plotfname);
 
     myfunc::duration(start);
-}
-
-int shift(double pre_theta, double theta, int rotation_number){
-    //forward
-    if ((theta - pre_theta) < -M_PI){
-        rotation_number += 1;
-    }
-    //backward
-    else if ((theta - pre_theta) > M_PI){
-        rotation_number -= 1;
-    }
-
-    return rotation_number;
 }

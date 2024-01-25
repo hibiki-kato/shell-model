@@ -204,9 +204,9 @@ namespace myfunc{
                     if (success){
                         continue;
                     }
-                    // if (omp_get_thread_num() == 0){
-                    //     if (j%100000 == 0) std::cout << "\r " << counter << "試行　最高" << max_duration << "/"<< check << std::flush;
-                    // }
+                    if (omp_get_thread_num() == 0){
+                        if (j%100000 == 0) std::cout << "\r " << counter << "試行　最高" << max_duration << "/"<< check << " " << std::flush;
+                    }
 
                     bool Local_laminar = true; // flag
                     MapObj Local_MO = MO; // copy of MO
@@ -253,7 +253,7 @@ namespace myfunc{
                             if (perturbation_size < min_perturbation){
                                 min_perturbation = perturbation_size;
                             }
-                            std::cout << counter << "trial. overall perturbation scale here is " << perturbation_size << std::endl;
+                            std::cout << counter << "trial Overall perturbation scale here is " << perturbation_size << std::endl;
                             MO.x_0 = Local_trajectory.col(progress);
                             calced_laminar.middleCols(i*progress, progress+1) = Local_trajectory;
                             success = true;
@@ -275,3 +275,5 @@ namespace myfunc{
         return calced_laminar;
     }
 }
+
+

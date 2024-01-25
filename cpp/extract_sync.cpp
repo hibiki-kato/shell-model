@@ -11,31 +11,27 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <chrono>
 #include <eigen3/Eigen/Dense>
 #include <complex>
 #include <cmath>
 #include <utility> // std::pair用
 #include "shared/Flow.hpp"
 #include "shared/myFunc.hpp"
-#include <chrono>
-#include "cnpy/cnpy.h"
 #include "shared/matplotlibcpp.h"
+#include "shared/Eigen_numpy_converter.hpp"
 namespace plt = matplotlibcpp;
-void EigenMt2npy(Eigen::MatrixXcd Mat, std::string fname);
-Eigen::VectorXcd npy2EigenVec<std::complex<double>>(const char* fname);
-int shift(double pre_theta, double theta, int rotation_number);
-bool isSync(double a, double b, double epsilon);
 
 int main(){
     auto start = std::chrono::system_clock::now(); // 計測開始時間
     SMparams params;
     params.nu = 1.8e-4;
-    params.beta = 0.417;
+    params.beta = 0.4165;
     params.f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
     double dt = 0.01;
     double t_0 = 0;
-    double t = 5e+5;
-    double dump = 1;
+    double t = 5e+4;
+    double dump = 1e+4;
     int numthreads = omp_get_max_threads();
     int window = 1000; // how long the sync part should be. (sec)
     window *= 100; // 100 when dt = 0.01 
@@ -61,14 +57,14 @@ int main(){
 
         sync_pairs.push_back(std::make_tuple(6, 9, 2.3));
         sync_pairs.push_back(std::make_tuple(6, 12, 2.3));
-        sync_pairs.push_back(std::make_tuple(9, 12, 0.3));    
+        sync_pairs.push_back(std::make_tuple(9, 12, 0.3));   
 
     // sync_pairs.push_back(std::make_tuple(1, 2, 4)); // dummy to check unextracted trajectory
 
-    Eigen::VectorXcd x_0 = npy2EigenVec<std::complex<double>>("../../initials/beta0.417_nu0.00018_5000period_dt0.01_5-8_5-11_5-14_8-11_8-14_11-14_6-9_6-12_9-12.npy");
-    ShellModel solver(nu, beta, f, dt, t_0, t, latter, x_0);
+    Eigen::VectorXcd x_0 = npy2EigenVec<std::complex<double>>("../initials/beta0.417_nu0.00018_3000period_dt0.01_4-7_4-10_4-13_7-10_7-13_10-13_5-8_5-11_5-14_8-11_8-14_11-14_6-9_6-12_9-12.npy", true);
+    ShellModel SM(params, dt, t_0, t, dump, x_0);
     std::cout << "calculating trajectory" << std::endl;
-    Eigen::MatrixXcd trajectory = solver.get_trajectory_(); //wide matrix
+    Eigen::MatrixXcd trajectory = SM.get_trajectory(); //wide matrix
     Eigen::MatrixXd angles = trajectory.topRows(trajectory.rows()-1).cwiseArg().transpose(); //tall matrix
 
     std::cout << "unwrapping angles" << std::endl;
@@ -80,7 +76,7 @@ int main(){
                 continue;
             }
             //　unwrapされた角度と回転数を返す
-            int  n= shift(angles(j-1, i), angles(j, i), rotation_number);
+            int  n= myfunc::shift(angles(j-1, i), angles(j, i), rotation_number);
             // 一個前の角度に回転数を加える
             angles(j-1, i) += rotation_number * 2 * M_PI;
             // 回転数を更新
@@ -98,7 +94,7 @@ int main(){
         bool allSync = true; // flag 
         for (const auto& pair : sync_pairs){
             // if any pair is not sync, allSync is false
-            if(! isSync(angles(i, std::get<0>(pair)-1), angles(i, std::get<1>(pair)-1), std::get<2>(pair))){
+            if(! myfunc::isSync(angles(i, std::get<0>(pair)-1), angles(i, std::get<1>(pair)-1), std::get<2>(pair))){
                 allSync = false;
                 break;
             }
@@ -106,14 +102,15 @@ int main(){
 
         if (allSync){
             counter++;
-        }
-        else{
+        }else{
             if (counter >= window){
                 //adding synchronized part to synced
                 for (int j = 0 + trim; j < counter - 1 - trim; j++){
-                    for (int k = 0; k < angles.cols() + 1; k++){
-                        synced[k].push_back(trajectory(k, j + i - counter));
+                    for (int k = 0; k < angles.cols(); k++){
+                        // synced[k].push_back(trajectory(k, j + i - counter));
+                        synced[k].push_back(angles(j + i - counter, k));
                     }
+                    synced[14].push_back(trajectory(angles.cols(), j + i - counter));
                 }
             }
             counter = 0;
@@ -122,9 +119,11 @@ int main(){
     //adding last part to synced
     if (counter >= window){
         for (int j = 0 + counter/6; j < counter - 1 - counter/10; j++){
-            for (int k = 0; k < angles.cols() + 1; k++){
-                synced[k].push_back(trajectory(k, j + angles.rows() - counter));
+            for (int k = 0; k < angles.cols(); k++){
+                // synced[k].push_back(trajectory(k, j + angles.rows() - counter));
+                synced[k].push_back(angles(j + angles.rows() - counter, k));
             }
+            synced[14].push_back(trajectory(angles.cols(), j + angles.rows() - counter));
         }
     }
     /*
@@ -145,22 +144,30 @@ int main(){
     int skip = 1; // plot every skip points
     std::map<std::string, std::string> plotSettings;
     plotSettings["font.family"] = "Times New Roman";
-    plotSettings["font.size"] = "15";
+    plotSettings["font.size"] = "25";
     plt::rcparams(plotSettings);
     // Set the size of output image = 1200x780 pixels
-    plt::figure_size(1500, 600);
-    
-    std::map<std::string, double> keywords;
-    std::vector<double> x(synced[0].size()/skip),y(synced[0].size()/skip);
-    for (int i = 0; i < x.size(); i++){
-        x[i] = std::abs(synced[14][i*skip]);
-        y[i] = std::abs(synced[0][i*skip]);
-    }
-    // plt::xlim(0.0, 0.4);
-    plt::ylim(0.5, 1.2);
+    plt::figure_size(1500, 700);
+    plt::xlim(0.0, t);
     plt::xlabel("$t [sec]$");
-    plt::ylabel("$|U_{1}|$");
-    plt::scatter(x, y);
+    // plt::ylabel("$|U_{1}|$");
+    plt::ylabel("$|\\phi_{6} - \\phi_{9}|$");
+    std::vector<double> x_(trajectory.cols()),y_(trajectory.cols());
+    for (int i = 0; i < trajectory.cols(); i++){
+        x_[i] = std::abs(trajectory(14, i));
+        y_[i] = std::abs(angles(i, 5) - angles(i, 8));
+    }
+    std::map<std::string, std::string> keywords;
+    // keywords["alpha"] = "0.5";
+    keywords["color"] = "lightgray";
+    plt::scatter(x_, y_, 1.0, keywords);
+
+    std::vector<double> x(synced[0].size()/skip),y(synced[0].size()/skip);
+    for (int i = 0; i < y.size(); i++){
+        x[i] = std::abs(synced[14][i*skip]);
+        y[i] = std::abs(synced[5][i*skip] - synced[8][i*skip]);
+    }
+    plt::scatter(x, y, 5);
 
     std::ostringstream oss;
     oss << "../../sync/sync_beta" << params.beta << "nu" << params.nu <<"_"<< t-t_0 << "period" <<  window <<"window";
@@ -188,80 +195,23 @@ int main(){
                                                               █      ███
     */
         // reset oss
-    oss.str("");
-    oss << "../../sync/npy/sync_beta" << params.beta << "nu" << params.nu <<"_"<< t-t_0 << "period" <<  window <<"window";
-    for (const auto& pair : sync_pairs){
-        oss << "_" << std::get<0>(pair) << "-" << std::get<1>(pair);
-    }
-    oss << ".npy";
+    // oss.str("");
+    // oss << "../../sync/npy/sync_beta" << params.beta << "nu" << params.nu <<"_"<< t-t_0 << "period" <<  window <<"window";
+    // for (const auto& pair : sync_pairs){
+    //     oss << "_" << std::get<0>(pair) << "-" << std::get<1>(pair);
+    // }
+    // oss << ".npy";
 
-    std::string fname = oss.str(); // 文字列を取得する
-    std::cout << "Saving result to " << fname << std::endl;
-    Eigen::MatrixXcd matrix(synced.size(), synced[0].size());
-    for (int i = 0; i < synced.size(); i++) {
-        for (int j = 0; j < synced[0].size(); j++) {
-            matrix(i, j) = synced[i][j];
-        }
-    }
+    // std::string fname = oss.str(); // 文字列を取得する
+    // std::cout << "Saving result to " << fname << std::endl;
+    // Eigen::MatrixXcd matrix(synced.size(), synced[0].size());
+    // for (int i = 0; i < synced.size(); i++) {
+    //     for (int j = 0; j < synced[0].size(); j++) {
+    //         matrix(i, j) = synced[i][j];
+    //     }
+    // }
     // EigenMt2npy(matrix, fname);
 
     myfunc::duration(start);
 }
 
-Eigen::VectorXcd npy2EigenVec<std::complex<double>>(const char* fname){
-    std::string fname_str(fname);
-    cnpy::NpyArray arr = cnpy::npy_load(fname_str);
-    if (arr.word_size != sizeof(std::complex<double>)) {
-        throw std::runtime_error("Unsupported data type in the npy file.");
-    }
-    std::complex<double>* data = arr.data<std::complex<double>>();
-    Eigen::Map<Eigen::VectorXcd> vec(data, arr.shape[0]);
-    return vec;
-}
-
-void EigenMt2npy(Eigen::MatrixXcd Mat, std::string fname){
-    Eigen::MatrixXcd transposed = Mat.transpose();
-    // map to const mats in memory
-    Eigen::Map<const Eigen::MatrixXcd> MOut(&transposed(0,0), transposed.cols(), transposed.rows());
-    // save to np-arrays files
-    cnpy::npy_save(fname, MOut.data(), {(size_t)transposed.cols(), (size_t)transposed.rows()}, "w");
-}
-
-int shift(double pre_theta, double theta, int rotation_number){
-    //forward
-    if ((theta - pre_theta) < -M_PI){
-        rotation_number += 1;
-    }
-    //backward
-    else if ((theta - pre_theta) > M_PI){
-        rotation_number -= 1;
-    }
-
-    return rotation_number;
-}
-
-/**
- * @brief given 2 angles, check if they are in sync
- * 
- * @param a : angle 1
- * @param b  : angle 2
- * @param epsilon : tolerance
- * @return true : sync
- * @return false : not sync
- */
-bool isSync(double a, double b, double epsilon) {
-    int n = 0;
-    double lowerBound = 2 * n * M_PI - epsilon;
-    double upperBound = 2 * n * M_PI + epsilon;
-    
-    while (lowerBound <= std::abs(a - b)) {
-        if (lowerBound <= std::abs(a - b) && std::abs(a - b) <= upperBound) {
-            // std::cout << std::abs(a-b) << std::endl;
-            return true;
-        }
-        n++;
-        lowerBound = 2 * n * M_PI - epsilon;
-        upperBound = 2 * n * M_PI + epsilon;
-    }
-    return false;
-}

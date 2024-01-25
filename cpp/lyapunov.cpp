@@ -1,36 +1,17 @@
-                                                      █                                     █
-█████                            █                    █     ██                              █         ██
-█    █                                                █     ██                              █         ██
-█    █   ███   █████ ███   ███   █  █ ███   ███    ████    ████  ███      █   █  █████   ████   ███  ████  ███
-█    █  ██  █  ██  ██  █  █  ██  █  ██  █  ██  █  ██  █     ██  ██  █     █   █  ██  █  ██  █  █  ██  ██  ██  █
-█████   █   █  █   █   ██     █  █  █   █  █   █  █   █     ██  █   ██    █   █  █   ██ █   █      █  ██  █   █
-█   █   █████  █   █   ██  ████  █  █   █  █████  █   █     ██  █    █    █   █  █   ██ █   █   ████  ██  █████
-█   ██  █      █   █   ██ █   █  █  █   █  █      █   █     ██  █   ██    █   █  █   ██ █   █  █   █  ██  █
-█    █  ██  █  █   █   ██ █  ██  █  █   █  ██  █  ██  █     ██  ██  █     █   █  ██  █  ██  █  █  ██  ██  ██  █
-█    ██  ████  █   █   ██ █████  █  █   █   ████   ████      ██  ███       ████  █████   ████  █████   ██  ████
-                                                                                 █
-                                                                                 █
-                                                                                 █
 #include <iostream>
 #include <fstream>
+#include <sstream>
 #include <vector>
 #include <complex>
 #include <cmath>
-#include <math.h>
-#include <random>
 #include <chrono>
-#include <numeric>
-#include <omp.h>
 #include <eigen3/Eigen/Dense>
-#include <eigen3/Eigen/Core>
 #include "shared/Flow.hpp"
 #include "shared/myFunc.hpp"
-#include "cnpy/cnpy.h"
 #include "shared/matplotlibcpp.h"
 #include "shared/Eigen_numpy_converter.hpp"
 namespace plt = matplotlibcpp;
 
-using namespace Eigen;
 
 // メイン関数
 int main() {
@@ -42,19 +23,18 @@ int main() {
     double dt = 0.01;
     double t_0 = 0;
     double t = 5e+4;
-    double dump =;
-    int threads = omp_get_max_threads();
-    Eigen::VectorXcd x_0 = npy2EigenVec<std::complex<double>>("../../initials/beta0.44_nu0.00018_10000period_dt0.01_4-7_4-10_4-13_7-10_7-13_10-13_5-8_5-11_5-14_8-11_8-14_11-14_6-9_6-12_9-12.npy");
+    double dump =1e+4;
+    int numThreads = 1;
+    Eigen::VectorXcd x_0 = npy2EigenVec<std::complex<double>>("../initials/beta0.4163_nu0.00018_10000period_dt0.01.npy", true);
     
-    ShellModel SM(params, dt, t_0, t, latter, x_0);
+    ShellModel SM(params, dt, t_0, t, dump, x_0);
     std::cout << "calculating trajectory" << std::endl;
     // bool laminar = false;
     // Eigen::MatrixXcd rawData = SM.get_trajectory_();
     // データの読み込みをここに記述
     bool laminar = true;
-    Eigen::MatrixXcd rawData = npy2EigenMat<std::complex<double>>("../../generated_lam/generated_laminar_beta_0.417nu_0.00018_dt0.01_50000period1300check200progresseps0.05.npy");
-    
-    
+    Eigen::MatrixXcd rawData = npy2EigenMat<std::complex<double>>("../generated_lam/generated_laminar_beta_0.417nu_0.00018_dt0.01_50000period1300check200progresseps0.05.npy", true);
+
     int dim = rawData.rows() - 1;
     // データの整形(実関数化)
     Eigen::MatrixXd Data(dim*2, rawData.cols());
@@ -63,44 +43,7 @@ int main() {
         Data.row(2*i+1) = rawData.row(i).imag();
     }
 
-    int numTimeSteps = Data.cols();
-    int numVariables = Data.rows();
-    //任意の直行行列を用意する
-    MatrixXd Base = Eigen::MatrixXd::Random(numVariables, numVariables);
-    HouseholderQR<MatrixXd> qr_1(Base);
-    Base = qr_1.householderQ();
-    // 総和の初期化
-    VectorXd sum = Eigen::VectorXd::Zero(numVariables);
-    // 次のステップ(QR分解されるもの)
-    MatrixXd next(numVariables, numVariables);
-
-    for (int i = 0; i < numTimeSteps; ++i) {
-        std::cout << "\r processing..." << i << "/" << numTimeSteps << std::flush;
-        VectorXd state = Data.col(i);
-        // ヤコビアンの計算
-        Eigen::MatrixXd jacobian = computeJacobian(state, SM.get_k_n_(), SM.get_beta_(), SM.get_nu_());
-        // ヤコビアンとBase(直行行列)の積を計算する
-        #pragma omp paralell for num_threads(threads)
-        for (int j = 0; j < numVariables; ++j) {
-            next.col(j) = rungeKuttaJacobian(Base.col(j), jacobian, dt);
-        }
-
-        // QR分解を行う
-        HouseholderQR<MatrixXd> qr(next);
-        // 直交行列QでBaseを更新
-        Base = qr.householderQ();
-        // Rの対角成分を総和に加える
-        Eigen::MatrixXd R = qr.matrixQR().triangularView<Eigen::Upper>();
-        // Rの対角成分の絶対値のlogをsumにたす
-        Eigen::VectorXd diag = R.diagonal().cwiseAbs().array().log();
-        sum += diag;
-        if (i % 10000 == 0){
-            std::cout << "\r" <<  sum(0) / (i+1) / dt << std::flush;
-        }
-
-    }
-
-    VectorXd lyapunovExponents = sum.array() / numTimeSteps / dt;
+    Eigen::VectorXd lyapunovExponents = myfunc::calcLyapunovExponent(SM, Data, numThreads);
 
     // 結果の表示
     std::cout << lyapunovExponents.rows() << std::endl;

@@ -4,7 +4,6 @@
 #include <complex>
 #include <cmath>
 #include <chrono>
-#include "cnpy/cnpy.h"
 #include "shared/Flow.hpp"
 #include "shared/myFunc.hpp"
 #include "shared/Eigen_numpy_converter.hpp"
@@ -16,25 +15,24 @@ int main(){
     SMparams params;
     params.nu = 4e-5;
     params.beta = 0.5;
-    params.f = std::complex<double>(1.0,0.0) * 5.0 * 0.001;
-    double dt = 0.001;
+    params.f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
+    double dt = 0.01;
     double t_0 = 0;
     double t = 400;
     double dump = 0;
-    Eigen::VectorXcd x_0 = npy2EigenVec<std::complex<double>>("../initials/beta0.5_nu1e-05_15dim_period.npy", true);
+    Eigen::VectorXcd x_0 = npy2EigenVec<std::complex<double>>("../initials/beta0.5_nu4e-05_15dim.npy", true);
     ShellModel SM(params, dt, t_0, t, dump, x_0);
     int perturbed_dim = 13;
     int numThreads = omp_get_max_threads();
-    double epsilon = 1e-5;
-    int repetitions = 1000;
-    int sampling_rate = 1000; // sampling rate for error growth rate
+    double epsilon = std::abs(x_0(perturbed_dim - 1)) * 1e-2;
+    int repetitions = 1e+3;
+    int sampling_rate = 100; // sampling rate for error growth rate
     std::cout << numThreads << "threads" << std::endl;
 
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_real_distribution<double> s(-1, 1);
     Eigen::VectorXd time(SM.steps + 1); //　時間を格納するベクトル
-    Eigen::MatrixXd errors(x_0.size(), SM.steps + 1);// 各試行の誤差を格納する行列
     int counter = 0; // just for progress bar
 
     /*
@@ -52,10 +50,13 @@ int main(){
                                                                 █   █
                                                                  ███
     */
+    Eigen::VectorXd average_errors(SM.steps + 1); // 誤差の平均を格納するベクトル
+    #pragma omp declare reduction(+ : Eigen::VectorXd : omp_out = omp_out + omp_in) \
+        initializer(omp_priv = Eigen::VectorXd::Zero(omp_orig.size()))
 
-    #pragma omp parallel for num_threads(numThreads) schedule(dynamic) firstprivate(SM, perturbed_dim, repetitions) shared(errors, time, counter)
+    #pragma omp parallel for num_threads(numThreads) schedule(dynamic) firstprivate(SM, perturbed_dim, repetitions) shared(time, counter) reduction(+ : average_errors)
     for(int i = 0; i < repetitions; i++){
-        SM.x_0 = myfunc::multi_scale_perturbation(SM.x_0, -1, 0); // 初期値をランダムに与える
+        SM.x_0 = myfunc::multi_scale_perturbation(SM.x_0, -3, -2); // 初期値をランダムに与える
         // ある程度まともな値になるように初期値を更新
         for (int j = 0; j < 1e+5; j++) {
             SM.x_0 = SM.rk4(SM.x_0);
@@ -63,21 +64,31 @@ int main(){
 
         // ここから本番
         //まずは元の軌道を計算
-        Eigen::MatrixXcd origin = SM.get_trajectory();
+        Eigen::MatrixXcd original = SM.get_trajectory();
+        if (i == 0) {
+            time = original.bottomRows(1).cwiseAbs().row(0);
+        }
 
         // 初期値の指定した変数にだけ摂動を与える
         SM.x_0(perturbed_dim - 1) += epsilon * std::complex<double>(s(gen), s(gen));
+        // SM.x_0(perturbed_dim - 1) += epsilon;
         Eigen::MatrixXcd another = SM.get_trajectory();
+
+        // 誤差の計算
+        //差をとる
+        Eigen::MatrixXcd diff = original.topRows(original.rows() - 1) - another.topRows(another.rows() - 1);
+        Eigen::VectorXd errors(SM.steps+1);
+        // 各列のノルムを計算
+        for (int j = 0; j < SM.steps; j++) {
+            errors(j) = diff.col(j).norm();
+        }
+
+        average_errors += errors / repetitions;
 
         #pragma atomic
         counter++; // just for progress bar
-        #pragma omp critical
-        {
-            errors += (origin.topRows(origin.rows() - 1) - another.topRows(another.rows() - 1)).cwiseAbs2() / repetitions;
+        if (omp_get_thread_num() == 0){
             std::cout << "\r processing..." << counter << "/" << repetitions << std::flush;
-        }
-        if (i == 0) {
-            time = origin.bottomRows(1).cwiseAbs().row(0);
         }
     }
 
@@ -97,8 +108,6 @@ int main(){
                               █                    ███                                              ███
     */
 
-    Eigen::VectorXd average_errors = errors.colwise().sum().array().sqrt();
-
     // sampling
     int sampling_num = average_errors.size() / sampling_rate;
     Eigen::VectorXd sampled_time(sampling_num);
@@ -109,9 +118,12 @@ int main(){
     }
 
     // error growth rate
-    Eigen::VectorXd growth_rate = (sampled_errors.tail(sampled_errors.size() - 2).array().log() - sampled_errors.head(sampled_errors.size() - 2).array().log()) / (SM.dt*sampling_rate*2);
-    // Eigen::VectorXd growth_rate = (sampled_errors.tail(sampled_errors.size() - 6).array().log() - 9*sampled_errors.segment(5, sampled_errors.size() - 6).array().log() + 45*sampled_errors.segment(4, sampled_errors.size() - 6).array().log() - 45*sampled_errors.segment(2, sampled_errors.size() - 6).array().log() + 9*sampled_errors.segment(1, sampled_errors.size() - 6).array().log() - sampled_errors.head(sampled_errors.size() - 6)).array().log() / (60*ddt);
-    std::cout << "here" << std::endl;
+    // Eigen::VectorXd growth_rate = (sampled_errors.tail(sampled_errors.size() - 2).array().log() - sampled_errors.head(sampled_errors.size() - 2).array().log()) / (SM.dt*sampling_rate*2);
+    Eigen::VectorXd growth_rate(sampled_errors.size() - 2);
+    for (int i = 0; i < sampled_errors.size() - 2; i++) {
+        growth_rate(i) = (std::log(sampled_errors(i + 2)) - std::log(sampled_errors(i))) / (SM.dt*sampling_rate*2);
+    }
+
     /*
             █
     ██████  █         ██  ██  █
@@ -131,7 +143,13 @@ int main(){
     std::vector<double> error_vec(sampled_errors.data(), sampled_errors.data() + sampled_errors.size());
     std::vector<double> growth_rate_vec(growth_rate.data(), growth_rate.data() + growth_rate.size());
     std::vector<double> time_vec(sampled_time.data(), sampled_time.data() + sampled_time.size());
-    // error_vecとtime_vecの先頭と末尾を削除
+    // // error_vecとtime_vecの先頭と末尾を1秒削除
+    int start_ = static_cast<int>(1.0 / (SM.dt * sampling_rate));
+    for (int i = 0; i < start_; i++) {
+        error_vec.erase(error_vec.begin());
+        growth_rate_vec.erase(growth_rate_vec.begin());
+        time_vec.erase(time_vec.begin());
+    }
     error_vec.erase(error_vec.begin());
     error_vec.pop_back();
     time_vec.erase(time_vec.begin());
@@ -154,7 +172,7 @@ int main(){
 
     // エラー : 時間
     plt::figure_size(1000, 1000);
-    // plt::xscale("log");
+    plt::yscale("log");
     plt::scatter(time_vec, error_vec);
     plt::xlabel("t");
     plt::ylabel("E");
