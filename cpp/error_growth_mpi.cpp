@@ -1,22 +1,27 @@
 #include <iostream>
 #include <sstream>
+#include <fstream>
 #include <eigen3/Eigen/Dense>
 #include <complex>
 #include <cmath>
 #include <chrono>
+#include <omp.h>
+#include <random>
+#include <string>
 #include "shared/Flow.hpp"
 #include "shared/myFunc.hpp"
 #include "shared/Eigen_numpy_converter.hpp"
-#include "shared/matplotlibcpp.h"
-namespace plt = matplotlibcpp;
 
-int main(){
+int main(int argc, char *argv[]) {
     auto start = std::chrono::system_clock::now(); // 計測開始時間
+    MPI_Init(&argc, &argv);
+    int num_procs;
+    int my_rank;
     SMparams params;
     params.nu = 4e-5;
     params.beta = 0.5;
     params.f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
-    double dt = 0.001;
+    double dt = 0.01;
     double t_0 = 0;
     double t = 400;
     double dump = 0;
@@ -25,7 +30,7 @@ int main(){
     int perturbed_dim = 13;
     int numThreads = omp_get_max_threads();
     double epsilon = 1e-2;
-    int repetitions = 1e+3;
+    int repetitions = 1e+1;
     int sampling_rate = 1; // sampling rate for error growth rate
     std::cout << numThreads << "threads" << std::endl;
 
@@ -60,7 +65,8 @@ int main(){
     for(int i = 0; i < repetitions; i++){
         SM.x_0 = myfunc::multi_scale_perturbation(SM.x_0, -3, -2); // 初期値をランダムに与える
         // ある程度まともな値になるように初期値を更新
-        for (int j = 0; j < 5e+4; j++) {
+        int sec_500 = static_cast<int>(500 / SM.dt);
+        for (int j = 0; j < sec_500; j++) {
             SM.x_0 = SM.rk4(SM.x_0);
         }
 
@@ -141,7 +147,7 @@ int main(){
                                         █   █
                                          ███
     */
-
+    
     std::vector<double> error_vec(sampled_errors.data(), sampled_errors.data() + sampled_errors.size());
     std::vector<double> growth_rate_vec(growth_rate.data(), growth_rate.data() + growth_rate.size());
     std::vector<double> time_vec(sampled_time.data(), sampled_time.data() + sampled_time.size());
@@ -196,7 +202,6 @@ int main(){
     std::string plotfname2 = oss.str(); // 文字列を取得する
     std::cout << "Saving result to " << plotfname2 << std::endl;
     plt::save(plotfname2);
-
     /*
      ████                          ██
     ██  ██                         ██
@@ -222,5 +227,7 @@ int main(){
     std::string fname = oss2.str(); // 文字列を取得する
     std::cout << "Saving result to " << fname << std::endl;
     EigenMat2npy(result, fname);
-    myfunc::duration(start);
+    if (my_rank == 0) {
+        myfunc::duration(start);
+    }
 }

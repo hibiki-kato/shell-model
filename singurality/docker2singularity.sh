@@ -1,0 +1,1 @@
+singularity  pull sm-image.file docker://katohibiki/shell_model:latest

@@ -11,6 +11,8 @@ RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
     sudo \
     cmake \
     ninja-build \
+    libopenmpi-dev \
+    openmpi-bin \
     libeigen3-dev \
     libpython3-all-dev \
     python3-numpy \
