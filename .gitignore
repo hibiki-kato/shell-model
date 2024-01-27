@@ -1,7 +1,7 @@
 *.o
 *.out
 *.npy
-*.file
+*.sif
 
 .vscode/
 turbulent_laminar_search/

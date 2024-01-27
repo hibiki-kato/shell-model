@@ -1,3 +1,13 @@
+/**
+ * @file error_growth_mpi.cpp
+ * @author Hibiki Kato
+ * @brief error growthの計算をMPIで並列化
+ * @version 0.1
+ * @date 2024-01-27
+ * 
+ * @copyright Copyright (c) 2024
+ * 
+ */
 #include <iostream>
 #include <sstream>
 #include <fstream>
@@ -6,17 +16,25 @@
 #include <cmath>
 #include <chrono>
 #include <omp.h>
+#include <mpi.h>
 #include <random>
 #include <string>
 #include "shared/Flow.hpp"
 #include "shared/myFunc.hpp"
 #include "shared/Eigen_numpy_converter.hpp"
+#include "shared/matplotlibcpp.h"
+namespace plt = matplotlibcpp;
 
 int main(int argc, char *argv[]) {
     auto start = std::chrono::system_clock::now(); // 計測開始時間
+    
     MPI_Init(&argc, &argv);
     int num_procs;
     int my_rank;
+    MPI_Comm_size(MPI_COMM_WORLD, &num_procs);
+    MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
+
+    std::cout << "my_rank: " << my_rank << " num_procs: " << num_procs << std::endl;
     SMparams params;
     params.nu = 4e-5;
     params.beta = 0.5;
@@ -30,9 +48,15 @@ int main(int argc, char *argv[]) {
     int perturbed_dim = 13;
     int numThreads = omp_get_max_threads();
     double epsilon = 1e-2;
-    int repetitions = 1e+1;
+    int repetitions = 5e+4;
     int sampling_rate = 1; // sampling rate for error growth rate
     std::cout << numThreads << "threads" << std::endl;
+    //MPI用にrepetitionsを分割
+    std::vector<int> ite(num_procs);
+    for (int i = 0; i < num_procs - 1; i++) {
+        ite[i] = static_cast<int>(repetitions / num_procs);
+    }
+    ite[num_procs - 1] = repetitions - (num_procs - 1) * static_cast<int>(repetitions / num_procs);
 
     std::random_device rd;
     std::mt19937 gen(rd());
@@ -57,12 +81,11 @@ int main(int argc, char *argv[]) {
     */
     Eigen::VectorXd average_errors(SM.steps + 1); // 誤差の平均を格納するベクトル
     Eigen::VectorXd time(SM.steps + 1); //　時間を格納するベクトル
-    int counter = 0; // just for progress bar
     #pragma omp declare reduction(+ : Eigen::VectorXd : omp_out = omp_out + omp_in) \
         initializer(omp_priv = Eigen::VectorXd::Zero(omp_orig.size()))
 
-    #pragma omp parallel for num_threads(numThreads) schedule(dynamic) firstprivate(SM, perturbed_dim, repetitions, epsilon) shared(time, counter) reduction(+ : average_errors)
-    for(int i = 0; i < repetitions; i++){
+    #pragma omp parallel for num_threads(numThreads) schedule(dynamic) firstprivate(SM, perturbed_dim, epsilon, ite, my_rank) shared(time) reduction(+ : average_errors)
+    for(int i = 0; i < ite[my_rank]; i++){
         SM.x_0 = myfunc::multi_scale_perturbation(SM.x_0, -3, -2); // 初期値をランダムに与える
         // ある程度まともな値になるように初期値を更新
         int sec_500 = static_cast<int>(500 / SM.dt);
@@ -92,12 +115,20 @@ int main(int argc, char *argv[]) {
         }
 
         average_errors += errors / repetitions;
-
-        #pragma atomic
-        counter++; // just for progress bar
-        if (omp_get_thread_num() == 0){
-            std::cout << "\r processing..." << counter << "/" << repetitions << std::flush;
-        }
+    }
+    MPI_Reduce(
+        &average_errors(0), // sendbuf
+        &average_errors(0), // recvbuf
+        average_errors.size(), // count
+        MPI_DOUBLE, // datatype
+        MPI_SUM, // op
+        0, // root
+        MPI_COMM_WORLD // comm
+    );
+    //以下並列化しないのでmy_rank=0のプロセスだけ残す
+    if (my_rank!= 0){
+        MPI_Finalize();
+        return 0;
     }
 
     /*
@@ -227,7 +258,7 @@ int main(int argc, char *argv[]) {
     std::string fname = oss2.str(); // 文字列を取得する
     std::cout << "Saving result to " << fname << std::endl;
     EigenMat2npy(result, fname);
-    if (my_rank == 0) {
-        myfunc::duration(start);
-    }
+    myfunc::duration(start);
+    MPI_Finalize();
+    return 0;
 }

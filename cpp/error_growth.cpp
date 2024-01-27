@@ -3,6 +3,7 @@
 #include <eigen3/Eigen/Dense>
 #include <complex>
 #include <cmath>
+#include <omp.h>
 #include <chrono>
 #include "shared/Flow.hpp"
 #include "shared/myFunc.hpp"
@@ -16,7 +17,7 @@ int main(){
     params.nu = 4e-5;
     params.beta = 0.5;
     params.f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
-    double dt = 0.001;
+    double dt = 0.01;
     double t_0 = 0;
     double t = 400;
     double dump = 0;
@@ -25,7 +26,7 @@ int main(){
     int perturbed_dim = 13;
     int numThreads = omp_get_max_threads();
     double epsilon = 1e-2;
-    int repetitions = 1e+3;
+    int repetitions = 1e+5;
     int sampling_rate = 1; // sampling rate for error growth rate
     std::cout << numThreads << "threads" << std::endl;
 
