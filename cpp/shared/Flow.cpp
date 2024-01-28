@@ -118,10 +118,10 @@ ShellModel::ShellModel(SMparams input_params, double input_dt, double input_t_0,
     // make k_n and c_n using beta
     k_n = Eigen::VectorXd::Zero(dim);
     double q = 2.0;
-    double k_0 = pow(2, -4);
+    double k_0 = std::pow(2, -4);
     
     for (int i = 0; i < dim; i++) {
-        k_n(i) = k_0 * pow(q, i+1);
+        k_n(i) = k_0 * std::pow(q, i+1);
     };
     c_n_1 = Eigen::VectorXd::Zero(dim);
     c_n_1.topRows(dim-2) = k_n.topRows(dim-2);
@@ -222,7 +222,7 @@ Eigen::VectorXcd ShellModel::goy_shell_model(const Eigen::VectorXcd& state){
     Eigen::VectorXcd dt_u = (c_n_1.array() * u.middleRows(3,dim).conjugate().array() * u.bottomRows(dim).conjugate().array()
                             + c_n_2.array() * u.middleRows(1,dim).conjugate().array() * u.middleRows(3,dim).conjugate().array()
                             + c_n_3.array() * u.middleRows(1,dim).conjugate().array() * u.topRows(dim).conjugate().array()) * std::complex<double>(0, 1.0)
-                            - nu * u.middleRows(2,dim).array() * k_n.array().square();
+                            - nu * (u.middleRows(2,dim).array() * k_n.array().square());
     dt_u(0) += f;
     return dt_u;
 }
@@ -314,8 +314,6 @@ CoupledRossler::CoupledRossler(CRparams input_params, double input_dt, double in
     a = input_params.a;
     c = input_params.c;
     f = input_params.f;
-    
-    int dim = 6;
     
     steps = static_cast<long long>((t - t_0) / dt+ 0.5);
     dump_steps = static_cast<long long>(dump / dt + 0.5);

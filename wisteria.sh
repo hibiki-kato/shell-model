@@ -11,5 +11,7 @@ wget https://gitlab.com/libeigen/eigen/-/archive/3.4.0/eigen-3.4.0.tar.gz
 tar -xzf eigen-3.4.0.tar.gz
 mv eigen-3.4.0 eigen3
 
-# Set OS_NAME environment variable
-export OS_NAME="Wisteria"
+# Set OS_NAME environment variable to .bashrc
+echo "export OS_NAME=Wisteria" >> ~/.bashrc
+
+source ~/.bashrc

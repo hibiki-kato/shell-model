@@ -7,6 +7,10 @@
 turbulent_laminar_search/
 /cpp/build/**
 legacy/
+Python-3.12.0
+eigen3
+eigen-3.4.0.tar.gz
+Python-3.12.0.tgz
 
 !initials/*
 !average_time_para/*

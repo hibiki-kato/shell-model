@@ -21,9 +21,8 @@
 #include <string>
 #include "shared/Flow.hpp"
 #include "shared/myFunc.hpp"
-#include "shared/Eigen_numpy_converter.hpp"
-#include "shared/matplotlibcpp.h"
-namespace plt = matplotlibcpp;
+#define EIGEN_USE_BLAS
+#define EIGEN_USE_LAPACKE
 
 int main(int argc, char *argv[]) {
     auto start = std::chrono::system_clock::now(); // 計測開始時間
@@ -34,7 +33,6 @@ int main(int argc, char *argv[]) {
     MPI_Comm_size(MPI_COMM_WORLD, &num_procs);
     MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
 
-    std::cout << "my_rank: " << my_rank << " num_procs: " << num_procs << std::endl;
     SMparams params;
     params.nu = 4e-5;
     params.beta = 0.5;
@@ -43,14 +41,14 @@ int main(int argc, char *argv[]) {
     double t_0 = 0;
     double t = 400;
     double dump = 0;
-    Eigen::VectorXcd x_0 = npy2EigenVec<std::complex<double>>("../initials/beta0.5_nu4e-05_15dim.npy", true);
+    Eigen::VectorXcd x_0 = Eigen::VectorXcd::Random(15) * 1e-3;
     ShellModel SM(params, dt, t_0, t, dump, x_0);
     int perturbed_dim = 13;
     int numThreads = omp_get_max_threads();
     double epsilon = 1e-2;
     int repetitions = 5e+4;
     int sampling_rate = 1; // sampling rate for error growth rate
-    std::cout << numThreads << "threads" << std::endl;
+    if (my_rank == 0) std::cout << numThreads << "threads" << std::endl;
     //MPI用にrepetitionsを分割
     std::vector<int> ite(num_procs);
     for (int i = 0; i < num_procs - 1; i++) {
@@ -61,8 +59,8 @@ int main(int argc, char *argv[]) {
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_real_distribution<double> s(-1, 1);
-    std::cout << std::complex<double>(s(gen), s(gen)) << std::endl;
-    
+
+    std::cout << "my_rank: " << my_rank << " num_procs: " << num_procs << " loop"<< ite[my_rank] << std::endl;
 
     /*
                    █
@@ -81,10 +79,8 @@ int main(int argc, char *argv[]) {
     */
     Eigen::VectorXd average_errors(SM.steps + 1); // 誤差の平均を格納するベクトル
     Eigen::VectorXd time(SM.steps + 1); //　時間を格納するベクトル
-    #pragma omp declare reduction(+ : Eigen::VectorXd : omp_out = omp_out + omp_in) \
-        initializer(omp_priv = Eigen::VectorXd::Zero(omp_orig.size()))
 
-    #pragma omp parallel for num_threads(numThreads) schedule(dynamic) firstprivate(SM, perturbed_dim, epsilon, ite, my_rank) shared(time) reduction(+ : average_errors)
+    #pragma omp parallel for num_threads(numThreads) schedule(dynamic) firstprivate(SM, perturbed_dim, epsilon, ite, my_rank) shared(time, average_errors)
     for(int i = 0; i < ite[my_rank]; i++){
         SM.x_0 = myfunc::multi_scale_perturbation(SM.x_0, -3, -2); // 初期値をランダムに与える
         // ある程度まともな値になるように初期値を更新
@@ -114,7 +110,12 @@ int main(int argc, char *argv[]) {
             errors(j) = diff.col(j).norm();
         }
 
+        #pragma omp critical
         average_errors += errors / repetitions;
+
+        if (my_rank == 0 && omp_get_thread_num() == 0){
+            std::cout << "count " << i*num_procs << std::endl;
+        }
     }
     MPI_Reduce(
         &average_errors(0), // sendbuf
@@ -195,70 +196,104 @@ int main(int argc, char *argv[]) {
     time_vec.pop_back();
     //check the size
     // std::cout << error_vec.size() << "   "  << growth_rate_vec.size() << " " << time_vec.size()<<  std::endl;
+    // error_vecとerror_rate_vecとtime_vecを一時ファイルにまとめて保存
+    std::string data_file = "tmp.dat";
+    std::ofstream ofs(data_file);
+    for (int i = 0; i < error_vec.size(); i++) {
+        ofs << error_vec[i] << "\t" << growth_rate_vec[i] << "\t" << time_vec[i] << std::endl;
+    }
+    ofs.close();
 
+    // gnuplotでプロット
     std::ostringstream oss;
+
     // エラー : エラー成長率
-    plt::figure_size(1200, 800);
-    plt::xscale("log");
-    plt::xlabel("E");
-    plt::ylabel("E'/E");
-    plt::scatter(error_vec, growth_rate_vec);
     oss << "../../error_growth/error-rate_beta" << params.beta << "nu" << params.nu << "t" << t << "dt" << dt << "repeat" << repetitions << "sampling" << sampling_rate << ".png";  // 文字列を結合する
     std::string plotfname = oss.str(); // 文字列を取得する
     std::cout << "Saving result to " << plotfname << std::endl;
-    plt::save(plotfname);
-    plt::close();
+    std::ostringstream gnuplotCmd;
+    gnuplotCmd << "gnuplot -persist -e \"";
+    gnuplotCmd << "set term png size 1200,800 font 'Times New Roman,20'; ";
+    gnuplotCmd << "set output '" << plotfname << "'; ";
+    gnuplotCmd << "set xlabel 'E'; ";
+    gnuplotCmd << "set ylabel 'E/E'; ";
+    gnuplotCmd << "set logscale x; set format x '10^{%L}';";
+    gnuplotCmd << "set autoscale; ";
+    gnuplotCmd << "unset key; ";
+    gnuplotCmd << "plot '"<< data_file << "' u 1:2 with points pt 7 lc 'blue'; ";
+    gnuplotCmd << "replot; ";
+    gnuplotCmd << "set output; ";
+    gnuplotCmd << "set term qt; ";
+    gnuplotCmd << "exit;\"";
+    // std::cout << gnuplotCmd.str() << std::endl;
+    system(gnuplotCmd.str().c_str());
 
-    // エラー : 時間
-    plt::figure_size(1200, 800);
-    plt::yscale("log");
-    plt::scatter(time_vec, error_vec);
-    plt::xlabel("t");
-    plt::ylabel("E");
+    // 時間 : エラー
     oss.str("");
     oss << "../../error_growth/time-error_beta" << params.beta << "nu" << params.nu << "t" << t << "dt" << dt << "repeat" << repetitions << "sampling" << sampling_rate << ".png";  // 文字列を結合する
     std::string plotfname1 = oss.str(); // 文字列を取得する
     std::cout << "Saving result to " << plotfname1 << std::endl;
-    plt::save(plotfname1);
-    plt::close();
+    gnuplotCmd.str("");
+    gnuplotCmd << "gnuplot -persist -e \"";
+    gnuplotCmd << "set term png size 1200,800 font 'Times New Roman,20'; ";
+    gnuplotCmd << "set output '" << plotfname1 << "'; ";
+    gnuplotCmd << "set xlabel 't'; ";
+    gnuplotCmd << "set ylabel 'E'; ";
+    gnuplotCmd << "set logscale y;  set format y '10^{%L}';";
+    gnuplotCmd << "unset key; ";
+    gnuplotCmd << "plot '"<< data_file << "' u 3:1 with points pt 7 lc 'blue'; ";
+    gnuplotCmd << "replot; ";
+    gnuplotCmd << "set output; ";
+    gnuplotCmd << "set term qt; ";
+    gnuplotCmd << "exit;\"";
+    // std::cout << gnuplotCmd.str() << std::endl;
+    system(gnuplotCmd.str().c_str());
 
-    // エラー成長率 : 時間
-    plt::figure_size(1200, 800);
-    // plt::xscale("log");
-    plt::scatter(time_vec, growth_rate_vec);
-    plt::xlabel("t");
-    plt::ylabel("E'/E");
+    // 時間 : エラー成長率
     oss.str("");
     oss << "../../error_growth/time-rate_beta" << params.beta << "nu" << params.nu << "t" << t << "dt" << dt << "repeat" << repetitions << "sampling" << sampling_rate << ".png";  // 文字列を結合する
     std::string plotfname2 = oss.str(); // 文字列を取得する
     std::cout << "Saving result to " << plotfname2 << std::endl;
-    plt::save(plotfname2);
+    gnuplotCmd.str("");
+    gnuplotCmd << "gnuplot -persist -e \"";
+    gnuplotCmd << "set term png size 1200,800 font 'Times New Roman,20'; ";
+    gnuplotCmd << "set output '" << plotfname2 << "'; ";
+    gnuplotCmd << "set xlabel 't'; ";
+    gnuplotCmd << "set ylabel 'E/E'; ";
+    gnuplotCmd << "unset key; ";
+    gnuplotCmd << "plot '"<< data_file << "' u 3:2 with points pt 7 lc 'blue'; ";
+    gnuplotCmd << "replot; ";
+    gnuplotCmd << "set output; ";
+    gnuplotCmd << "set term qt; ";
+    gnuplotCmd << "exit;\"";
+    // std::cout << gnuplotCmd.str() << std::endl;
+    system(gnuplotCmd.str().c_str());
+    
     /*
-     ████                          ██
-    ██  ██                         ██
-    █    █   ███  ██   █  ███     ████  ███      █ ███  █████ ██   █
-    ██      █  ██  █  ██ ██  █     ██  ██  █     ██  █  ██  █  █  ██
-     ████       █  █  █  █   █     ██  █   ██    █   █  █   ██ █  █
-        ██   ████  ██ █  █████     ██  █    █    █   █  █   ██ ██ █
-    █    █  █   █   ███  █         ██  █   ██    █   █  █   ██  ███
-    ██  ██  █  ██   ██   ██  █     ██  ██  █     █   █  ██  █   ██
-     ████   █████   ██    ████      ██  ███      █   █  █████   ██
-                                                        █       ██
-                                                        █       █
-                                                        █     ██
+     ████                          ██            ██        ██
+    ██  ██                         ██            ██        ██
+    █    █   ███  ██   █  ███     ████  ███     ████ █  ██████
+    ██      █  ██  █  ██ ██  █     ██  ██  █     ██  ██ █  ██
+     ████       █  █  █  █   █     ██  █   ██    ██   ███  ██
+        ██   ████  ██ █  █████     ██  █    █    ██   ██   ██
+    █    █  █   █   ███  █         ██  █   ██    ██   ███  ██
+    ██  ██  █  ██   ██   ██  █     ██  ██  █     ██  ██ █  ██
+     ████   █████   ██    ████      ██  ███       ██ █  ██  ██
     */
-    Eigen::MatrixXd result(3, error_vec.size());
-    for (int i = 0; i < error_vec.size(); i++) {
-        result(0, i) = error_vec[i];
-        result(1, i) = growth_rate_vec[i];
-        result(2, i) = time_vec[i];
-    }
     std::ostringstream oss2;
-    oss2 << "../../error_growth/beta" << params.beta << "nu" << params.nu << "t" << t << "dt" << dt << "repeat" << repetitions << "sampling" << sampling_rate << ".npy";  // 文字列を結合する
+    oss2 << "../../error_growth/beta" << params.beta << "nu" << params.nu << "t" << t << "dt" << dt << "repeat" << repetitions << "sampling" << sampling_rate << ".dat";  // 文字列を結合する
     std::string fname = oss2.str(); // 文字列を取得する
     std::cout << "Saving result to " << fname << std::endl;
-    EigenMat2npy(result, fname);
     myfunc::duration(start);
+    std::ofstream ofs2(fname);
+    if (!ofs2) {
+        std::cout << "Error: cannot open " << fname << std::endl;
+        return 1;
+    }
+    for (int i = 0; i < error_vec.size(); i++) {
+        ofs2 << error_vec[i] << "\t" << growth_rate_vec[i] << "\t" << time_vec[i] << std::endl;
+    }
+    ofs2.close();
     MPI_Finalize();
     return 0;
 }
