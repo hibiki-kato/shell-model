@@ -7,6 +7,7 @@
 turbulent_laminar_search/
 /cpp/build/**
 legacy/
+bif_data/
 Python-3.12.0
 eigen3
 eigen-3.4.0.tar.gz
@@ -16,6 +17,7 @@ Python-3.12.0.tgz
 !average_time_para/*
 !max_time_para/*
 !distribution/*
+!error_growth/*
 !.gitkeep
 
 *.DS_Store

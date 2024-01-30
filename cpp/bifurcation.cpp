@@ -5,7 +5,6 @@
 #include <cmath>
 #include <chrono>
 #include <omp.h>
-#include "cnpy/cnpy.h"
 #include "shared/Flow.hpp"
 #include "shared/Map.hpp"
 #include "shared/myFunc.hpp"
@@ -14,20 +13,20 @@
 int main(){
     auto start = std::chrono::system_clock::now(); // timer start
     SMparams params;
-    params.nu = 0.00017;
-    params.beta = 0.425;
+    params.nu = 0.00018;
+    params.beta = 0.416;
     params.f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
     double dt = 0.01;
     double t_0 = 0;
-    double t = 1e+4;
-    double dump = 1e+3;
+    double t = 1e+6;
+    double dump = 5e+4;
     Eigen::VectorXcd x_0 = npy2EigenVec<std::complex<double>>("../initials/beta0.4155_nu0.00018_14dim_period.npy", true);
-    int numThreads = omp_get_max_threads();
+    int numThreads = 1;
     std::cout << numThreads << "threads" << std::endl;
 
-    int param_steps = 64;
-    double beta_begin = 0.416;
-    double beta_end = 0.4165;
+    int param_steps = 300;
+    double beta_begin = 0.415;
+    double beta_end = 0.417;
     double nu_begin = 0.00018;
     double nu_end = 0.00018;
     int loc_max_dim = 3;

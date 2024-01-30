@@ -1,16 +1,3 @@
-                                                      █                                     █
-█████                            █                    █     ██                              █         ██
-█    █                                                █     ██                              █         ██
-█    █   ███   █████ ███   ███   █  █ ███   ███    ████    ████  ███      █   █  █████   ████   ███  ████  ███
-█    █  ██  █  ██  ██  █  █  ██  █  ██  █  ██  █  ██  █     ██  ██  █     █   █  ██  █  ██  █  █  ██  ██  ██  █
-█████   █   █  █   █   ██     █  █  █   █  █   █  █   █     ██  █   ██    █   █  █   ██ █   █      █  ██  █   █
-█   █   █████  █   █   ██  ████  █  █   █  █████  █   █     ██  █    █    █   █  █   ██ █   █   ████  ██  █████
-█   ██  █      █   █   ██ █   █  █  █   █  █      █   █     ██  █   ██    █   █  █   ██ █   █  █   █  ██  █
-█    █  ██  █  █   █   ██ █  ██  █  █   █  ██  █  ██  █     ██  ██  █     █   █  ██  █  ██  █  █  ██  ██  ██  █
-█    ██  ████  █   █   ██ █████  █  █   █   ████   ████      ██  ███       ████  █████   ████  █████   ██  ████
-                                                                                 █
-                                                                                 █
-                                                                                 █
 /**
  * @file random_jacobian.cpp
  * @author Hibiki Kato
@@ -35,15 +22,9 @@
 #include <eigen3/Eigen/Core>
 #include "shared/Flow.hpp"
 #include "shared/myFunc.hpp"
-#include "cnpy/cnpy.h"
 #include "shared/matplotlibcpp.h"
 #include "shared/Eigen_numpy_converter.hpp"
 namespace plt = matplotlibcpp;
-
-// 関数プロトタイプ
-Eigen::MatrixXd computeJacobian(const Eigen::VectorXd& state, Eigen::VectorXd k_n, double beta, double nu);
-Eigen::VectorXd computeDerivativeJacobian(const Eigen::VectorXd& state, const Eigen::MatrixXd& jacobian);
-Eigen::VectorXd rungeKuttaJacobian(const Eigen::VectorXd& state, const Eigen::MatrixXd& jacobian, double dt);
 
 // メイン関数
 int main() {
@@ -54,8 +35,8 @@ int main() {
     params.f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
     double dt = 0.01;
     double t_0 = 0;
-    double t = 10000;
-    double dump =
+    double t = 400;
+    double dump = 0;
     int threads = omp_get_max_threads();
     Eigen::VectorXcd dummy = Eigen::VectorXd::Zero(15);
     

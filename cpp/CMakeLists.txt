@@ -5,10 +5,10 @@ set(CMAKE_C_COMPILER gcc)
 set(CMAKE_CXX_COMPILER g++)
 set(EXECUTABLE exe)
 add_executable(${EXECUTABLE} 
-    error_growth_mpi.cpp
+    error_growth_linear_mpi.cpp
     shared/myFunc.cpp
     shared/Flow.cpp
-    # shared/Map.cpp
+    shared/Map.cpp
 )
 
 # OSでソースが異なるので分岐
@@ -40,7 +40,7 @@ if(NOT $ENV{OS_NAME} STREQUAL "Wisteria")
 endif()
 #キャッシュなし
 set(CMAKE_NO_CACHE TRUE)
-set(CMAKE_CXX_FLAGS "-O3 -fopenmp -mtune=native -march=native -std=c++23")
+set(CMAKE_CXX_FLAGS "-O3 -fopenmp -mtune=native -march=native -std=c++23 -fopt-info-optimized")
 if($ENV{OS_NAME} STREQUAL "Wisteria")
     set(CMAKE_CXX_COMPILER mpiFCCpx)
     set(CMAKE_CXX_FLAGS "-std=gnu++11 -Nfjomplib  -Ksimd=auto -Kopenmp -Kfast -O3 -w -Kocl -Koptmsg=2 -Krestp=all")

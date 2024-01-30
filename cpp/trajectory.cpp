@@ -14,14 +14,14 @@ namespace plt = matplotlibcpp;
 int main(){
     auto start = std::chrono::system_clock::now(); // 計測開始時間
     SMparams params;
-    params.nu = 4e-5;
+    params.nu = 1e-10;
     params.beta = 0.5;
     params.f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
-    double dt = 0.01;
+    double dt = 1e-6;
     double t_0 = 0;
-    double t = 1e+3;
-    double dump = 1e+5;
-    Eigen::VectorXcd x_0 = npy2EigenVec<std::complex<double>>("../initials/beta0.5_nu4e-05_15dim.npy", true);
+    double t = 1e+2;
+    double dump = 0;
+    Eigen::VectorXcd x_0 = npy2EigenVec<std::complex<double>>("../initials/beta0.5_nu1e-10_29dim.npy", true);
     int plotdim1 = 4;
     int plotdim2 = 5;
 

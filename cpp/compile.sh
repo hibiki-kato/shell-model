@@ -8,16 +8,16 @@
 #PJM -L jobenv=singularity
 #PJM -j
 
-export OS_NAME=Wisteria
-export XOS_MMM_L_PAGING_POLICY=demand:demand:demand
-cd /work/gt00/t00006/shell-model/cpp/build
-cmake ../
-make
+# export OS_NAME=Wisteria
+# export XOS_MMM_L_PAGING_POLICY=demand:demand:demand
+# cd /work/gt00/t00006/shell-model/cpp/build
+# cmake ../
+# make
 
 
-# module load singularity aquarius
-# SIF=/work/gt00/t00006/shell-model/singularity/sm-image.sif
-# singularity exec --bind /work/gt00/t00006/shell-model:/workspaces/shell-model $SIF \
-#     bash -c "cd /workspaces/shell-model/cpp/build && \
-#              cmake -GNinja ../ && \
-#              ninja"
+module load singularity aquarius
+SIF=/work/gt00/t00006/shell-model/singularity/sm-image.sif
+singularity exec --bind /work/gt00/t00006/shell-model:/workspaces/shell-model $SIF \
+    bash -c "cd /workspaces/shell-model/cpp/build && \
+             cmake -GNinja ../ && \
+             ninja"
