@@ -120,7 +120,7 @@ int main(){
         Eigen::MatrixXcd diff = original - another;
         Eigen::VectorXd errors(SM.steps+1);
         // 各列のノルムを計算
-        for (int j = 0; j < SM.steps; j++) {
+        for (int j = 0; j < SM.steps+1; j++) {
             errors(j) = diff.col(j).norm();
         }
         //errorsにinfがあるかどうか
