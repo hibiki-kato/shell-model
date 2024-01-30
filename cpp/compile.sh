@@ -15,9 +15,10 @@
 # make
 
 
-module load singularity aquarius
+module load singularity
 SIF=/work/gt00/t00006/shell-model/singularity/sm-image.sif
+export OS_NAME=Linux
 singularity exec --bind /work/gt00/t00006/shell-model:/workspaces/shell-model $SIF \
     bash -c "cd /workspaces/shell-model/cpp/build && \
-             cmake -GNinja ../ && \
-             ninja"
+            cmake -GNinja ../ && \
+            ninja"

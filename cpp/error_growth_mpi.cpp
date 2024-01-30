@@ -46,7 +46,7 @@ int main(int argc, char *argv[]) {
     int perturbed_dim = 13;
     int numThreads = omp_get_max_threads();
     double epsilon = 1e-2;
-    int repetitions = 5e+4;
+    int repetitions = 1e+3;
     int sampling_rate = 1; // sampling rate for error growth rate
     if (my_rank == 0) std::cout << numThreads << "threads" << std::endl;
     //MPI用にrepetitionsを分割
@@ -79,8 +79,11 @@ int main(int argc, char *argv[]) {
     */
     Eigen::VectorXd average_errors(SM.steps + 1); // 誤差の平均を格納するベクトル
     Eigen::VectorXd time(SM.steps + 1); //　時間を格納するベクトル
+    int counter = 0;
+    #pragma omp declare reduction(+ : Eigen::VectorXd : omp_out = omp_out + omp_in) \
+        initializer(omp_priv = Eigen::VectorXd::Zero(omp_orig.size()))
 
-    #pragma omp parallel for num_threads(numThreads) schedule(dynamic) firstprivate(SM, perturbed_dim, epsilon, ite, my_rank) shared(time, average_errors)
+    #pragma omp parallel for num_threads(numThreads) schedule(dynamic) firstprivate(SM, perturbed_dim, epsilon, ite, my_rank) shared(time, counter) reduction(+ : average_errors)
     for(int i = 0; i < ite[my_rank]; i++){
         SM.x_0 = myfunc::multi_scale_perturbation(SM.x_0, -3, -2); // 初期値をランダムに与える
         // ある程度まともな値になるように初期値を更新
@@ -110,11 +113,12 @@ int main(int argc, char *argv[]) {
             errors(j) = diff.col(j).norm();
         }
 
-        #pragma omp critical
         average_errors += errors / repetitions;
+        #pragma omp atomic
+        counter++;
 
         if (my_rank == 0 && omp_get_thread_num() == 0){
-            std::cout << "count " << i*num_procs << std::endl;
+            std::cout << "count " << counter << std::endl;
         }
     }
     MPI_Reduce(

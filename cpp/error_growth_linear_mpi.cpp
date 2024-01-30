@@ -12,8 +12,8 @@
 namespace plt = matplotlibcpp;
 
 int main(int argc, char *argv[]){
-    int proc_num = atoi(argv[1]);
-    int my_rank = atoi(argv[2]]);
+    // int my_rank = atoi(argv[1]);
+    // int my_node = atoi(argv[2]);
     auto start = std::chrono::system_clock::now(); // 計測開始時間
     SMparams params;
     params.nu = 4e-5;
@@ -30,10 +30,11 @@ int main(int argc, char *argv[]){
     int numThreads = omp_get_max_threads();
     double epsilon = 1e-5;
     int repetitions = 5e+4;
-    std::cout << numThreads << "threads" << std::endl;
+    // std::cout << numThreads << "threads" << std::endl;
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_real_distribution<double> s(-1, 1);
+    std::uniform_int_distribution<int> id(0, 100000);
     
 
     /*
@@ -133,12 +134,11 @@ int main(int argc, char *argv[]){
 
         #pragma atomic
         counter++; // just for progress bar
-        if (omp_get_thread_num() == 0){
-            std::cout << "\r processing..." << counter << "/" << repetitions << std::flush;
-        }
+        // if (omp_get_thread_num() == 0){
+        //     std::cout << "\r processing..." << counter << "/" << repetitions << std::flush;
+        // }
     }
     std::cout << invalid_counter <<"/" << repetitions << " diverged" << std::endl;
-    average_errors /= (repetitions - invalid_counter);
     Eigen::VectorXd time(SM.steps + 1); //時間を格納するベクトル
     time(0) = SM.t_0;
     for (int i = 0; i < SM.steps; i++) {
@@ -168,7 +168,7 @@ int main(int argc, char *argv[]){
         result(2, i) = time_vec[i];
     }
     std::ostringstream oss2;
-    oss2 << "../../error_growth/linear_beta" << params.beta << "nu" << params.nu << "t" << t << "dt" << dt << "repeat" << repetitions - invalid_counter << << "perturbed_dim" << perturbed_dim <<"_"<<my_rank<< ".npy";  // 文字列を結合する
+    oss2 << "../../error_growth/assemble/linear_beta" << params.beta << "nu" << params.nu << "t" << t <<"initial"<< t_initial << "dt" << dt << "repeat" << repetitions - invalid_counter << "perturbed_dim" << perturbed_dim << "_" << id(gen) <<".npy";  // 文字列を結合する
     std::string fname = oss2.str(); // 文字列を取得する
     std::cout << "Saving result to " << fname << std::endl;
     EigenMat2npy(result, fname);
