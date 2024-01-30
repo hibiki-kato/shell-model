@@ -18,6 +18,7 @@ Python-3.12.0.tgz
 !max_time_para/*
 !distribution/*
 !error_growth/*
+!error_growth/assemble/*
 !.gitkeep
 
 *.DS_Store
