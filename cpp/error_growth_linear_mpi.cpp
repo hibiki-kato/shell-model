@@ -22,7 +22,7 @@ int main(int argc, char *argv[]){
     double dt = 0.01;
     double t_0 = 0;
     double t = 400;
-    double t_initial = 26;
+    double t_initial = 20;
     Eigen::VectorXcd x_0 = npy2EigenVec<std::complex<double>>("../initials/beta0.5_nu4e-05_15dim.npy", true);
     int dim = x_0.size();
     ShellModel SM(params, dt, t_0, t, t_initial, x_0);
@@ -121,7 +121,7 @@ int main(int argc, char *argv[]){
         Eigen::MatrixXcd diff = original - another;
         Eigen::VectorXd errors(SM.steps+1);
         // 各列のノルムを計算
-        for (int j = 0; j < SM.steps; j++) {
+        for (int j = 0; j < SM.steps+1; j++) {
             errors(j) = diff.col(j).norm();
         }
         //errorsにinfがあるかどうか
@@ -162,10 +162,10 @@ int main(int argc, char *argv[]){
                                                         █       █
                                                         █     ██
     */
-    Eigen::MatrixXd result(3, error_vec.size());
+    Eigen::MatrixXd result(2, error_vec.size());
     for (int i = 0; i < error_vec.size(); i++) {
         result(0, i) = error_vec[i];
-        result(2, i) = time_vec[i];
+        result(1, i) = time_vec[i];
     }
     std::ostringstream oss2;
     oss2 << "../../error_growth/assemble/linear_beta" << params.beta << "nu" << params.nu << "t" << t <<"initial"<< t_initial << "dt" << dt << "repeat" << repetitions - invalid_counter << "perturbed_dim" << perturbed_dim << "_" << id(gen) <<".npy";  // 文字列を結合する
