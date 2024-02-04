@@ -34,7 +34,7 @@ int main(int argc, char *argv[]){
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_real_distribution<double> s(-1, 1);
-    std::uniform_int_distribution<int> id(0, 100000);
+    std::uniform_int_distribution<int> id(0, 1000000);
     
 
     /*
