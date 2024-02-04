@@ -22,7 +22,7 @@ int main(int argc, char *argv[]){
     double dt = 0.01;
     double t_0 = 0;
     double t = 400;
-    double t_initial = 0;
+    double t_initial = 400;
     Eigen::VectorXcd x_0 = npy2EigenVec<std::complex<double>>("../initials/beta0.5_nu4e-05_15dim.npy", true);
     int dim = x_0.size();
     ShellModel SM(params, dt, t_0, t, t_initial, x_0);
