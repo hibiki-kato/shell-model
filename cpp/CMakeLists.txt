@@ -5,7 +5,7 @@ set(CMAKE_C_COMPILER gcc)
 set(CMAKE_CXX_COMPILER g++)
 set(EXECUTABLE exe)
 add_executable(${EXECUTABLE} 
-    trajectory.cpp
+    error_growth_linear_mpi.cpp
     shared/myFunc.cpp
     shared/Flow.cpp
     shared/Map.cpp
