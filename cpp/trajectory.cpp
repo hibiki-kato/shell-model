@@ -14,16 +14,16 @@ namespace plt = matplotlibcpp;
 int main(){
     auto start = std::chrono::system_clock::now(); // 計測開始時間
     SMparams params;
-    params.nu = 1e-10;
-    params.beta = 0.5;
+    params.nu = 1.8e-4;
+    params.beta = 0.4162;
     params.f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
-    double dt = 1e-6;
+    double dt = 1e-2;
     double t_0 = 0;
-    double t = 1e+2;
-    double dump = 0;
-    Eigen::VectorXcd x_0 = npy2EigenVec<std::complex<double>>("../initials/beta0.5_nu1e-10_29dim.npy", true);
-    int plotdim1 = 4;
-    int plotdim2 = 5;
+    double t = 1e+5;
+    double dump = 1e+5;
+    Eigen::VectorXcd x_0 = npy2EigenVec<std::complex<double>>("../initials/beta0.417_nu0.00018_13348period_dt0.01eps0.005.npy", true);
+    int plotdim1 = 15;
+    int plotdim2 = 1;
 
     ShellModel SM(params, dt, t_0, t, dump, x_0);
     Eigen::MatrixXcd trajectory = SM.get_trajectory(); 
@@ -43,8 +43,8 @@ int main(){
     }
     std::map<std::string, std::string> keywords;
     keywords["lw"] = "1";   
-    plt::xlim(0.0, 0.45);
-    plt::ylim(0.0, 0.45);
+    // plt::xlim(0.0, 0.45);
+    // plt::ylim(0.0, 0.45);
     plt::xlabel("$|U_{" + std::to_string(plotdim1) + "}|$");
     plt::ylabel("$|U_{" + std::to_string(plotdim2) + "}|$");
     plt::plot(x,y, keywords);
@@ -56,10 +56,10 @@ int main(){
 
     oss.str("");
     //  文字列を取得する
-    oss << "../../traj/beta" << params.beta << "_nu" << params.nu <<"_"<< static_cast<int>(t-t_0) << "period.npy";  // 文字列を結合する
+    oss << "../../traj/beta" << params.beta << "nu" << params.nu << "t" << std::scientific << std::setprecision(3) << (t - t_0) << "dump" << dump << ".npy";  // 文字列を結合する
     std::string npyfname = oss.str();
     std::cout << "Saving result to " << npyfname << std::endl;
-    // EigenMat2npy(trajectory, npyfname);
+    EigenMat2npy(trajectory, npyfname);
 
     myfunc::duration(start);
 }

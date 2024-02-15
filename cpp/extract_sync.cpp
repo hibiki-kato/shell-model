@@ -26,11 +26,11 @@ int main(){
     auto start = std::chrono::system_clock::now(); // 計測開始時間
     SMparams params;
     params.nu = 1.8e-4;
-    params.beta = 0.4165;
+    params.beta = 0.417;
     params.f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
     double dt = 0.01;
     double t_0 = 0;
-    double t = 5e+4;
+    double t = 1e+6;
     double dump = 1e+4;
     int numthreads = omp_get_max_threads();
     int window = 1000; // how long the sync part should be. (sec)
@@ -194,23 +194,23 @@ int main(){
                                                               █        █
                                                               █      ███
     */
-        // reset oss
-    // oss.str("");
-    // oss << "../../sync/npy/sync_beta" << params.beta << "nu" << params.nu <<"_"<< t-t_0 << "period" <<  window <<"window";
-    // for (const auto& pair : sync_pairs){
-    //     oss << "_" << std::get<0>(pair) << "-" << std::get<1>(pair);
-    // }
-    // oss << ".npy";
+    //reset oss
+    oss.str("");
+    oss << "../../sync/npy/sync_beta" << params.beta << "nu" << params.nu <<"_"<< t-t_0 << "period" <<  window <<"window";
+    for (const auto& pair : sync_pairs){
+        oss << "_" << std::get<0>(pair) << "-" << std::get<1>(pair);
+    }
+    oss << ".npy";
 
-    // std::string fname = oss.str(); // 文字列を取得する
-    // std::cout << "Saving result to " << fname << std::endl;
-    // Eigen::MatrixXcd matrix(synced.size(), synced[0].size());
-    // for (int i = 0; i < synced.size(); i++) {
-    //     for (int j = 0; j < synced[0].size(); j++) {
-    //         matrix(i, j) = synced[i][j];
-    //     }
-    // }
-    // EigenMt2npy(matrix, fname);
+    std::string fname = oss.str(); // 文字列を取得する
+    std::cout << "Saving result to " << fname << std::endl;
+    Eigen::MatrixXcd matrix(synced.size(), synced[0].size());
+    for (int i = 0; i < synced[0].size(); i++) {
+        for (int j = 0; j < synced.size(); j++) {
+            matrix(j, i) = synced[j][i];
+        }
+    }
+    EigenMat2npy(matrix, fname);
 
     myfunc::duration(start);
 }

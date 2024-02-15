@@ -59,6 +59,46 @@ struct Lorenz63{
     Eigen::VectorXd x_0;
 };
 
+/*
+██                                                        ████         ███
+██                                                       ██████      ████
+██                                                      ██    ██    ███
+██                                                      ██    ██    ██
+██          █████    ██ ██   ████    ██ ████   ████████ ██     █    █
+██         ███████   █████  ███████  ████████       ██  ██     █   ██ ████
+██        ██    ███  ██    ██    ██  ██    ██      ███  ██    ██   ████████
+██        ██     ██  ██    ██     █  ██    ██      ██    ███████   ███   ██
+██        ██     ██  ██    ████████  ██    ██     ██      ████ █   ██     ██
+██        ██     ██  ██    ██        ██    ██    ██           ██   ██     ██
+██        ██     ██  ██    ██        ██    ██   ███           ██   ██     ██
+██        ██    ███  ██    ██        ██    ██   ██           ██     ██   ██
+████████   ███████   ██     ███████  ██    ██  ███        █████     ███████
+█████████   █████    ██      █████   ██    ██  ████████   ███         ████
+*/
+
+struct Lorenz96params{
+    double F;
+};
+
+struct Lorenz96{
+    Lorenz96(Lorenz96params input_params, double input_dt, double input_t_0, double input_t, double input_dump, Eigen::VectorXd input_x_0);
+    ~Lorenz96();
+    Eigen::MatrixXd get_trajectory();
+    Eigen::VectorXd rk4(const Eigen::VectorXd& present);
+    Eigen::VectorXd lorenz96(const Eigen::VectorXd& state);
+    Eigen::MatrixXd jacobian_matrix(const Eigen::VectorXd& state);
+
+    //data members
+    double F;
+    int N;
+    double dt;
+    double t_0;
+    double t;
+    double dump;
+    long long steps;
+    long long dump_steps;
+    Eigen::VectorXd x_0;
+};
 
 /*
   █████    ██                  ██   ██   ███        ███                     █             ██

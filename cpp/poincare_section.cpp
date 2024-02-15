@@ -16,11 +16,11 @@ int main(){
     auto start = std::chrono::system_clock::now(); // timer start
     SMparams params;
     params.nu = 0.00018;
-    params.beta = 0.417;
+    params.beta = 0.4154;
     params.f = std::complex<double>(1.0,1.0) * 5.0 * 0.001;
     double dt =0.01;
     double t_0 = 0;
-    double t = 2e+5;
+    double t = 1e+5;
     double dump = 1e+4;
     Eigen::VectorXcd x_0 = npy2EigenVec<std::complex<double>>("../initials/beta0.415_nu0.00018_100000period_dt0.01.npy", true);
     std::vector<Eigen::MatrixXd> matrices; //ポアンカレ写像の結果を格納するベクトル

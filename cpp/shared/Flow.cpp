@@ -87,6 +87,99 @@ Eigen::MatrixXd Lorenz63::jacobian_matrix(const Eigen::VectorXd& state){
 }
 
 /*
+██                                                        ████         ███
+██                                                       ██████      ████
+██                                                      ██    ██    ███
+██                                                      ██    ██    ██
+██          █████    ██ ██   ████    ██ ████   ████████ ██     █    █
+██         ███████   █████  ███████  ████████       ██  ██     █   ██ ████
+██        ██    ███  ██    ██    ██  ██    ██      ███  ██    ██   ████████
+██        ██     ██  ██    ██     █  ██    ██      ██    ███████   ███   ██
+██        ██     ██  ██    ████████  ██    ██     ██      ████ █   ██     ██
+██        ██     ██  ██    ██        ██    ██    ██           ██   ██     ██
+██        ██     ██  ██    ██        ██    ██   ███           ██   ██     ██
+██        ██    ███  ██    ██        ██    ██   ██           ██     ██   ██
+████████   ███████   ██     ███████  ██    ██  ███        █████     ███████
+█████████   █████    ██      █████   ██    ██  ████████   ███         ████
+*/
+Lorenz96::Lorenz96(Lorenz96params input_params, double input_dt, double input_t_0, double input_t, double input_dump, Eigen::VectorXd input_x_0){
+    F = input_params.F;
+    dt = input_dt;
+    t_0 = input_t_0;
+    t = input_t;
+    dump = input_dump;
+    x_0 = input_x_0;
+    N = x_0.size();
+    //parameters
+    steps = static_cast<long long>((t - t_0) / dt + 0.5);
+    dump_steps = static_cast<long long>(dump / dt + 0.5);
+}
+Lorenz96::~Lorenz96(){
+}
+
+Eigen::MatrixXd Lorenz96::get_trajectory(){
+    Eigen::MatrixXd trajectory(N+1, steps+1);
+    //set initial point
+    trajectory.topLeftCorner(N, 1) = x_0;
+    //renew x_0 (dump)
+    for (long long i = 0; i < dump_steps; i++){
+        trajectory.topLeftCorner(N, 1) = Lorenz96::rk4(trajectory.topLeftCorner(N, 1));
+    }
+    double time = t_0;
+    trajectory(N, 0) = time;
+    //solve
+    for(long long i = 0; i < steps; i++){
+        time += dt;
+        trajectory.block(0, i+1, N, 1) = Lorenz96::rk4(trajectory.block(0, i, N, 1));
+        trajectory(N, i+1) = time;
+    }
+    return trajectory;
+}
+Eigen::VectorXd Lorenz96::rk4(const Eigen::VectorXd& present){
+    Eigen::VectorXd k1 = dt * lorenz96(present);
+    Eigen::VectorXd k2 = dt * lorenz96(present + k1 / 2);
+    Eigen::VectorXd k3 = dt * lorenz96(present + k2 / 2);
+    Eigen::VectorXd k4 = dt * lorenz96(present + k3);
+    return present + (k1 + 2 * k2 + 2 * k3 + k4) / 6;
+}
+Eigen::VectorXd Lorenz96::lorenz96(const Eigen::VectorXd& state){
+    Eigen::VectorXd dt_x(N);
+    dt_x(0) = (state(1) - state(N-2)) * state(N-1) - state(0) + F;
+    dt_x(1) = (state(2) - state(N-1)) * state(0) - state(1) + F;
+    dt_x(N-1) = (state(0) - state(N-3)) * state(N-2) - state(N-1) + F;
+    for (int i = 2; i < N-1; i++){
+        dt_x(i) = (state(i+1) - state(i-2)) * state(i-1) - state(i) + F;
+    }
+    return dt_x;
+}
+Eigen::MatrixXd Lorenz96::jacobian_matrix(const Eigen::VectorXd& state){
+    Eigen::MatrixXd jacobian(N, N);
+    jacobian(0, 1) = state(N-1);
+    jacobian(0, N-2) = -state(N-1);
+    jacobian(0, N-1) = state(1) - state(N-2);
+    jacobian(1, 0) = state(2) - state(N-1);
+
+    jacobian(N-1, 0) = state(N-2);
+    jacobian(N-1, N-2) = state(0) - state(N-3);
+
+    for(int i = 0; i <= N - 1; i++){
+        jacobian(i, i) = -1;
+    }
+    for(int i = 1; i <= N-2; i++){
+        jacobian(i, i+1) = state(i-1);
+    }
+    for(int i = 2; i <= N-2; i++){
+        jacobian(i, i-1) = state(i+1) - state(i-2);
+    }
+    for (int i = 2; i <= N-1; i++){
+        jacobian(i, i-2) = -state(i-1);
+    }
+
+    return jacobian;
+}
+
+
+/*
   █████    ██                  ██   ██   ███        ███                     █             ██
  ████████  ██                  ██   ██   ████       ███                     █             ██
 ██     ██  ██                  ██   ██   ████       ███                     █             ██
@@ -118,10 +211,10 @@ ShellModel::ShellModel(SMparams input_params, double input_dt, double input_t_0,
     // make k_n and c_n using beta
     k_n = Eigen::VectorXd::Zero(dim);
     double q = 2.0;
-    double k_0 = std::pow(2, -4);
+    double k_0 = pow(2, -4);
     
     for (int i = 0; i < dim; i++) {
-        k_n(i) = k_0 * std::pow(q, i+1);
+        k_n(i) = k_0 * pow(q, i+1);
     };
     c_n_1 = Eigen::VectorXd::Zero(dim);
     c_n_1.topRows(dim-2) = k_n.topRows(dim-2);
@@ -222,7 +315,7 @@ Eigen::VectorXcd ShellModel::goy_shell_model(const Eigen::VectorXcd& state){
     Eigen::VectorXcd dt_u = (c_n_1.array() * u.middleRows(3,dim).conjugate().array() * u.bottomRows(dim).conjugate().array()
                             + c_n_2.array() * u.middleRows(1,dim).conjugate().array() * u.middleRows(3,dim).conjugate().array()
                             + c_n_3.array() * u.middleRows(1,dim).conjugate().array() * u.topRows(dim).conjugate().array()) * std::complex<double>(0, 1.0)
-                            - nu * (u.middleRows(2,dim).array() * k_n.array().square());
+                            - nu * u.middleRows(2,dim).array() * k_n.array().square();
     dt_u(0) += f;
     return dt_u;
 }
@@ -314,6 +407,8 @@ CoupledRossler::CoupledRossler(CRparams input_params, double input_dt, double in
     a = input_params.a;
     c = input_params.c;
     f = input_params.f;
+    
+    int dim = 6;
     
     steps = static_cast<long long>((t - t_0) / dt+ 0.5);
     dump_steps = static_cast<long long>(dump / dt + 0.5);
