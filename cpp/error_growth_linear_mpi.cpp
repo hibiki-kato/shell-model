@@ -129,6 +129,7 @@ int main(int argc, char *argv[]){
             #pragma omp atomic
             invalid_counter++;
         }else{
+            errors = errors.array().log();
             average_errors += errors;
         }
 

@@ -86,7 +86,8 @@ int main(){
             errors(j) = diff.col(j).norm();
         }
 
-        average_errors += errors / repetitions;
+        errors = errors.array().log();
+        average_errors += errors;
 
         #pragma atomic
         counter++; // just for progress bar
@@ -94,6 +95,9 @@ int main(){
             std::cout << "\r processing..." << counter << "/" << repetitions << std::flush;
         }
     }
+
+    average_errors /= repetitions;
+    average_errors = average_errors.array().exp();
 
     /*
                                      █                                                █                                            █
